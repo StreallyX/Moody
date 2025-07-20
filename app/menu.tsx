@@ -54,9 +54,9 @@ export default function MenuScreen() {
             onPress={() => {
               if (!item.locked) {
                 router.push({
-                  pathname: `/game/${item.id}` as any,
-                  params: { players: JSON.stringify(playerList) },
-                });
+                    pathname: `/game/${item.id}/` as any,
+                    params: { players: JSON.stringify(playerList) },
+                    });
               }
             }}
             disabled={item.locked}

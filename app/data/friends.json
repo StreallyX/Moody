@@ -1,0 +1,23 @@
+[
+  {
+    "id": "d1",
+    "type": "challenge",          
+    "text": "Bois 2 gorgées si tu as déjà ghosté quelqu’un.",
+    "level": 3,                
+    "minPlayers": 2,
+    "maxPlayers": 1               
+  },
+  {
+    "id": "q1",
+    "type": "question",
+    "text": "Qui dans la pièce embrasserais‑tu ? Bois 2 gorgées avant de répondre.",
+    "level": 4
+  },
+  {
+    "id": "r1",
+    "type": "roulette",
+    "text": "Shot / Safe Roulette",
+    "level": 5,
+    "slots": 8                 
+  }
+]
