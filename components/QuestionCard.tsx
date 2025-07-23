@@ -6,16 +6,16 @@ export default function QuestionCard({ data, onNext }: any) {
       <Text style={styles.level}>🧠 Question - Niveau {data.level}/10</Text>
 
       <Text style={styles.text}>
-        {data.text.replace('%PLAYER%', data.targets?.[0])}
+        {data.text.replace('%PLAYER%', String(data.targets?.[0] ?? ''))}
       </Text>
 
       {data.targets?.length > 1 && (
         <Text style={styles.targets}>👥 {data.targets.join(' & ')}</Text>
       )}
 
-      <TouchableOpacity style={styles.nextBtn} onPress={onNext}>
+      <TouchableOpacity style={styles.nextBtn} onPress={() => onNext()}>
         <Text style={styles.nextTxt}>Suivant ➡</Text>
-      </TouchableOpacity>
+     </TouchableOpacity>
     </View>
   );
 }

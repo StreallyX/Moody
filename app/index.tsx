@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     FlatList,
     Image,
@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { loadPlayers, savePlayers } from '../lib/storage'; // adapte le chemin si nécessaire
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -16,13 +17,22 @@ export default function HomeScreen() {
   const [players, setPlayers] = useState<string[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
 
-  const removePlayer = (name: string) =>
-    setPlayers(players.filter((p) => p !== name));
+  useEffect(() => {
+    loadPlayers().then(setPlayers);
+  }, []);
+
+  const removePlayer = (name: string) => {
+    const updated = players.filter((p) => p !== name);
+    setPlayers(updated);
+    savePlayers(updated);
+  };
 
   const addPlayer = () => {
     const trimmed = newPlayerName.trim().toUpperCase();
     if (trimmed && !players.includes(trimmed)) {
-      setPlayers([...players, trimmed]);
+      const updated = [...players, trimmed];
+      setPlayers(updated);
+      savePlayers(updated);
       setNewPlayerName('');
     }
   };
@@ -82,7 +92,6 @@ export default function HomeScreen() {
 
       {/* Bloc bouton Commencer + boutons horizontaux */}
       <View style={styles.block4}>
-        {/* Bouton Commencer */}
         <TouchableOpacity
           style={styles.startButton}
           disabled={players.length === 0}
@@ -91,7 +100,6 @@ export default function HomeScreen() {
           <Text style={styles.startText}>🎮 Commencer</Text>
         </TouchableOpacity>
 
-        {/* 4 boutons alignés */}
         <View style={styles.optionsRow}>
           <TouchableOpacity style={styles.sideButton}>
             <Text style={styles.sideText}>🌐{'\n'}Langue</Text>
@@ -112,26 +120,13 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#300000',
-  },
-
-  // bloc par section
-  block1: { flex: 2, justifyContent: 'center', alignItems: 'center' }, // logo 20%
-  block2: { flex: 2, justifyContent: 'center', alignItems: 'center' }, // liste 20%
-  block3: { flex: 1, justifyContent: 'center', alignItems: 'center' }, // input 10%
-  block4: { flex: 5, alignItems: 'center', justifyContent: 'space-evenly' }, // cercle 50%
-
-  logo: {
-    width: 220,
-    height: 100,
-  },
-
-  playerList: {
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
+  container: { flex: 1, backgroundColor: '#300000' },
+  block1: { flex: 2, justifyContent: 'center', alignItems: 'center' },
+  block2: { flex: 2, justifyContent: 'center', alignItems: 'center' },
+  block3: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  block4: { flex: 5, alignItems: 'center', justifyContent: 'space-evenly' },
+  logo: { width: 220, height: 100 },
+  playerList: { paddingVertical: 8, alignItems: 'center' },
   playerChip: {
     backgroundColor: '#fff',
     borderRadius: 20,
@@ -139,15 +134,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginHorizontal: 5,
   },
-  playerText: {
-    fontWeight: 'bold',
-    color: '#000',
-  },
-
-  addPlayerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  playerText: { fontWeight: 'bold', color: '#000' },
+  addPlayerContainer: { flexDirection: 'row', alignItems: 'center' },
   input: {
     height: 40,
     width: 180,
@@ -165,11 +153,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  plusText: {
-    fontSize: 24,
-    color: '#000',
-  },
-
+  plusText: { fontSize: 24, color: '#000' },
   startButton: {
     backgroundColor: '#f2b662',
     borderRadius: 50,
@@ -179,19 +163,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     elevation: 4,
   },
-  startText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-
+  startText: { fontSize: 18, fontWeight: 'bold', color: '#000' },
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     width: '90%',
   },
-
   sideButton: {
     width: 70,
     height: 70,
@@ -201,9 +179,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: 5,
   },
-  sideText: {
-    color: '#f2b662',
-    textAlign: 'center',
-    fontSize: 12,
-  },
+  sideText: { color: '#f2b662', textAlign: 'center', fontSize: 12 },
 });

@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ImageBackground,
   StyleSheet,
@@ -7,31 +7,27 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { loadPlayers } from '../../../lib/storage'; // adapte le chemin si besoin
 
 export default function GameStartScreen() {
   const router = useRouter();
-  const { players, id } = useLocalSearchParams<{ players: string; id: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  const [playerList, setPlayerList] = useState<string[]>([]);
   const [showStart, setShowStart] = useState(false);
 
-  const playerList = useMemo(() => {
-    try {
-      return players ? JSON.parse(players) : [];
-    } catch {
-      return [];
-    }
-  }, [players]);
-
   useEffect(() => {
-    if (!playerList || playerList.length === 0) {
-      router.replace('/');
-    }
+    loadPlayers().then((loadedPlayers) => {
+      if (!loadedPlayers || loadedPlayers.length === 0) {
+        router.replace('/');
+      } else {
+        setPlayerList(loadedPlayers);
+      }
+    });
   }, []);
 
   const handleStart = () => {
-    router.push({
-      pathname: `/game/${id}/play` as any,
-      params: { players: JSON.stringify(playerList) },
-    });
+    router.push(`/game/${id}/play`);
   };
 
   return (
@@ -43,9 +39,9 @@ export default function GameStartScreen() {
       >
         <View style={styles.bubble}>
           <Text style={styles.title}>Prêt à jouer ?</Text>
-            {playerList.map((name: string, index: number) => (
+          {playerList.map((name, index) => (
             <Text key={index} style={styles.player}>👤 {name}</Text>
-            ))}
+          ))}
           <Text style={styles.tap}>[Touchez pour commencer]</Text>
         </View>
       </ImageBackground>

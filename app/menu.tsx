@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo } from 'react';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
     Image,
     ScrollView,
@@ -8,23 +8,20 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { loadPlayers } from '../lib/storage'; // adapte le chemin si nécessaire
 
 export default function MenuScreen() {
   const router = useRouter();
-  const { players } = useLocalSearchParams<{ players: string }>();
-
-  const playerList = useMemo(() => {
-    try {
-      return players ? JSON.parse(players) : [];
-    } catch {
-      return [];
-    }
-  }, [players]);
+  const [playerList, setPlayerList] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!playerList || playerList.length === 0) {
-      router.replace('/');
-    }
+    loadPlayers().then((loadedPlayers) => {
+      if (!loadedPlayers || loadedPlayers.length === 0) {
+        router.replace('/');
+      } else {
+        setPlayerList(loadedPlayers);
+      }
+    });
   }, []);
 
   const menuButtons = [
@@ -53,10 +50,7 @@ export default function MenuScreen() {
             activeOpacity={item.locked ? 1 : 0.7}
             onPress={() => {
               if (!item.locked) {
-                router.push({
-                    pathname: `/game/${item.id}/` as any,
-                    params: { players: JSON.stringify(playerList) },
-                    });
+                router.push(`/game/${item.id}/`);
               }
             }}
             disabled={item.locked}

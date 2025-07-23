@@ -12,7 +12,7 @@ export default function ChallengeCard({ data, onNext }: any) {
         <Text style={styles.targets}>👥 {data.targets.join(' & ')}</Text>
       )}
 
-      <TouchableOpacity style={styles.nextBtn} onPress={onNext}>
+      <TouchableOpacity style={styles.nextBtn} onPress={() => onNext()}>
         <Text style={styles.nextTxt}>Suivant ➡</Text>
       </TouchableOpacity>
     </View>
