@@ -5,7 +5,12 @@ import ChallengeCard from '../../../components/ChallengeCard';
 import QuestionCard from '../../../components/QuestionCard';
 import RouletteCard from '../../../components/RouletteCard';
 import WheelShotCard from '../../../components/WheelShotCard';
-import { loadPlayers } from '../../../lib/storage'; // adapte le chemin si nécessaire
+import {
+  GameState,
+  loadGameState,
+  loadPlayers,
+  saveGameState,
+} from '../../../lib/storage';
 import challenges from '../../data/friends.json';
 
 type NextOpts = { level?: number; target?: string };
@@ -14,85 +19,111 @@ export default function PlayFriends() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const [playerList, setPlayerList] = useState<string[]>([]);
+  const [game, setGame] = useState<GameState | null>(null);
   const [current, setCurrent] = useState<any | null>(null);
 
-  const randomPlayers = (n: number) =>
-    playerList.sort(() => Math.random() - 0.5).slice(0, n);
+  const balancedRandom = (n: number) => {
+    if (!game) return [];
+    const shuffled = [...game.players].sort(
+      (a, b) => (game.stats[a] - game.stats[b]) || Math.random() - 0.5
+    );
+    return shuffled.slice(0, n);
+  };
 
-  /**
-   * Prochaine étape du jeu
-   */
   const nextChallenge = (opts: NextOpts = {}) => {
-    console.log('▶️ Appel de nextChallenge');
-    console.log('👥 Liste complète des joueurs :', playerList);
-    console.log('🎯 Cible initiale (roulette) :', opts.target);
+    if (!game) return;
+
+    if (current?.targets) {
+      const newStats = { ...game.stats };
+      current.targets.forEach((p: string) => {
+        newStats[p] = (newStats[p] || 0) + 1;
+      });
+      game.stats = newStats;
+      game.rounds += 1;
+      game.heat = Math.min(10, 1 + Math.floor(game.rounds / 3));
+    }
 
     let pool = challenges.filter(
-      c => (c.minPlayers ?? 1) <= playerList.length
+      (c) =>
+        (c.minPlayers ?? 1) <= game.players.length &&
+        (c.level ?? 1) <= game.heat
     );
 
     if (opts.level !== undefined) {
       pool = pool.filter(
-        c => c.level === opts.level && c.type === 'challenge'
+        (c) => c.level === opts.level && c.type === 'challenge'
       );
     }
 
     if (pool.length === 0) {
-      setCurrent({
-        type: 'info',
-        text: 'Pas assez de joueurs pour continuer 😢',
-        level: 0,
-        targets: [],
-      });
+      setCurrent({ type: 'info', text: 'Plus de défis adaptés 😢', targets: [] });
       return;
     }
 
     const picked = pool[Math.floor(Math.random() * pool.length)];
-    const numberOfPlayers = picked.maxPlayers ?? 1;
+    const nb = picked.maxPlayers ?? 1;
 
     let targets: string[] = [];
 
     if (opts.target) {
       targets.push(opts.target);
-      const others = playerList.filter(p => p !== opts.target);
-      const extra = others.sort(() => Math.random() - 0.5).slice(0, numberOfPlayers - 1);
-      targets = targets.concat(extra);
+      const others = game.players.filter((p) => p !== opts.target);
+      targets.push(...others.sort(() => Math.random() - 0.5).slice(0, nb - 1));
     } else {
-      targets = randomPlayers(numberOfPlayers);
+      targets = balancedRandom(nb);
     }
 
     let finalText = picked.text;
-
-    targets.forEach((playerName, index) => {
-      const tag = index === 0 ? '%PLAYER%' : `%PLAYER${index}%`;
-      finalText = finalText.replaceAll(tag, String(playerName));
+    targets.forEach((p, i) => {
+      const tag = i === 0 ? '%PLAYER%' : `%PLAYER${i}%`;
+      finalText = finalText.replaceAll(tag, p);
     });
+    if (targets.length) finalText = finalText.replaceAll('%PLAYER%', targets[0]);
 
-    if (targets.length > 0) {
-      finalText = finalText.replaceAll('%PLAYER%', String(targets[0]));
-    }
-
-    setCurrent({ ...picked, targets, text: finalText });
+    const newCurrent = { ...picked, targets, text: finalText };
+    setCurrent(newCurrent);
+    setGame(game);
+    saveGameState(game);
   };
 
   useEffect(() => {
-    loadPlayers().then(players => {
-      if (!players || players.length === 0) {
-        router.replace('/');
-      } else {
-        setPlayerList(players);
+    const init = async () => {
+      const saved = await loadGameState();
+      if (saved && saved.players.length > 0) {
+        console.log('✅ Partie existante chargée');
+        setGame(saved);
+        return;
       }
-    });
+
+      const players = await loadPlayers();
+      if (!players || players.length === 0) {
+        console.log('❌ Aucun joueur trouvé');
+        router.replace('/');
+        return;
+      }
+
+      const freshGame: GameState = {
+        players,
+        stats: Object.fromEntries(players.map((p) => [p, 0])),
+        heat: 1,
+        rounds: 0,
+      };
+
+      console.log('🆕 Nouvelle partie créée');
+      await saveGameState(freshGame);
+      setGame(freshGame);
+    };
+
+    init();
   }, []);
 
   useEffect(() => {
-    if (playerList.length > 0) {
+    if (game && !current) {
       nextChallenge();
     }
-  }, [playerList]);
+  }, [game]);
 
-  if (!current) return null;
+  if (!game || !current) return null;
 
   const renderCard = () => {
     switch (current.type) {
@@ -103,14 +134,16 @@ export default function PlayFriends() {
       case 'roulette':
         return (
           <RouletteCard
-            players={playerList}
-            onNext={({ level, target }) => nextChallenge({ level, target })}
+            players={game.players}
+            onNext={({ level, target }) =>
+              nextChallenge({ level, target })
+            }
           />
         );
       case 'wheelshot':
         return (
           <WheelShotCard
-            players={playerList}
+            players={game.players}
             onNext={() => nextChallenge()}
           />
         );
