@@ -1,6 +1,13 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import {
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import ChallengeCard from '../../../components/ChallengeCard';
 import QuestionCard from '../../../components/QuestionCard';
 import RouletteCard from '../../../components/RouletteCard';
@@ -21,6 +28,7 @@ export default function PlayFriends() {
 
   const [game, setGame] = useState<GameState | null>(null);
   const [current, setCurrent] = useState<any | null>(null);
+  const [showStats, setShowStats] = useState(false);
 
   const balancedRandom = (n: number) => {
     if (!game) return [];
@@ -152,7 +160,42 @@ export default function PlayFriends() {
     }
   };
 
-  return <View style={styles.container}>{renderCard()}</View>;
+  return (
+    <View style={styles.container}>
+      {/* Stop Button */}
+      <TouchableOpacity style={styles.stopButton} onPress={() => router.replace('/')}>
+        <Text style={styles.stopIcon}>⏹️</Text>
+      </TouchableOpacity>
+
+      {/* Info Button */}
+      <TouchableOpacity style={styles.infoButton} onPress={() => setShowStats(true)}>
+        <Text style={styles.infoIcon}>ℹ️</Text>
+      </TouchableOpacity>
+
+      {renderCard()}
+
+      <Modal visible={showStats} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modal}>
+            <Text style={styles.modalTitle}>📊 Statistiques</Text>
+            <Text style={styles.modalText}>🔥 Niveau de chaleur : {game.heat}</Text>
+            <Text style={styles.modalText}>🔄 Tours joués : {game.rounds}</Text>
+            <Text style={styles.modalSubtitle}>👤 Défis par joueur :</Text>
+            <ScrollView style={{ maxHeight: 200 }}>
+              {Object.entries(game.stats).map(([name, count]) => (
+                <Text key={name} style={styles.modalText}>
+                  {name} : {count}
+                </Text>
+              ))}
+            </ScrollView>
+            <TouchableOpacity onPress={() => setShowStats(false)} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -160,4 +203,66 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#300000',
   },
+  infoButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+  },
+  infoIcon: {
+    fontSize: 26,
+    color: '#fff',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modal: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 320,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontWeight: '600',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 6,
+  },
+  closeButton: {
+    marginTop: 16,
+    alignSelf: 'center',
+    backgroundColor: '#300000',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  stopButton: {
+  position: 'absolute',
+  top: 50,
+  left: 20,
+  zIndex: 10,
+  },
+  stopIcon: {
+    fontSize: 26,
+    color: '#fff',
+  },
+
 });
