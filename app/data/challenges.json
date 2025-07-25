@@ -1,0 +1,107 @@
+[
+  {
+    "id": "g_r1",
+    "type": "roulette",
+    "text": "Shot / Safe Roulette",
+    "level": 5,
+    "slots": 8,
+    "modes": ["friends", "caliente", "couple"]
+  },
+  {
+    "id": "g_w1",
+    "type": "wheelshot",
+    "text": "Tourne la roue et bois selon le résultat !",
+    "level": 4,
+    "modes": ["friends", "caliente", "couple"]
+  },
+
+  { "id": "f_c1", "type": "challenge", "text": "%PLAYER% imite un animal pendant 10 s. Si personne ne devine, tout le monde boit 1 gorgée.", "level": 1, "modes": ["friends"], "minPlayers": 2, "maxPlayers": 1 },
+  { "id": "f_q1", "type": "question",  "text": "%PLAYER%, quel est ton plat préféré ? Si tu ne réponds pas, bois 1 gorgée.", "level": 1, "modes": ["friends"] },
+
+  { "id": "f_c2", "type": "challenge", "text": "%PLAYER% fait un compliment sincère à %PLAYER1%. Sinon, bois 2 gorgées.", "level": 2, "modes": ["friends"], "minPlayers": 2, "maxPlayers": 2 },
+  { "id": "f_q2", "type": "question",  "text": "%PLAYER%, quel est ton plus gros mensonge sans conséquence ? Ou bois 2 gorgées.", "level": 2, "modes": ["friends"] },
+
+  { "id": "f_c3", "type": "challenge", "text": "%PLAYER% fait 10 pompes ou boit 2 gorgées.", "level": 3, "modes": ["friends"], "minPlayers": 1, "maxPlayers": 1 },
+  { "id": "f_q3", "type": "question",  "text": "%PLAYER%, quelle est ta destination de rêve ? Sinon, bois 2 gorgées.", "level": 3, "modes": ["friends"] },
+
+  { "id": "f_c4", "type": "challenge", "text": "%PLAYER% goûte un mélange choisi par %PLAYER1%. Sinon, bois 3 gorgées.", "level": 4, "modes": ["friends"], "minPlayers": 2, "maxPlayers": 2 },
+  { "id": "f_q4", "type": "question",  "text": "%PLAYER%, quel super‑pouvoir voudrais‑tu avoir ? Bois 2 gorgées si tu refuses de répondre.", "level": 4, "modes": ["friends"] },
+
+  { "id": "f_c5", "type": "challenge", "text": "%PLAYER% parle avec un accent drôle pendant 30 s. Sinon, bois 3 gorgées.", "level": 5, "modes": ["friends"], "minPlayers": 1 },
+  { "id": "f_q5", "type": "question",  "text": "%PLAYER%, quel est ton surnom d’enfance le plus embarrassant ?", "level": 5, "modes": ["friends"] },
+
+  { "id": "f_c6", "type": "challenge", "text": "%PLAYER% danse comme un robot pendant 20 s ou boit 3 gorgées.", "level": 6, "modes": ["friends"], "minPlayers": 1 },
+  { "id": "f_q6", "type": "question",  "text": "%PLAYER%, quelle est ta plus grande phobie ? Sinon, bois 3 gorgées.", "level": 6, "modes": ["friends"] },
+
+  { "id": "f_c7", "type": "challenge", "text": "%PLAYER% raconte sa meilleure blague. Si personne ne rit, bois 4 gorgées.", "level": 7, "modes": ["friends"], "minPlayers": 1 },
+  { "id": "f_q7", "type": "question",  "text": "%PLAYER%, quel est ton souvenir d’enfance le plus gênant ?", "level": 7, "modes": ["friends"] },
+
+  { "id": "f_c8", "type": "challenge", "text": "%PLAYER% échange son chapeau ou accessoire avec %PLAYER1% pendant un tour. Sinon, bois 4 gorgées.", "level": 8, "modes": ["friends"], "minPlayers": 2, "maxPlayers": 2 },
+  { "id": "f_q8", "type": "question",  "text": "%PLAYER%, quel talent secret possèdes‑tu ? Bois 4 gorgées si tu refuses.", "level": 8, "modes": ["friends"] },
+
+  { "id": "f_c9", "type": "challenge", "text": "%PLAYER% chante le refrain d’un tube des années 2000. Sinon, bois 5 gorgées.", "level": 9, "modes": ["friends"], "minPlayers": 1 },
+  { "id": "f_q9", "type": "question",  "text": "%PLAYER%, quelle réussite te rend le plus fier ?", "level": 9, "modes": ["friends"] },
+
+  { "id": "f_c10", "type": "challenge", "text": "%PLAYER% se verse un verre d’eau glacée sur la tête ou boit 6 gorgées.", "level": 10, "modes": ["friends"], "minPlayers": 1 },
+  { "id": "f_q10", "type": "question", "text": "%PLAYER%, quel est ton rêve ultime à accomplir avant 50 ans ?", "level": 10, "modes": ["friends"] },
+
+  { "id": "ca_c1", "type": "challenge", "text": "%PLAYER% fait un clin d’œil appuyé à %PLAYER1%. Sinon, bois 1 gorgée.", "level": 1, "modes": ["caliente"], "minPlayers": 2 },
+  { "id": "ca_q1", "type": "question",  "text": "%PLAYER%, quelle est ta célébrité crush ?", "level": 1, "modes": ["caliente"] },
+
+  { "id": "ca_c2", "type": "challenge", "text": "%PLAYER% enlace %PLAYER1% pendant 5 s. Sinon, bois 2 gorgées.", "level": 2, "modes": ["caliente"], "minPlayers": 2 },
+  { "id": "ca_q2", "type": "question",  "text": "%PLAYER%, embrasserais‑tu quelqu’un ici pour un pari ? Qui ?", "level": 2, "modes": ["caliente"] },
+
+  { "id": "ca_c3", "type": "challenge", "text": "%PLAYER% lance sa meilleure phrase de drague à %PLAYER1%. Sinon, bois 2 gorgées.", "level": 3, "modes": ["caliente"], "minPlayers": 2 },
+  { "id": "ca_q3", "type": "question",  "text": "%PLAYER%, quelle est ta partie du corps préférée chez un(e) partenaire ?", "level": 3, "modes": ["caliente"] },
+
+  { "id": "ca_c4", "type": "challenge", "text": "%PLAYER% mime un baiser au ralenti. Sinon, bois 3 gorgées.", "level": 4, "modes": ["caliente"], "minPlayers": 1 },
+  { "id": "ca_q4", "type": "question",  "text": "%PLAYER%, raconte ton premier baiser.", "level": 4, "modes": ["caliente"] },
+
+  { "id": "ca_c5", "type": "challenge", "text": "%PLAYER% réalise un mini strip‑tease (reste habillé). Sinon, bois 3 gorgées.", "level": 5, "modes": ["caliente", "couple"], "minPlayers": 1 },
+  { "id": "ca_q5", "type": "question",  "text": "%PLAYER%, as‑tu déjà couché sans connaître le prénom ? Raconte ou bois 3 gorgées.", "level": 5, "modes": ["caliente", "couple"] },
+
+  { "id": "ca_c6", "type": "challenge", "text": "%PLAYER% murmure à l’oreille de %PLAYER1% son fantasme secret (inaudible pour les autres). Sinon, bois 3 gorgées.", "level": 6, "modes": ["caliente", "couple"], "minPlayers": 2 },
+  { "id": "ca_q6", "type": "question",  "text": "%PLAYER%, quelle est ta scène de film la plus sexy ?", "level": 6, "modes": ["caliente", "couple"] },
+
+  { "id": "ca_c7", "type": "challenge", "text": "%PLAYER% et %PLAYER1% dansent un slow de 20 s. Sinon, chacun boit 4 gorgées.", "level": 7, "modes": ["caliente"], "minPlayers": 2 },
+  { "id": "ca_q7", "type": "question",  "text": "%PLAYER%, raconte ta pire expérience au lit (soft).", "level": 7, "modes": ["caliente", "couple"] },
+
+  { "id": "ca_c8", "type": "challenge", "text": "%PLAYER% décrit son baiser idéal en détail. Sinon, bois 4 gorgées.", "level": 8, "modes": ["caliente"], "minPlayers": 1 },
+  { "id": "ca_q8", "type": "question",  "text": "%PLAYER%, as‑tu déjà fait un plan à trois ? Dis oui/non et bois 4 gorgées si tu refuses les détails.", "level": 8, "modes": ["caliente", "couple"] },
+
+  { "id": "ca_c9", "type": "challenge", "text": "%PLAYER% fait un massage de 10 s à la personne de son choix. Sinon, bois 5 gorgées.", "level": 9, "modes": ["caliente", "couple"], "minPlayers": 2 },
+  { "id": "ca_q9", "type": "question",  "text": "%PLAYER%, qui ici serait ton meilleur coup ? Dis‑le ou bois 5 gorgées.", "level": 9, "modes": ["caliente", "couple"] },
+
+  { "id": "ca_c10", "type": "challenge", "text": "%PLAYER% réalise un lap‑dance de 15 s (vêtements conservés). Sinon, bois 6 gorgées.", "level": 10, "modes": ["caliente"], "minPlayers": 1 },
+  { "id": "ca_q10", "type": "question",  "text": "%PLAYER%, quel est ton fantasme que tu n’as jamais osé essayer ?", "level": 10, "modes": ["caliente", "couple"] },
+
+  { "id": "co_c1", "type": "challenge", "text": "%PLAYER% tient la main de %PLAYER1% pendant un tour.", "level": 1, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q1", "type": "question",  "text": "%PLAYER%, quelle qualité préfères‑tu chez %PLAYER1% ?", "level": 1, "modes": ["couple"] },
+
+  { "id": "co_c2", "type": "challenge", "text": "%PLAYER% embrasse %PLAYER1% sur la joue.", "level": 2, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q2", "type": "question",  "text": "%PLAYER%, chanson préférée pour un moment romantique ?", "level": 2, "modes": ["couple"] },
+
+  { "id": "co_c3", "type": "challenge", "text": "%PLAYER% chuchote à %PLAYER1% ce qu’il/elle aime le plus chez son corps.", "level": 3, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q3", "type": "question",  "text": "%PLAYER%, quel a été votre premier rendez‑vous idéal ?", "level": 3, "modes": ["couple"] },
+
+  { "id": "co_c4", "type": "challenge", "text": "%PLAYER% embrasse le front de %PLAYER1%.", "level": 4, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q4", "type": "question",  "text": "%PLAYER%, le cadeau le plus mignon que %PLAYER1% t’ait offert ?", "level": 4, "modes": ["couple"] },
+
+  { "id": "co_c5", "type": "challenge", "text": "%PLAYER% mordille doucement l’oreille de %PLAYER1%.", "level": 5, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q5", "type": "question",  "text": "%PLAYER%, quelle est ta zone érogène préférée ?", "level": 5, "modes": ["couple"] },
+
+  { "id": "co_c6", "type": "challenge", "text": "%PLAYER% décrit en un mot la tenue qui le/la rend fou/folle chez %PLAYER1%.", "level": 6, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q6", "type": "question",  "text": "%PLAYER%, cite un fantasme que vous avez déjà réalisé ensemble.", "level": 6, "modes": ["couple"] },
+
+  { "id": "co_c7", "type": "challenge", "text": "%PLAYER% embrasse %PLAYER1% dans le cou pendant 5 s.", "level": 7, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q7", "type": "question",  "text": "%PLAYER%, décris le moment le plus torride que vous ayez vécu.", "level": 7, "modes": ["couple"] },
+
+  { "id": "co_c8", "type": "challenge", "text": "%PLAYER% masse la cuisse de %PLAYER1% pendant 10 s.", "level": 8, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q8", "type": "question",  "text": "%PLAYER%, quel est votre lieu public le plus risqué ?", "level": 8, "modes": ["couple"] },
+
+  { "id": "co_c9", "type": "challenge", "text": "%PLAYER% écrit un mot coquin sur la peau de %PLAYER1% avec son doigt.", "level": 9, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q9", "type": "question",  "text": "%PLAYER%, décris en détail ton geste préféré pour exciter %PLAYER1%.", "level": 9, "modes": ["couple"] },
+
+  { "id": "co_c10", "type": "challenge", "text": "%PLAYER% lèche de la crème chantilly sur le cou de %PLAYER1%. Sinon, chacun boit 6 gorgées.", "level": 10, "modes": ["couple"], "minPlayers": 2 },
+  { "id": "co_q10", "type": "question", "text": "%PLAYER%, quel fantasme extrême aimerais‑tu réaliser avec %PLAYER1% ce soir ?", "level": 10, "modes": ["couple"] }
+]

@@ -18,13 +18,24 @@ import {
   loadPlayers,
   saveGameState,
 } from '../../../lib/storage';
-import challenges from '../../data/friends.json';
+import rawChallenges from '../../data/challenges.json';
+const challenges = rawChallenges as Challenge[]; // ✅ cast explicite
 
 type NextOpts = { level?: number; target?: string };
+type Challenge = {
+  id: string;
+  type: 'challenge' | 'question' | 'roulette' | 'wheelshot';
+  text: string;
+  level: number;
+  modes: string[]; // 👈 ceci est crucial
+  minPlayers?: number;
+  maxPlayers?: number;
+  slots?: number;
+};
 
-export default function PlayFriends() {
+export default function PlayGame() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>(); // id = mode
 
   const [game, setGame] = useState<GameState | null>(null);
   const [current, setCurrent] = useState<any | null>(null);
@@ -39,60 +50,82 @@ export default function PlayFriends() {
   };
 
   const nextChallenge = (opts: NextOpts = {}) => {
-    if (!game) return;
+  if (!game) return;
 
-    if (current?.targets) {
-      const newStats = { ...game.stats };
-      current.targets.forEach((p: string) => {
-        newStats[p] = (newStats[p] || 0) + 1;
-      });
-      game.stats = newStats;
-      game.rounds += 1;
-      game.heat = Math.min(10, 1 + Math.floor(game.rounds / 3));
-    }
-
-    let pool = challenges.filter(
-      (c) =>
-        (c.minPlayers ?? 1) <= game.players.length &&
-        (c.level ?? 1) <= game.heat
-    );
-
-    if (opts.level !== undefined) {
-      pool = pool.filter(
-        (c) => c.level === opts.level && c.type === 'challenge'
-      );
-    }
-
-    if (pool.length === 0) {
-      setCurrent({ type: 'info', text: 'Plus de défis adaptés 😢', targets: [] });
-      return;
-    }
-
-    const picked = pool[Math.floor(Math.random() * pool.length)];
-    const nb = picked.maxPlayers ?? 1;
-
-    let targets: string[] = [];
-
-    if (opts.target) {
-      targets.push(opts.target);
-      const others = game.players.filter((p) => p !== opts.target);
-      targets.push(...others.sort(() => Math.random() - 0.5).slice(0, nb - 1));
-    } else {
-      targets = balancedRandom(nb);
-    }
-
-    let finalText = picked.text;
-    targets.forEach((p, i) => {
-      const tag = i === 0 ? '%PLAYER%' : `%PLAYER${i}%`;
-      finalText = finalText.replaceAll(tag, p);
+  // Mise à jour des stats du round précédent
+  if (current?.targets) {
+    const newStats = { ...game.stats };
+    current.targets.forEach((p: string) => {
+      newStats[p] = (newStats[p] || 0) + 1;
     });
-    if (targets.length) finalText = finalText.replaceAll('%PLAYER%', targets[0]);
+    game.stats = newStats;
+    game.rounds += 1;
+    game.heat = Math.min(10, 1 + Math.floor(game.rounds / 3));
+  }
 
-    const newCurrent = { ...picked, targets, text: finalText };
-    setCurrent(newCurrent);
-    setGame(game);
-    saveGameState(game);
-  };
+  // Filtrer les défis valides
+  let pool = challenges.filter(
+    (c) =>
+      c.modes?.includes(game.mode) &&
+      (c.minPlayers ?? 1) <= game.players.length &&
+      (c.level ?? 1) <= game.heat
+  );
+
+  if (opts.level !== undefined) {
+    pool = pool.filter(
+      (c) => c.level === opts.level && c.type === 'challenge'
+    );
+  }
+
+  if (pool.length === 0) {
+    setCurrent({ type: 'info', text: 'Plus de défis adaptés 😢', targets: [] });
+    return;
+  }
+
+  const picked = pool[Math.floor(Math.random() * pool.length)];
+  const textPlaceholders = [...new Set(picked.text.match(/%PLAYER\d*%/g) ?? [])];
+
+  const totalNeeded = textPlaceholders.length;
+  const allPlayers = [...game.players];
+
+  // 1. Si roulette : on démarre avec un joueur imposé
+  let targets: string[] = [];
+  if (opts.target) {
+    targets.push(opts.target);
+    allPlayers.splice(allPlayers.indexOf(opts.target), 1); // retirer du pool
+  }
+
+  // 2. Ajouter les joueurs manquants (sans doublon)
+  while (targets.length < totalNeeded && allPlayers.length > 0) {
+    const index = Math.floor(Math.random() * allPlayers.length);
+    const p = allPlayers.splice(index, 1)[0];
+    targets.push(p);
+  }
+
+  if (targets.length < totalNeeded) {
+    setCurrent({
+      type: 'info',
+      text: `Pas assez de joueurs différents pour ce défi (${totalNeeded} requis) 😢`,
+      targets: [],
+    });
+    return;
+  }
+
+  // 3. Remplacer les placeholders dans le texte
+  let finalText = picked.text;
+  const used = new Set<string>();
+  textPlaceholders.forEach((ph, i) => {
+    const name = targets[i];
+    finalText = finalText.replaceAll(ph, name);
+    used.add(name);
+  });
+
+  const newCurrent = { ...picked, targets, text: finalText };
+  setCurrent(newCurrent);
+  setGame(game);
+  saveGameState(game);
+};
+
 
   useEffect(() => {
     const init = async () => {
@@ -115,6 +148,7 @@ export default function PlayFriends() {
         stats: Object.fromEntries(players.map((p) => [p, 0])),
         heat: 1,
         rounds: 0,
+        mode: id || 'friends', // 👈 on injecte le mode
       };
 
       console.log('🆕 Nouvelle partie créée');
@@ -143,9 +177,7 @@ export default function PlayFriends() {
         return (
           <RouletteCard
             players={game.players}
-            onNext={({ level, target }) =>
-              nextChallenge({ level, target })
-            }
+            onNext={({ level, target }) => nextChallenge({ level, target })}
           />
         );
       case 'wheelshot':
@@ -213,6 +245,16 @@ const styles = StyleSheet.create({
     fontSize: 26,
     color: '#fff',
   },
+  stopButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
+  },
+  stopIcon: {
+    fontSize: 26,
+    color: '#fff',
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -254,15 +296,4 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
-  stopButton: {
-  position: 'absolute',
-  top: 50,
-  left: 20,
-  zIndex: 10,
-  },
-  stopIcon: {
-    fontSize: 26,
-    color: '#fff',
-  },
-
 });

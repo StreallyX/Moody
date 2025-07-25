@@ -18,6 +18,7 @@ export default function MenuScreen() {
   const router = useRouter();
   const [playerList, setPlayerList] = useState<string[]>([]);
   const [hasSavedGame, setHasSavedGame] = useState(false);
+  const [lastMode, setLastMode] = useState<string>('friends');
 
   useEffect(() => {
     const init = async () => {
@@ -38,6 +39,7 @@ export default function MenuScreen() {
         arraysEqual(game.players, loadedPlayers)
       ) {
         setHasSavedGame(true);
+        setLastMode(game.mode ?? 'friends'); // <- on charge le mode s'il existe
       } else {
         await clearGameState();
         setHasSavedGame(false);
@@ -48,10 +50,10 @@ export default function MenuScreen() {
   }, []);
 
   const menuButtons = [
-    { id: '1', title: 'Friends', image: require('../assets/images/game1.png'), locked: false },
-    { id: '2', title: 'Caliente', image: require('../assets/images/game2.png'), locked: false },
-    { id: '3', title: 'Mystery', image: require('../assets/images/game3.png'), locked: true },
-    { id: '4', title: 'Couple', image: require('../assets/images/game4.png'), locked: false },
+    { id: 'friends', title: 'Friends', image: require('../assets/images/game1.png'), locked: false },
+    { id: 'caliente', title: 'Caliente', image: require('../assets/images/game2.png'), locked: false },
+    { id: 'mystery',  title: 'Mystery',  image: require('../assets/images/game3.png'), locked: true },
+    { id: 'couple',   title: 'Couple',   image: require('../assets/images/game4.png'), locked: false },
   ];
 
   return (
@@ -71,7 +73,7 @@ export default function MenuScreen() {
           <View style={styles.resumeButtons}>
             <TouchableOpacity
               style={styles.resumeButton}
-              onPress={() => router.push('/game/1')}
+              onPress={() => router.push(`/game/${lastMode}`)}
             >
               <Text style={styles.resumeIcon}>✔️</Text>
             </TouchableOpacity>
@@ -97,10 +99,9 @@ export default function MenuScreen() {
             activeOpacity={item.locked ? 1 : 0.7}
             onPress={async () => {
               if (!item.locked) {
-                // ⚠️ Efface la partie si on clique sur un nouveau jeu
                 await clearGameState();
                 setHasSavedGame(false);
-                router.push(`/game/${item.id}`);
+                router.push(`/game/${item.id}`); // ← envoie vers /game/friends, etc.
               }
             }}
             disabled={item.locked}

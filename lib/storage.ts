@@ -8,6 +8,7 @@ export interface GameState {
   stats: Record<string, number>; // nb de défis par joueur
   heat: number;                  // 1 – 10
   rounds: number;                // nombre total de cartes déjà jouées
+  mode: string;
 }
 
 export const saveGameState = async (state: GameState) => {
