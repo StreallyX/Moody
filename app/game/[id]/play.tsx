@@ -63,43 +63,55 @@ export default function PlayGame() {
     game.heat = Math.min(10, 1 + Math.floor(game.rounds / 3));
   }
 
-  // Filtrer les défis valides
-  let pool = challenges.filter(
+  // Étape 1 — Récupération des défis valides (mode + nombre de joueurs)
+  let validChallenges = challenges.filter(
     (c) =>
       c.modes?.includes(game.mode) &&
-      (c.minPlayers ?? 1) <= game.players.length &&
-      (c.level ?? 1) <= game.heat
+      (c.minPlayers ?? 1) <= game.players.length
   );
 
+  // Étape 2 — Si un niveau spécifique est demandé (roulette), on filtre directement
   if (opts.level !== undefined) {
-    pool = pool.filter(
+    validChallenges = validChallenges.filter(
       (c) => c.level === opts.level && c.type === 'challenge'
     );
   }
 
-  if (pool.length === 0) {
+  // Étape 3 — Créer un pool pondéré basé sur la chaleur
+  const weightedPool: Challenge[] = [];
+  validChallenges.forEach((challenge) => {
+    const level = challenge.level ?? 1;
+    const heat = game.heat;
+    const weight = Math.max(1, 10 - Math.abs(level - heat)); // + proche du heat = + poids
+    for (let i = 0; i < weight; i++) {
+      weightedPool.push(challenge);
+    }
+  });
+
+  if (weightedPool.length === 0) {
     setCurrent({ type: 'info', text: 'Plus de défis adaptés 😢', targets: [] });
     return;
   }
 
-  const picked = pool[Math.floor(Math.random() * pool.length)];
-  const textPlaceholders = [...new Set(picked.text.match(/%PLAYER\d*%/g) ?? [])];
+  // Étape 4 — Sélection aléatoire pondérée
+  const picked = weightedPool[Math.floor(Math.random() * weightedPool.length)];
 
+  // Étape 5 — Identifier les placeholders de joueurs dans le texte
+  const textPlaceholders = [...new Set(picked.text.match(/%PLAYER\d*%/g) ?? [])];
   const totalNeeded = textPlaceholders.length;
   const allPlayers = [...game.players];
 
-  // 1. Si roulette : on démarre avec un joueur imposé
+  // Étape 6 — Constitution de la liste `targets`
   let targets: string[] = [];
   if (opts.target) {
     targets.push(opts.target);
-    allPlayers.splice(allPlayers.indexOf(opts.target), 1); // retirer du pool
+    allPlayers.splice(allPlayers.indexOf(opts.target), 1); // on retire le joueur imposé
   }
 
-  // 2. Ajouter les joueurs manquants (sans doublon)
   while (targets.length < totalNeeded && allPlayers.length > 0) {
     const index = Math.floor(Math.random() * allPlayers.length);
-    const p = allPlayers.splice(index, 1)[0];
-    targets.push(p);
+    const player = allPlayers.splice(index, 1)[0];
+    targets.push(player);
   }
 
   if (targets.length < totalNeeded) {
@@ -111,20 +123,19 @@ export default function PlayGame() {
     return;
   }
 
-  // 3. Remplacer les placeholders dans le texte
+  // Étape 7 — Remplacement des placeholders dans le texte
   let finalText = picked.text;
-  const used = new Set<string>();
   textPlaceholders.forEach((ph, i) => {
-    const name = targets[i];
-    finalText = finalText.replaceAll(ph, name);
-    used.add(name);
+    finalText = finalText.replaceAll(ph, targets[i] ?? targets[0]);
   });
 
+  // Étape 8 — Sauvegarde et affichage du défi
   const newCurrent = { ...picked, targets, text: finalText };
   setCurrent(newCurrent);
   setGame(game);
   saveGameState(game);
 };
+
 
 
   useEffect(() => {
