@@ -7,14 +7,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { loadPlayers } from '../../../lib/storage'; // adapte le chemin si besoin
+import { loadPlayers } from '../../../lib/storage';
 
 export default function GameStartScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [playerList, setPlayerList] = useState<string[]>([]);
-  const [showStart, setShowStart] = useState(false);
 
   useEffect(() => {
     loadPlayers().then((loadedPlayers) => {
@@ -30,10 +29,19 @@ export default function GameStartScreen() {
     router.push(`/game/${id}/play`);
   };
 
+  const backgrounds: Record<string, any> = {
+    friends: require('../../../assets/images/game1.png'),
+    caliente: require('../../../assets/images/game2.png'),
+    mystery: require('../../../assets/images/game3.png'),
+    couple: require('../../../assets/images/game4.png'),
+  };
+
+  const bgImage = backgrounds[id] ?? require('../../../assets/images/default.png'); // image par défaut si id inconnu
+
   return (
     <TouchableOpacity style={styles.container} onPress={handleStart}>
       <ImageBackground
-        source={require('../../../assets/images/logo.png')}
+        source={bgImage}
         style={styles.background}
         resizeMode="cover"
       >
