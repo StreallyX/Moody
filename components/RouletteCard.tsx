@@ -1,13 +1,13 @@
 // components/SlotRouletteCard.tsx
 import { useEffect, useRef, useState } from 'react';
 import {
-    Animated,
-    Easing,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  Easing,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 type Props = {
@@ -144,11 +144,12 @@ export default function SlotRouletteCard({ players, onNext }: Props) {
       {ready && (
         <TouchableOpacity
           style={styles.goBtn}
-          onPress={() => onNext({ level: number!, target: target! })}
+          onPress={() => onNext({ level: -1, target: target! })} // 👈 ici on force level: -1
         >
           <Text style={styles.goTxt}>➡️ GO</Text>
         </TouchableOpacity>
       )}
+
 
       {/* modal aide */}
       <Modal visible={helpVisible} transparent animationType="slide">
