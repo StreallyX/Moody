@@ -6,7 +6,7 @@ export default function EventSpecial1({ onNext }: { onNext: () => void }) {
     <View style={styles.container}>
       <Text style={styles.title}>💥 Spécial 1 💥</Text>
       <Text style={styles.text}>Tous les joueurs doivent danser pendant 10 secondes !</Text>
-      <TouchableOpacity onPress={onNext} style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={() => onNext()}>
         <Text style={styles.buttonText}>OK !</Text>
       </TouchableOpacity>
     </View>

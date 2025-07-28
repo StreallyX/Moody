@@ -7,7 +7,7 @@ export default function EventSpecial2({ onNext }: { onNext: () => void }) {
       <Text style={styles.text}>
         Chaque joueur doit faire une imitation de célébrité. Les autres votent pour la meilleure !
       </Text>
-      <TouchableOpacity onPress={onNext} style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={() => onNext()}>
         <Text style={styles.buttonText}>C’est parti !</Text>
       </TouchableOpacity>
     </View>

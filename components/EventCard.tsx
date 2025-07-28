@@ -6,7 +6,7 @@ export default function EventCard({ text, onNext }: { text: string; onNext: () =
     <View style={styles.container}>
       <Text style={styles.title}>🎉 ÉVÉNEMENT 🎉</Text>
       <Text style={styles.text}>{text}</Text>
-      <TouchableOpacity onPress={onNext} style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={() => onNext()}>
         <Text style={styles.buttonText}>Continuer</Text>
       </TouchableOpacity>
     </View>
