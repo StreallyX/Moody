@@ -63,6 +63,23 @@ export default function PlayGame() {
 
   if (!game || !current) return null;
 
+  const getBackgroundColor = (type: string) => {
+    switch (type) {
+      case 'challenge':
+        return '#1a0000'; // rouge foncé
+      case 'question':
+        return '#001f2f'; // bleu foncé
+      case 'event':
+        return '#1a1a00'; // jaune-brun
+      case 'roulette':
+        return '#2a0033'; // violet foncé
+      case 'wheelshot':
+        return '#002926'; // vert foncé
+      default:
+        return '#000000';
+    }
+  };
+
   const renderCard = () => {
     switch (current.type) {
       case 'challenge':
@@ -101,8 +118,8 @@ export default function PlayGame() {
   };
 
   return (
-    <View style={styles.container}>
-      <GameHeader round={game.rounds} onStatsPress={() => setShowStats(true)} />
+    <View style={[styles.container, { backgroundColor: getBackgroundColor(current.type) }]}>
+      <GameHeader round={game.rounds} type={current.type} onStatsPress={() => setShowStats(true)} />
       {renderCard()}
       <StatsModal
         visible={showStats}
@@ -118,6 +135,5 @@ export default function PlayGame() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#300000',
   },
 });

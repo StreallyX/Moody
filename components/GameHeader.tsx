@@ -4,15 +4,20 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function GameHeader({
   round,
+  type,
   onStatsPress,
 }: {
   round: number;
+  type: string;
   onStatsPress: () => void;
 }) {
   const router = useRouter();
 
+  const backgroundColor =
+    type === 'question' ? '#001f2f' : type === 'challenge' ? '#1a0000' : 'transparent';
+
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { backgroundColor }]}>
       <TouchableOpacity
         style={[styles.headerButton, styles.exitButton]}
         onPress={() => router.replace('/')}
@@ -34,6 +39,7 @@ export default function GameHeader({
   );
 }
 
+
 const styles = StyleSheet.create({
   header: {
     marginTop: 50,
@@ -42,6 +48,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: 'transparent',
   },
   headerButton: {
     width: 56,
@@ -49,11 +56,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    backgroundColor: '#2c2c2c',
   },
   exitButton: {
     backgroundColor: '#b71c1c',
@@ -66,14 +69,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
   },
   roundText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#1a0000',
     textAlign: 'center',
