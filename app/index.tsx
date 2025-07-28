@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { loadPlayers, savePlayers } from '../lib/storage'; // adapte le chemin si nécessaire
 
@@ -52,6 +52,7 @@ export default function HomeScreen() {
           style={styles.logo}
           resizeMode="contain"
         />
+        <Text style={styles.slogan}>Le jeu qui chauffe l’ambiance 🔥</Text>
       </View>
 
       {/* Bloc liste des joueurs */}
@@ -97,7 +98,7 @@ export default function HomeScreen() {
           disabled={players.length === 0}
           onPress={startGame}
         >
-          <Text style={styles.startText}>🎮 Commencer</Text>
+          <Text style={styles.startText}>Commencer</Text>
         </TouchableOpacity>
 
         <View style={styles.optionsRow}>
@@ -120,64 +121,132 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#300000' },
-  block1: { flex: 2, justifyContent: 'center', alignItems: 'center' },
-  block2: { flex: 2, justifyContent: 'center', alignItems: 'center' },
-  block3: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  block4: { flex: 5, alignItems: 'center', justifyContent: 'space-evenly' },
-  logo: { width: 220, height: 100 },
-  playerList: { paddingVertical: 8, alignItems: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: '#1a0000',
+    paddingTop: 40,
+  },
+  block1: {
+    flex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  block2: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  block3: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  block4: {
+    flex: 4,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingBottom: 20,
+  },
+  logo: {
+    width: 300,
+    height: 140,
+  },
+  slogan: {
+    marginTop: 10,
+    color: '#ffb347',
+    fontSize: 14,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  playerList: {
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
   playerChip: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 14,
+    borderRadius: 999,
+    paddingHorizontal: 16,
     paddingVertical: 8,
-    marginHorizontal: 5,
+    marginHorizontal: 6,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
-  playerText: { fontWeight: 'bold', color: '#000' },
-  addPlayerContainer: { flexDirection: 'row', alignItems: 'center' },
+  playerText: {
+    fontWeight: '600',
+    color: '#000',
+    fontSize: 14,
+  },
+  addPlayerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   input: {
-    height: 40,
-    width: 180,
+    height: 42,
+    width: 200,
     backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 15,
+    borderRadius: 999,
+    paddingHorizontal: 16,
     color: '#000',
     marginRight: 10,
+    fontSize: 14,
   },
   plusButton: {
-    backgroundColor: '#f2b662',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    backgroundColor: '#ffb347',
+    width: 42,
+    height: 42,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
+    elevation: 3,
   },
-  plusText: { fontSize: 24, color: '#000' },
+  plusText: {
+    fontSize: 26,
+    color: '#000',
+    fontWeight: '600',
+  },
   startButton: {
-    backgroundColor: '#f2b662',
-    borderRadius: 50,
-    width: 200,
+    backgroundColor: '#ffb347',
+    borderRadius: 999,
+    width: 220,
     height: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
-  startText: { fontSize: 18, fontWeight: 'bold', color: '#000' },
+  startText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+  },
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     width: '90%',
+    gap: 12,
   },
   sideButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#111',
+    width: 64,
+    height: 64,
+    borderRadius: 999,
+    backgroundColor: '#2c0000',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 5,
+    borderColor: '#ffb347',
+    borderWidth: 1,
   },
-  sideText: { color: '#f2b662', textAlign: 'center', fontSize: 12 },
+  sideText: {
+    color: '#ffb347',
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '600',
+  },
 });
