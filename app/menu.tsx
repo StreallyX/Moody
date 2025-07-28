@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import {
   clearGameState,
   loadGameState,
@@ -66,29 +67,29 @@ export default function MenuScreen() {
         <Text style={styles.playersText}>👥 {playerList.length} joueurs</Text>
       </View>
 
-      {/* RESUME BLOCK */}
-      {hasSavedGame && (
-        <View style={styles.resumeContainer}>
-          <Text style={styles.resumeText}>Reprendre la partie ?</Text>
-          <View style={styles.resumeButtons}>
-            <TouchableOpacity
-              style={styles.resumeButton}
-              onPress={() => router.push(`/game/${lastMode}`)}
-            >
-              <Text style={styles.resumeIcon}>✔️</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.resumeButton}
-              onPress={async () => {
-                await clearGameState();
-                setHasSavedGame(false);
-              }}
-            >
-              <Text style={styles.resumeIcon}>❌</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+{/* RESUME BLOCK */}
+{hasSavedGame && (
+  <View style={styles.resumeContainer}>
+    <Text style={styles.resumeText}>Reprendre la partie ?</Text>
+    <View style={styles.resumeButtons}>
+      <TouchableOpacity
+        style={[styles.resumeButton, { backgroundColor: '#2e7d32' }]} // vert
+        onPress={() => router.push(`/game/${lastMode}`)}
+      >
+        <Icon name="check" size={24} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.resumeButton, { backgroundColor: '#c62828' }]} // rouge
+        onPress={async () => {
+          await clearGameState();
+          setHasSavedGame(false);
+        }}
+      >
+        <Icon name="times" size={24} color="#fff" />
+      </TouchableOpacity>
+    </View>
+  </View>
+)}
 
       {/* GAME MODE BUTTONS */}
       <ScrollView contentContainerStyle={styles.buttonList}>
@@ -128,18 +129,98 @@ function arraysEqual(a: string[], b: string[]) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#300000', paddingTop: 60, paddingHorizontal: 20 },
-  topBar: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 },
-  backText: { color: '#f2b662', fontSize: 16 },
-  playersText: { color: '#fff', fontSize: 16 },
-  resumeContainer: { marginBottom: 20, alignItems: 'center' },
-  resumeText: { color: '#fff', fontSize: 16, marginBottom: 10 },
-  resumeButtons: { flexDirection: 'row', gap: 20 },
-  resumeButton: { backgroundColor: '#111', borderRadius: 30, width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
-  resumeIcon: { fontSize: 24 },
-  buttonList: { alignItems: 'center', paddingBottom: 40 },
-  menuButton: { width: '100%', height: 100, borderRadius: 20, backgroundColor: '#fff', marginBottom: 20, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', elevation: 3 },
-  locked: { opacity: 0.4 },
-  image: { position: 'absolute', width: '100%', height: '100%', resizeMode: 'cover' },
-  buttonTitle: { fontSize: 20, fontWeight: '600', color: '#000', textAlign: 'center', backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 16, paddingVertical: 4, borderRadius: 10 },
+  container: {
+    flex: 1,
+    backgroundColor: '#1a0000',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  backText: {
+    color: '#ffb347',
+    fontSize: 16,
+    fontWeight: '600',
+    padding: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    backgroundColor: '#2c0000',
+    overflow: 'hidden',
+  },
+  playersText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+    backgroundColor: '#2c0000',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  resumeContainer: {
+    marginBottom: 30,
+    alignItems: 'center',
+  },
+  resumeText: {
+    color: '#ffb347',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 14,
+  },
+  resumeButtons: {
+    flexDirection: 'row',
+    gap: 24,
+  },
+  resumeButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  resumeIcon: {
+    fontSize: 26,
+  },
+  buttonList: {
+    alignItems: 'center',
+    paddingBottom: 40,
+  },
+  menuButton: {
+    width: '100%',
+    height: 110,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    marginBottom: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    elevation: 4,
+  },
+  locked: {
+    opacity: 0.4,
+  },
+  image: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  buttonTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    textAlign: 'center',
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
 });
