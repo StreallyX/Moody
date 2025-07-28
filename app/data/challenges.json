@@ -29,7 +29,14 @@
   "modes": ["friends", "extreme"]
 }
 ,
-
+{
+  "id": "event:special_2",
+  "type": "event",
+  "text": "Ignoré, remplacé par composant",
+  "level": 0,
+  "modes": ["friends", "extreme"]
+}
+,
   { "id": "f_c1", "type": "challenge", "text": "%PLAYER% imite un animal pendant 10 s. Si personne ne devine, tout le monde boit 1 gorgée.", "level": 1, "modes": ["friends"], "minPlayers": 2, "maxPlayers": 1 },
   { "id": "f_q1", "type": "question",  "text": "%PLAYER%, quel est ton plat préféré ? Si tu ne réponds pas, bois 1 gorgée.", "level": 1, "modes": ["friends"] },
 

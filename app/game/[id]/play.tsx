@@ -2,6 +2,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import ChallengeCard from '../../../components/ChallengeCard';
+import EventCard from '../../../components/EventCard';
+import EventSpecial1 from '../../../components/EventSpecial1';
+import EventSpecial2 from '../../../components/EventSpecial2';
 import GameHeader from '../../../components/GameHeader';
 import QuestionCard from '../../../components/QuestionCard';
 import RouletteCard from '../../../components/RouletteCard';
@@ -80,6 +83,18 @@ export default function PlayGame() {
             onNext={() => nextChallenge()}
           />
         );
+      case 'event':
+        if (current.id?.startsWith('event:special_')) {
+          switch (current.id) {
+            case 'event:special_1':
+              return <EventSpecial1 onNext={nextChallenge} />;
+            case 'event:special_2':
+              return <EventSpecial2 onNext={nextChallenge} />;
+            default:
+              return <EventCard text="Événement spécial inconnu." onNext={nextChallenge} />;
+          }
+        }
+        return <EventCard text={current.text} onNext={nextChallenge} />;
       default:
         return <ChallengeCard data={current} onNext={nextChallenge} />;
     }
