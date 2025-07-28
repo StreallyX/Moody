@@ -1,5 +1,11 @@
-// components/StatsModal.tsx
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function StatsModal({
   visible,
@@ -18,17 +24,23 @@ export default function StatsModal({
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>
         <View style={styles.modal}>
-          <Text style={styles.modalTitle}>📊 Statistiques</Text>
-          <Text style={styles.modalText}>🔥 Niveau de chaleur : {heat}</Text>
-          <Text style={styles.modalText}>🔄 Tours joués : {rounds}</Text>
-          <Text style={styles.modalSubtitle}>👤 Défis par joueur :</Text>
-          <ScrollView style={{ maxHeight: 200 }}>
+          <Text style={styles.modalTitle}>Statistiques</Text>
+
+          <Text style={styles.modalLabel}>Niveau de chaleur :</Text>
+          <Text style={styles.modalValue}>{heat}</Text>
+
+          <Text style={styles.modalLabel}>Tours joués :</Text>
+          <Text style={styles.modalValue}>{rounds}</Text>
+
+          <Text style={styles.modalLabel}>Défis par joueur :</Text>
+          <ScrollView style={styles.scrollArea}>
             {Object.entries(stats).map(([name, count]) => (
-              <Text key={name} style={styles.modalText}>
+              <Text key={name} style={styles.modalValue}>
                 {name} : {count}
               </Text>
             ))}
           </ScrollView>
+
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>Fermer</Text>
           </TouchableOpacity>
@@ -47,37 +59,57 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modal: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: '#1a0000',
+    borderRadius: 20,
     padding: 24,
     width: '100%',
-    maxWidth: 320,
+    maxWidth: 340,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 12,
+    color: '#ffb347',
+    marginBottom: 20,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  modalSubtitle: {
+  modalLabel: {
+    color: '#f2b662',
+    fontSize: 16,
     fontWeight: '600',
-    marginTop: 12,
-    marginBottom: 4,
+    marginTop: 10,
   },
-  modalText: {
+  modalValue: {
+    color: '#fff',
     fontSize: 16,
     marginBottom: 6,
   },
+  scrollArea: {
+    maxHeight: 180,
+    marginTop: 4,
+  },
   closeButton: {
-    marginTop: 16,
+    marginTop: 24,
     alignSelf: 'center',
-    backgroundColor: '#300000',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    backgroundColor: '#ffb347',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   closeButtonText: {
-    color: '#fff',
+    color: '#1a0000',
+    fontWeight: 'bold',
     fontSize: 16,
   },
 });
