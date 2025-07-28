@@ -1,17 +1,34 @@
-// components/GameHeader.tsx
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
-export default function GameHeader({ round, onStatsPress }: { round: number; onStatsPress: () => void }) {
+export default function GameHeader({
+  round,
+  onStatsPress,
+}: {
+  round: number;
+  onStatsPress: () => void;
+}) {
   const router = useRouter();
+
   return (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.headerButton} onPress={() => router.replace('/')}>
-        <Text style={styles.headerIcon}>⏹️</Text>
+      <TouchableOpacity
+        style={[styles.headerButton, styles.exitButton]}
+        onPress={() => router.replace('/')}
+      >
+        <Icon name="sign-out" size={18} color="#fff" />
       </TouchableOpacity>
-      <Text style={styles.headerText}>🎲 Tour #{round + 1}</Text>
-      <TouchableOpacity style={styles.headerButton} onPress={onStatsPress}>
-        <Text style={styles.headerIcon}>ℹ️</Text>
+
+      <View style={styles.roundContainer}>
+        <Text style={styles.roundText}>Tour #{round + 1}</Text>
+      </View>
+
+      <TouchableOpacity
+        style={[styles.headerButton, styles.infoButton]}
+        onPress={onStatsPress}
+      >
+        <Icon name="info-circle" size={20} color="#fff" />
       </TouchableOpacity>
     </View>
   );
@@ -27,15 +44,40 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerButton: {
-    padding: 8,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  headerIcon: {
-    fontSize: 26,
-    color: '#fff',
+  exitButton: {
+    backgroundColor: '#b71c1c',
   },
-  headerText: {
+  infoButton: {
+    backgroundColor: '#2c2c2c',
+  },
+  roundContainer: {
+    backgroundColor: '#ffb347',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  roundText: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#1a0000',
+    textAlign: 'center',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 });
