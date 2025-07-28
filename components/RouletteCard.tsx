@@ -144,7 +144,7 @@ export default function SlotRouletteCard({ players, onNext }: Props) {
       {ready && (
         <TouchableOpacity
           style={styles.goBtn}
-          onPress={() => onNext({ level: -1, target: target! })} // 👈 ici on force level: -1
+          onPress={() => onNext({ level: number!, target: target! })}
         >
           <Text style={styles.goTxt}>➡️ GO</Text>
         </TouchableOpacity>
