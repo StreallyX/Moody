@@ -1,4 +1,3 @@
-// components/EventCard.tsx
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function EventCard({ text, onNext }: { text: string; onNext: () => void }) {
@@ -16,32 +15,39 @@ export default function EventCard({ text, onNext }: { text: string; onNext: () =
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    backgroundColor: '#07076e',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#220000',
+    padding: 30,
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#ffd166',
     marginBottom: 20,
+    textShadowColor: '#0006',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   text: {
-    fontSize: 20,
+    fontSize: 22,
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 32,
+    paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    backgroundColor: '#ffd166',
+    paddingHorizontal: 26,
+    paddingVertical: 12,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
   },
   buttonText: {
-    color: '#220000',
-    fontSize: 18,
+    color: '#1a0022',
     fontWeight: 'bold',
+    fontSize: 18,
   },
 });

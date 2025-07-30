@@ -70,7 +70,7 @@ export default function PlayGame() {
       case 'question':
         return '#001f2f'; // bleu foncé
       case 'event':
-        return '#1a1a00'; // jaune-brun
+        return '#07076e'; // jaune-brun
       case 'roulette':
         return '#1a0022'; // violet foncé
       case 'wheelshot':

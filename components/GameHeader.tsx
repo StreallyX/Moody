@@ -14,7 +14,7 @@ export default function GameHeader({
   const router = useRouter();
 
   const backgroundColor =
-    type === 'question' ? '#001f2f' : type === 'challenge' ? '#1a0000' : type === 'wheelshot' ? '#4a004f' : type === 'roulette' ? '#1a0022' : 'transparent';
+    type === 'question' ? '#001f2f' : type === 'challenge' ? '#1a0000' : type === 'wheelshot' ? '#4a004f' : type === 'roulette' ? '#1a0022' : type === 'event' ? '#07076e' : 'transparent';
 
   return (
     <View style={[styles.header, { backgroundColor }]}>
