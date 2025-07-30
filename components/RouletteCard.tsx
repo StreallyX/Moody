@@ -146,7 +146,7 @@ export default function SlotRouletteCard({ players, onNext }: Props) {
           style={styles.goBtn}
           onPress={() => onNext({ level: number!, target: target! })}
         >
-          <Text style={styles.goTxt}>➡️ GO</Text>
+          <Text style={styles.goTxt}>➡ GO</Text>
         </TouchableOpacity>
       )}
 
@@ -177,26 +177,39 @@ export default function SlotRouletteCard({ players, onNext }: Props) {
 
 /* ───────── styles ───────── */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#300000', paddingTop: 60 },
+  container: {
+    flex: 1,
+    backgroundColor: '#1a0022', // FOND violet très foncé
+    paddingTop: 60,
+  },
   helpBtn: {
     position: 'absolute',
-    top: 50,
+    top: 100,
     right: 24,
-    backgroundColor: '#f2b662',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    backgroundColor: '#ffd166',
+    width: 70,
+    height: 70,
+    borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
   },
-  helpTxt: { fontSize: 22, fontWeight: 'bold', color: '#000' },
+  helpTxt: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#000',
+  },
 
   turnText: {
-    color: '#fff',
-    fontSize: 28,
+    color: '#fefae0',
+    fontSize: 34,
+    fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
+    marginTop: 40,
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 2 },
+    textShadowRadius: 2,
   },
 
   slotRow: {
@@ -207,23 +220,27 @@ const styles = StyleSheet.create({
   reel: {
     width: 140,
     height: 180,
-    backgroundColor: '#400010',
-    borderRadius: 12,
+    backgroundColor: '#061a40',
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 4,
-    borderColor: '#f72585',
+    borderColor: '#ffd166',
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
   },
   reelLabel: {
     position: 'absolute',
-    top: 8,
-    color: '#f2b662',
+    top: 10,
+    color: '#ffd166',
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '900',
+    letterSpacing: 1,
   },
   reelValue: {
-    color: '#fff',
-    fontSize: 42,
+    color: '#ffffff',
+    fontSize: 48,
     fontWeight: 'bold',
   },
 
@@ -233,24 +250,41 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   actionBtn: {
-    backgroundColor: '#f72585',
-    borderRadius: 20,
+    backgroundColor: '#06d6a0',
+    borderRadius: 24,
     paddingVertical: 12,
     paddingHorizontal: 24,
+    shadowColor: '#06d6a0',
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
   },
   disabled: { opacity: 0.5 },
-  actionTxt: { color: '#000', fontSize: 16, fontWeight: 'bold' },
+  actionTxt: {
+    color: '#001219',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 
   goBtn: {
     alignSelf: 'center',
-    backgroundColor: '#8ecae6',
+    backgroundColor: '#061a40',
     borderRadius: 28,
     paddingVertical: 10,
     paddingHorizontal: 40,
+    marginTop: 20,
+    shadowColor: '#ef476f',
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    borderWidth: 4,
+    borderColor: '#ffd166'
   },
-  goTxt: { fontSize: 22, fontWeight: 'bold' },
+  goTxt: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
 
-  /* modal */
+  // modal
   modalBackdrop: {
     flex: 1,
     backgroundColor: '#000a',
@@ -263,14 +297,23 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
   },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
-  modalText: { fontSize: 16, marginBottom: 20 },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
   modalClose: {
     alignSelf: 'center',
-    backgroundColor: '#f2b662',
+    backgroundColor: '#ffd166',
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 24,
   },
-  modalCloseTxt: { fontWeight: 'bold' },
+  modalCloseTxt: {
+    fontWeight: 'bold',
+  },
 });
