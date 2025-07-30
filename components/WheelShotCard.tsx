@@ -1,23 +1,19 @@
 import { useRef, useState } from 'react';
 import {
-    Animated,
-    Easing,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Easing,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const SECTORS = ['1', '2', '3', '4', 'SHOT', 'SAFE'];
-const SECTOR_ANGLE = 360 / SECTORS.length; // 60°
+const SECTOR_ANGLE = 360 / SECTORS.length;
 
-type Props = {
-  players: string[];
-  onNext: () => void;
-};
+type Props = { players: string[]; onNext: () => void };
 
 export default function WheelShotCard({ players, onNext }: Props) {
-  /* ───── états ───── */
   const [turnPlayer] = useState(
     players[Math.floor(Math.random() * players.length)]
   );
@@ -25,13 +21,16 @@ export default function WheelShotCard({ players, onNext }: Props) {
   const [spinning, setSpinning] = useState(false);
   const spinValue = useRef(new Animated.Value(0)).current;
 
-  /* ───── spin wheel ───── */
+  /* ───────── spin ───────── */
   const spin = () => {
-    if (spinning || selected) return; // déjà fini
+    if (spinning || selected) return;
     setSpinning(true);
-    const extraTurns = Math.floor(Math.random() * 4) + 4; // 4‑7 tours
+
+    const extraTurns = Math.floor(Math.random() * 4) + 4;   // 4‑7 tours
     const randomSector = Math.floor(Math.random() * SECTORS.length);
-    const finalDeg = extraTurns * 360 + randomSector * SECTOR_ANGLE;
+
+    // angle (en °) pour que le sector voulu arrive sous la flèche
+    const finalDeg = -(extraTurns * 360 + randomSector * SECTOR_ANGLE); // signe ‑
 
     Animated.timing(spinValue, {
       toValue: finalDeg,
@@ -44,33 +43,48 @@ export default function WheelShotCard({ players, onNext }: Props) {
     });
   };
 
-  const rotate = spinValue.interpolate({
-    inputRange: [0, 360],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  /* ───── rendu ───── */
+  /* ───────── rendu ───────── */
   return (
     <View style={styles.container}>
-      <Text style={styles.turnTxt}>À {turnPlayer} de jouer !</Text>
+      <Text style={styles.turnTxt}>À {turnPlayer.toUpperCase()} DE JOUER !</Text>
 
-      {/* flèche */}
-      <View style={styles.pointer} />
+      {/* flèche uniquement avant sélection */}
+      {!selected && (
+        <View style={styles.pointerWrapper}>
+          <View style={styles.pointer} />
+        </View>
+      )}
 
-      {/* roue */}
-      <Animated.View style={[styles.wheel, { transform: [{ rotate }] }]}>
+
+      {/* roue animée */}
+      <Animated.View
+        style={[
+          styles.wheel,
+          {
+            transform: [
+              {
+                rotate: spinValue.interpolate({
+                  inputRange: [-360, 0],
+                  outputRange: ['-360deg', '0deg'],
+                  extrapolate: 'extend',
+                }),
+              },
+            ],
+          },
+        ]}
+      >
         {SECTORS.map((label, i) => {
-          const angle = i * SECTOR_ANGLE;
+          const a = i * SECTOR_ANGLE;
           return (
             <View
-              key={i}
+              key={label}
               style={[
                 styles.sector,
                 {
                   transform: [
-                    { rotate: `${angle}deg` },
+                    { rotate: `${a}deg` },
                     { translateY: -105 },
-                    { rotate: `${-angle}deg` },
+                    { rotate: `${-a}deg` },
                   ],
                 },
               ]}
@@ -81,31 +95,26 @@ export default function WheelShotCard({ players, onNext }: Props) {
         })}
       </Animated.View>
 
-      {/* bouton spin */}
-      {!selected && (
+      {/* bouton spin / résultat */}
+      {!selected ? (
         <TouchableOpacity
-          style={[styles.spinBtn, (spinning || selected) && styles.disabled]}
+          style={[styles.spinBtn, spinning && styles.disabled]}
           onPress={spin}
-          disabled={spinning || !!selected}
+          disabled={spinning}
         >
-          <Text style={styles.spinTxt}>
-            {spinning ? '...' : 'TOURNE !'}
-          </Text>
+          <Text style={styles.spinTxt}>{spinning ? '...' : 'TOURNE !'}</Text>
         </TouchableOpacity>
-      )}
-
-      {/* résultat & next */}
-      {selected && (
+      ) : (
         <>
           <Text style={styles.result}>
             {selected === 'SAFE'
-              ? 'SAFE 😇 choisi quelqu’un pour boire !'
+              ? 'SAFE — choisis qui boit !'
               : selected === 'SHOT'
-              ? 'Cul sec ! 🥃'
-              : `Bois ${selected} gorgée(s) 🍻`}
+              ? 'Cul sec !'
+              : `Bois ${selected} gorgée(s) !`}
           </Text>
           <TouchableOpacity style={styles.nextBtn} onPress={onNext}>
-            <Text style={styles.nextTxt}>Suivant ➡</Text>
+            <Text style={styles.nextTxt}>➡ Suivant</Text>
           </TouchableOpacity>
         </>
       )}
@@ -113,39 +122,92 @@ export default function WheelShotCard({ players, onNext }: Props) {
   );
 }
 
-/* ───── styles ───── */
+/* ───────── styles ───────── */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#300000', alignItems: 'center', justifyContent: 'center' },
-  turnTxt: { color: '#fff', fontSize: 24, marginBottom: 20 },
-  pointer: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 12,
-    borderRightWidth: 12,
-    borderBottomWidth: 20,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: '#f2b662',
-    marginBottom: -10,
-    zIndex: 10,
+  container: {
+    flex: 1,
+    backgroundColor: '#4a004f',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
   },
+  turnTxt: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginBottom: 65,
+    marginTop: -50,
+  },
+  pointerWrapper: {
+    position: 'absolute',
+    top: '32%', // ← remonte la flèche
+    zIndex: 10,
+    alignItems: 'center',
+  },
+  pointer: {
+  width: 0,
+  height: 0,
+  borderLeftWidth: 10,
+  borderRightWidth: 10,
+  borderTopWidth: 16, // 🔁 inversé
+  borderLeftColor: 'transparent',
+  borderRightColor: 'transparent',
+  borderTopColor: '#ffde59', // 🔁 inversé
+},
+
   wheel: {
-    width: 230,
-    height: 230,
-    borderRadius: 115,
-    backgroundColor: '#400010',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: '#4a004f',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
     borderWidth: 6,
     borderColor: '#f72585',
+    shadowColor: '#f72585',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 15,
   },
   sector: { position: 'absolute', alignItems: 'center' },
-  sectorTxt: { color: '#f2b662', fontSize: 18, fontWeight: 'bold' },
-  spinBtn: { backgroundColor: '#8ecae6', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 40 },
-  spinTxt: { color: '#000', fontWeight: 'bold', fontSize: 18 },
+  sectorTxt: {
+    color: '#ffde59',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  spinBtn: {
+    backgroundColor: '#ff4d6d',
+    borderRadius: 30,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    shadowColor: '#ff4d6d',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+  },
+  spinTxt: { color: '#fff', fontWeight: 'bold', fontSize: 20 },
   disabled: { opacity: 0.5 },
-  result: { color: '#fff', fontSize: 22, textAlign: 'center', marginVertical: 20 },
-  nextBtn: { backgroundColor: '#f72585', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 40 },
-  nextTxt: { color: '#000', fontWeight: 'bold', fontSize: 18 },
+  result: {
+    color: '#fff',
+    fontSize: 22,
+    textAlign: 'center',
+    marginVertical: 30,
+    paddingHorizontal: 20,
+  },
+  nextBtn: {
+    backgroundColor: '#7209b7',
+    borderRadius: 30,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    shadowColor: '#7209b7',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+  },
+  nextTxt: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
 });

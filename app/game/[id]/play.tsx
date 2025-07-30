@@ -74,7 +74,7 @@ export default function PlayGame() {
       case 'roulette':
         return '#2a0033'; // violet foncé
       case 'wheelshot':
-        return '#002926'; // vert foncé
+        return '#4a004f'; // vert foncé
       default:
         return '#000000';
     }
