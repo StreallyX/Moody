@@ -15,6 +15,60 @@
     "modes": ["friends", "caliente", "couple"]
   },
   {
+  "id": "g_o1",
+  "type": "oracle",
+  "text": "Quelqu’un ici va se marier en secret…",
+  "level": 3,
+  "modes": ["friends", "caliente", "couple"]
+},
+{
+  "id": "g_e1",
+  "type": "explosion",
+  "text": "Désamorce la bombe quand elle devient verte, vite !",
+  "level": 4,
+  "modes": ["friends", "caliente", "couple"]
+}
+,
+{
+  "id": "g_gw1",
+  "type": "guessword",
+  "text": "Fais deviner le mot sans dire les 3 mots interdits !",
+  "level": 3,
+  "modes": ["friends", "caliente", "couple"]
+}
+,
+{
+  "id": "g_s1",
+  "type": "selfie",
+  "text": "Fais un selfie avec la personne à ta gauche !",
+  "level": 2,
+  "modes": ["friends", "caliente", "couple"]
+}
+,{
+  "id": "g_tb1",
+  "type": "tapbattle",
+  "text": "Affronte ton adversaire, le plus rapide gagne !",
+  "level": 4,
+  "modes": ["friends", "caliente", "couple"]
+}
+,{
+  "id": "g_hs1",
+  "type": "hotseat",
+  "text": "Réponds à une question chaude… ou bois !",
+  "level": 5,
+  "modes": ["caliente", "couple"]
+}
+,{
+  "id": "g_fq1",
+  "type": "flashquiz",
+  "text": "Les chats peuvent voter en Belgique.",
+  "answer": false,
+  "level": 3,
+  "modes": ["friends", "caliente", "couple"]
+}
+,
+
+  {
   "id": "event:normal_1",
   "type": "event",
   "text": "Tout le monde trinque ensemble 🍻",
