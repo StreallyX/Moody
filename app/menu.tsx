@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -14,6 +15,25 @@ import {
   loadGameState,
   loadPlayers,
 } from '../lib/storage';
+
+function MenuImage({ source }: { source: any }) {
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <View style={styles.imageWrapper}>
+      <Image
+        source={source}
+        style={styles.image}
+        onLoadEnd={() => setLoading(false)}
+      />
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#ffb347" />
+        </View>
+      )}
+    </View>
+  );
+}
 
 export default function MenuScreen() {
   const router = useRouter();
@@ -40,7 +60,7 @@ export default function MenuScreen() {
         arraysEqual(game.players, loadedPlayers)
       ) {
         setHasSavedGame(true);
-        setLastMode(game.mode ?? 'friends'); // <- on charge le mode s'il existe
+        setLastMode(game.mode ?? 'friends');
       } else {
         await clearGameState();
         setHasSavedGame(false);
@@ -67,29 +87,29 @@ export default function MenuScreen() {
         <Text style={styles.playersText}>👥 {playerList.length} joueurs</Text>
       </View>
 
-{/* RESUME BLOCK */}
-{hasSavedGame && (
-  <View style={styles.resumeContainer}>
-    <Text style={styles.resumeText}>Reprendre la partie ?</Text>
-    <View style={styles.resumeButtons}>
-      <TouchableOpacity
-        style={[styles.resumeButton, { backgroundColor: '#2e7d32' }]} // vert
-        onPress={() => router.push(`/game/${lastMode}`)}
-      >
-        <Icon name="check" size={24} color="#fff" />
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.resumeButton, { backgroundColor: '#c62828' }]} // rouge
-        onPress={async () => {
-          await clearGameState();
-          setHasSavedGame(false);
-        }}
-      >
-        <Icon name="times" size={24} color="#fff" />
-      </TouchableOpacity>
-    </View>
-  </View>
-)}
+      {/* RESUME BLOCK */}
+      {hasSavedGame && (
+        <View style={styles.resumeContainer}>
+          <Text style={styles.resumeText}>Reprendre la partie ?</Text>
+          <View style={styles.resumeButtons}>
+            <TouchableOpacity
+              style={[styles.resumeButton, { backgroundColor: '#2e7d32' }]}
+              onPress={() => router.push(`/game/${lastMode}`)}
+            >
+              <Icon name="check" size={24} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.resumeButton, { backgroundColor: '#c62828' }]}
+              onPress={async () => {
+                await clearGameState();
+                setHasSavedGame(false);
+              }}
+            >
+              <Icon name="times" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {/* GAME MODE BUTTONS */}
       <ScrollView contentContainerStyle={styles.buttonList}>
@@ -102,12 +122,12 @@ export default function MenuScreen() {
               if (!item.locked) {
                 await clearGameState();
                 setHasSavedGame(false);
-                router.push(`/game/${item.id}`); // ← envoie vers /game/friends, etc.
+                router.push(`/game/${item.id}`);
               }
             }}
             disabled={item.locked}
           >
-            <Image source={item.image} style={styles.image} />
+            <MenuImage source={item.image} />
             <Text style={styles.buttonTitle}>
               {item.locked ? '🔒 ' : ''}{item.title}
             </Text>
@@ -186,9 +206,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  resumeIcon: {
-    fontSize: 26,
-  },
   buttonList: {
     alignItems: 'center',
     paddingBottom: 40,
@@ -207,11 +224,24 @@ const styles = StyleSheet.create({
   locked: {
     opacity: 0.4,
   },
-  image: {
+  imageWrapper: {
     position: 'absolute',
     width: '100%',
     height: '100%',
+    backgroundColor: '#1a0000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
     resizeMode: 'cover',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1a0000',
   },
   buttonTitle: {
     fontSize: 18,
