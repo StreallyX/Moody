@@ -12,9 +12,9 @@ import FlashQuizCard from '../../../components/minigames/FlashQuizCard';
 import GuessWordCard from '../../../components/minigames/GuessWordCard';
 import HotSeatCard from '../../../components/minigames/HotSeatCard';
 import OracleCard from '../../../components/minigames/OracleCard';
+import ReflexGame from '../../../components/minigames/ReflexGame';
 import RouletteCard from '../../../components/minigames/RouletteCard';
 import SelfieCard from '../../../components/minigames/SelfieCard';
-import TapBattleCard from '../../../components/minigames/TapBattleCard';
 import WheelShotCard from '../../../components/minigames/WheelShotCard';
 import QuestionCard from '../../../components/QuestionCard';
 import StatsModal from '../../../components/StatsModal';
@@ -109,7 +109,7 @@ export default function PlayGame() {
       case 'hotseat':
         return <HotSeatCard data={current} onNext={nextChallenge} />;
       case 'tapbattle':
-        return <TapBattleCard players={game.players} onNext={nextChallenge} />;
+        return <ReflexGame players={game.players} onNext={nextChallenge} />;
       case 'selfie':
         return <SelfieCard data={current} onNext={nextChallenge} />;
       case 'guessword':
