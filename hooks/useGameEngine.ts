@@ -70,10 +70,22 @@ export function useGameEngine(
           (c.minPlayers ?? 1) <= game.players.length &&
           (
             isMiniGameRound
-              ? (c.type === 'roulette' || c.type === 'wheelshot')
-              : isEventRound
-              ? (c.type === 'event')
-              : (c.type === 'challenge' || c.type === 'question')
+                ? (
+                    [
+                        'roulette',
+                        'wheelshot',
+                        'oracle',
+                        'explosion',
+                        'guessword',
+                        'selfie',
+                        'tapbattle',
+                        'hotseat',
+                        'flashquiz'
+                    ].includes(c.type)
+                    )
+                : isEventRound
+                ? (c.type === 'event')
+                : (c.type === 'challenge' || c.type === 'question')
           )
       );
 
