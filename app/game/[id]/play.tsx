@@ -107,7 +107,7 @@ export default function PlayGame() {
       case 'flashquiz':
         return <FlashQuizCard data={current} onNext={nextChallenge} />;
       case 'hotseat':
-        return <HotSeatCard data={current} onNext={nextChallenge} />;
+        return <HotSeatCard data={{ ...current, players: game.players }} onNext={nextChallenge} />;
       case 'tapbattle':
         return <ReflexGame players={game.players} onNext={nextChallenge} />;
       case 'selfie':

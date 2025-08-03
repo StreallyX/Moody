@@ -81,14 +81,44 @@
   "level": 4,
   "modes": ["friends", "caliente", "couple"]
 }
-,{
-  "id": "g_hs1",
-  "type": "hotseat",
-  "text": "Réponds à une question chaude… ou bois !",
-  "level": 5,
-  "modes": ["caliente", "couple"]
-}
-,{
+,
+  {
+    "id": "g_hs2",
+    "type": "hotseat",
+    "text": "Avec qui ici tu pourrais passer une nuit ?",
+    "level": 6,
+    "modes": ["caliente", "couple"]
+  },
+  {
+    "id": "g_hs3",
+    "type": "hotseat",
+    "text": "Quelle est ta plus grande envie inavouée ?",
+    "level": 5,
+    "modes": ["caliente", "couple"]
+  },
+  {
+    "id": "g_hs4",
+    "type": "hotseat",
+    "text": "As-tu déjà eu une aventure d’un soir ? Donne des détails.",
+    "level": 6,
+    "modes": ["caliente", "couple"]
+  },
+  {
+    "id": "g_hs5",
+    "type": "hotseat",
+    "text": "Quel est ton fantasme secret ?",
+    "level": 7,
+    "modes": ["caliente", "couple"]
+  },
+  {
+    "id": "g_hs6",
+    "type": "hotseat",
+    "text": "As-tu déjà menti pour coucher avec quelqu’un ?",
+    "level": 5,
+    "modes": ["caliente", "couple"]
+  }
+,
+{
   "id": "g_fq1",
   "type": "flashquiz",
   "text": "Les chats peuvent voter en Belgique.",
