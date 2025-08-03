@@ -2,14 +2,21 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import ChallengeCard from '../../../components/ChallengeCard';
-import EventCard from '../../../components/EventCard';
-import EventSpecial1 from '../../../components/EventSpecial1';
-import EventSpecial2 from '../../../components/EventSpecial2';
+import EventCard from '../../../components/events/EventCard';
+import EventSpecial1 from '../../../components/events/EventSpecial1';
+import EventSpecial2 from '../../../components/events/EventSpecial2';
 import GameHeader from '../../../components/GameHeader';
+import ExplosionCard from '../../../components/minigames/ExplosionCard';
+import FlashQuizCard from '../../../components/minigames/FlashQuizCard';
+import GuessWordCard from '../../../components/minigames/GuessWordCard';
+import HotSeatCard from '../../../components/minigames/HotSeatCard';
+import OracleCard from '../../../components/minigames/OracleCard';
+import RouletteCard from '../../../components/minigames/RouletteCard';
+import SelfieCard from '../../../components/minigames/SelfieCard';
+import TapBattleCard from '../../../components/minigames/TapBattleCard';
+import WheelShotCard from '../../../components/minigames/WheelShotCard';
 import QuestionCard from '../../../components/QuestionCard';
-import RouletteCard from '../../../components/RouletteCard';
 import StatsModal from '../../../components/StatsModal';
-import WheelShotCard from '../../../components/WheelShotCard';
 import { useGameEngine } from '../../../hooks/useGameEngine';
 import { GameState, loadGameState, loadPlayers, saveGameState } from '../../../lib/storage';
 
@@ -100,6 +107,20 @@ export default function PlayGame() {
             onNext={() => nextChallenge()}
           />
         );
+      case 'flashquiz':
+        return <FlashQuizCard data={current} onNext={nextChallenge} />;
+      case 'hotseat':
+        return <HotSeatCard data={current} onNext={nextChallenge} />;
+      case 'tapbattle':
+        return <TapBattleCard players={game.players} onNext={nextChallenge} />;
+      case 'selfie':
+        return <SelfieCard data={current} onNext={nextChallenge} />;
+      case 'guessword':
+        return <GuessWordCard data={current} onNext={nextChallenge} />;
+      case 'explosion':
+        return <ExplosionCard data={current} onNext={nextChallenge} />;
+      case 'oracle':
+        return <OracleCard data={current} players={game.players} onNext={nextChallenge} />;
       case 'event':
         if (current.id?.startsWith('event:special_')) {
           switch (current.id) {
