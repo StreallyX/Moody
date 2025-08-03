@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, TouchableOpacity } from 'react-native';
 export default function ReflexGame({ players, onNext }: { players: string[]; onNext: () => void }) {
   const [player, setPlayer] = useState('');
   const [step, setStep] = useState<'intro' | 'waiting' | 'ready' | 'clicked' | 'result'>('intro');
-  const [bgColor, setBgColor] = useState('#000');
+  const [bgColor, setBgColor] = useState('');
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const startRef = useRef<number>(0);

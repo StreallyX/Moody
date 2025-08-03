@@ -8,7 +8,11 @@ import {
   useWindowDimensions,
 } from 'react-native';
 
-export default function OracleCard({ data, players, onNext }: {
+export default function OracleCard({
+  data,
+  players,
+  onNext,
+}: {
   data: any;
   players: string[];
   onNext: () => void;
@@ -27,8 +31,6 @@ export default function OracleCard({ data, players, onNext }: {
     const top = entries.reduce((a, b) => (b[1] > a[1] ? b : a));
     setWinner(top[0]);
   };
-
-  const isShortList = players.length <= 5;
 
   return (
     <View style={styles.container}>
@@ -49,16 +51,18 @@ export default function OracleCard({ data, players, onNext }: {
               style={styles.voteButton}
               onPress={() => handleVote(player)}
             >
-              <Text style={styles.voteButtonText}>{player}</Text>
+              <Text style={styles.voteButtonText}>Vote pour</Text>
+              <Text style={styles.voteButtonName}>{player}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       ) : (
-        <>
+        <View style={styles.resultBox}>
+          <Text style={styles.resultTitle}>🎉 Verdict de l’oracle</Text>
           <Text style={styles.resultText}>
-            🎉 {winner} a été désigné par le groupe ! Il/elle boit 🍻
+            <Text style={{ fontWeight: 'bold', color: '#fff' }}>{winner}</Text> a été désigné par le groupe ! Il/elle boit 🍻
           </Text>
-        </>
+        </View>
       )}
 
       {voted && (
@@ -105,9 +109,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   voteButton: {
-    backgroundColor: '#333',
+    borderColor: '#b266ff',
+    borderWidth: 5,
+    backgroundColor: 'transparent',
     paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderRadius: 12,
     marginBottom: 12,
     width: '100%',
@@ -116,15 +122,38 @@ const styles = StyleSheet.create({
   },
   voteButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
   },
-  resultText: {
+  voteButtonName: {
+    color: '#FFF',
     fontSize: 20,
-    color: '#ffb347',
-    textAlign: 'center',
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  resultBox: {
+    backgroundColor: '#1a001a',
+    borderColor: '#b266ff',
+    borderWidth: 2,
+    borderRadius: 14,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
     marginTop: 30,
     marginBottom: 20,
-    paddingHorizontal: 20,
+    width: '90%',
+    alignItems: 'center',
+  },
+  resultTitle: {
+    fontSize: 22,
+    color: '#b266ff',
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  resultText: {
+    fontSize: 18,
+    color: '#ddd',
+    textAlign: 'center',
+    lineHeight: 28,
   },
   button: {
     backgroundColor: '#ffb347',

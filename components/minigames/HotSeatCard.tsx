@@ -16,29 +16,81 @@ export default function HotSeatCard({ data, onNext }: { data: any; onNext: () =>
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🔥 Hot Seat</Text>
-      <Text style={styles.text}>{player}, tu es sur le gril !</Text>
+      <Text style={styles.title}>Hot Seat</Text>
+
+      <View style={styles.playerTag}>
+        <Text style={styles.playerText}>{player}, tu es sur le gril !</Text>
+      </View>
 
       <View style={styles.questionBox}>
         <Text style={styles.question}>{data.text}</Text>
       </View>
 
-      <Text style={styles.instruction}>Tu dois répondre honnêtement... ou boire ! 🍻</Text>
+      <Text style={styles.instruction}>Tu dois répondre honnêtement... ou boire 🔥</Text>
 
       <Pressable style={styles.button} onPress={() => onNext()}>
-        <Text style={styles.buttonText}>Suivant</Text>
+        <Text style={styles.buttonText}>Continuer</Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#fff', marginBottom: 10 },
-  text: { fontSize: 20, color: '#fff', marginBottom: 20, textAlign: 'center' },
-  questionBox: { backgroundColor: '#111', padding: 20, borderRadius: 12, marginBottom: 20 },
-  question: { fontSize: 22, color: '#0ff', textAlign: 'center' },
-  instruction: { fontSize: 18, color: '#ccc', marginBottom: 30 },
-  button: { backgroundColor: '#fff', paddingVertical: 12, paddingHorizontal: 30, borderRadius: 10 },
-  buttonText: { fontSize: 18, fontWeight: 'bold', color: '#000' },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#ff6f3c',
+    marginBottom: 20,
+  },
+  playerTag: {
+    backgroundColor: '#400000',
+    borderWidth: 5,
+    borderColor: '#ff6f3c',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginBottom: 30,
+  },
+  playerText: {
+    color: '#fff',
+    fontSize: 20,
+    textAlign: 'center',
+  },
+  questionBox: {
+    borderWidth: 5,
+    borderColor: '#ff6f3c',
+    borderRadius: 14,
+    padding: 20,
+    marginBottom: 30,
+    backgroundColor: '#400000',
+  },
+  question: {
+    fontSize: 22,
+    color: '#fff0e6',
+    textAlign: 'center',
+    lineHeight: 30,
+  },
+  instruction: {
+    fontSize: 18,
+    color: '#ffd1b3',
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  button: {
+    backgroundColor: '#ff6f3c',
+    paddingVertical: 14,
+    paddingHorizontal: 36,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: '#2b0d0d',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });

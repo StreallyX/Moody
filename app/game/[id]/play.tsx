@@ -84,10 +84,25 @@ export default function PlayGame() {
         return '#1a0022';
       case 'wheelshot':
         return '#4a004f';
+      case 'hotseat':
+        return '#400000'; // 🔥 brun chaud
+      case 'flashquiz':
+        return '#002f1a'; // 🧠 vert sombre
+      case 'guessword':
+        return '#1a1a4d'; // 🧩 violet foncé
+      case 'explosion':
+        return '#4d0000'; // 💥 rouge vif
+      case 'oracle':
+        return '#330033'; // 🔮 violet mystique
+      case 'selfie':
+        return '#00334d'; // 📸 bleu sombre
+      case 'tapbattle':
+        return '#3d3d00'; // 🕹️ jaune brun
       default:
         return '#000000';
     }
   };
+
 
   const renderCard = () => {
     switch (current.type) {

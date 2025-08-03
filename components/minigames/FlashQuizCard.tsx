@@ -33,18 +33,23 @@ export default function FlashQuizCard({ data, onNext }: Props) {
             style={[styles.button, { backgroundColor: '#00cc66' }]}
             onPress={() => handleAnswer(true)}
           >
-            <Text style={styles.buttonText}>✅ Vrai</Text>
+            <Text style={styles.buttonText}>Vrai</Text>
           </Pressable>
           <Pressable
             style={[styles.button, { backgroundColor: '#cc0033' }]}
             onPress={() => handleAnswer(false)}
           >
-            <Text style={styles.buttonText}>❌ Faux</Text>
+            <Text style={styles.buttonText}>Faux</Text>
           </Pressable>
         </View>
       ) : (
         <>
-          <Text style={[styles.feedback, { color: isCorrect ? '#0f0' : '#f00' }]}>
+          <Text
+            style={[
+              styles.feedback,
+              { color: isCorrect ? '#7CFC00' : '#ff4d4d' },
+            ]}
+          >
             {isCorrect ? 'Bonne réponse ! 🎉' : 'Faux ! Bois une gorgée ! 🍻'}
           </Text>
           <Pressable style={styles.nextButton} onPress={() => onNext()}>
@@ -59,36 +64,39 @@ export default function FlashQuizCard({ data, onNext }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 30,
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 20,
+    marginBottom: 24,
+    textAlign: 'center',
   },
   questionBox: {
-    backgroundColor: '#111',
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 20,
+
+    padding: 24,
+    borderRadius: 14,
+    marginBottom: 30,
+    width: '100%',
   },
   statement: {
     fontSize: 22,
-    color: '#0ff',
+    color: '#fff',
     textAlign: 'center',
+    lineHeight: 30,
   },
   buttonsContainer: {
     flexDirection: 'row',
     gap: 20,
   },
   button: {
-    padding: 15,
+    paddingVertical: 14,
+    paddingHorizontal: 26,
     borderRadius: 10,
-    minWidth: 100,
+    minWidth: 110,
     alignItems: 'center',
   },
   buttonText: {
@@ -97,21 +105,21 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   feedback: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginTop: 20,
+    marginTop: 30,
     textAlign: 'center',
   },
   nextButton: {
     marginTop: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#b6ffcc',
     paddingVertical: 12,
-    paddingHorizontal: 30,
+    paddingHorizontal: 34,
     borderRadius: 10,
   },
   nextButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#0b2e22',
   },
 });

@@ -12,12 +12,13 @@ export default function GuessWordCard({
   players: string[];
   selectedPlayers: string[];
 }) {
+  const [step, setStep] = useState(1);
   const [revealed, setRevealed] = useState(false);
 
   const from = selectedPlayers?.[0] ?? 'Joueur 1';
   const to = selectedPlayers?.[1] ?? 'Joueur 2';
 
-  const displayWord = (word: string) => (revealed ? word : 'X'.repeat(word.length));
+  const displayWord = (word: string) => (revealed ? word : '*'.repeat(word.length));
 
   const replacedText = data.text
     ?.replace('%PLAYER%', from)
@@ -25,89 +26,109 @@ export default function GuessWordCard({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🧩 Devine le mot</Text>
+      <Text style={styles.title}>Devine le mot</Text>
 
-      <Text style={styles.instruction}>{replacedText}</Text>
+      {step === 1 ? (
+        <>
+          <Text style={styles.instructions}>{replacedText}</Text>
+          <TouchableOpacity style={styles.buttonOutlined} onPress={() => setStep(2)}>
+            <Text style={styles.buttonText}>Afficher le mot</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <View style={styles.wordBox}>
+            <Text style={styles.label}>Mot :</Text>
+            <Text style={styles.wordBoxText}>{displayWord(data.word)}</Text>
+          </View>
 
-      <View style={styles.wordBox}>
-        <Text style={styles.label}>Mot :</Text>
-        <Text style={styles.word}>{displayWord(data.word)}</Text>
-      </View>
+          <View style={styles.wordBox}>
+            <Text style={styles.label}>Mots interdits :</Text>
+            <Text style={styles.wordBoxText}>
+              {data.forbidden?.map((w: string) => displayWord(w)).join(' / ')}
+            </Text>
+          </View>
 
-      <View style={styles.wordBox}>
-        <Text style={styles.label}>Mots interdits :</Text>
-        {data.forbidden?.map((w: string, i: number) => (
-          <Text key={i} style={styles.forbiddenWord}>
-            {displayWord(w)}
-          </Text>
-        ))}
-      </View>
-
-      <TouchableOpacity onPress={() => setRevealed(true)} style={styles.revealButton}>
-        <Text style={styles.revealText}>
-          {revealed ? '👁️ Affiché' : '👁️ Voir les mots'}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.nextButton} onPress={() => onNext()}>
-        <Text style={styles.nextText}>Continuer</Text>
-      </TouchableOpacity>
+          {!revealed ? (
+            <TouchableOpacity onPress={() => setRevealed(true)} style={styles.buttonOutlined}>
+              <Text style={styles.buttonText}>👁️ Voir les mots</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.buttonFilled} onPress={() => onNext()}>
+              <Text style={styles.buttonTextDark}>Continuer</Text>
+            </TouchableOpacity>
+          )}
+        </>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  title: { fontSize: 26, fontWeight: 'bold', marginBottom: 20, color: '#fff', textAlign: 'center' },
-  instruction: {
-    fontSize: 18,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    color: '#7fcfff',
+    textAlign: 'center',
+  },
+  instructions: {
+    fontSize: 20,
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 10,
-    lineHeight: 26,
+    lineHeight: 30,
+    paddingHorizontal: 20,
+    marginBottom: 40,
   },
   wordBox: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   label: {
-    fontSize: 18,
-    color: '#ffb347',
+    fontSize: 20,
+    color: '#7fcfff',
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  word: {
+  wordBoxText: {
     fontSize: 24,
     color: '#fff',
-    fontWeight: 'bold',
-  },
-  forbiddenWord: {
-    fontSize: 20,
-    color: '#fff',
-    marginBottom: 4,
-  },
-  revealButton: {
-    marginTop: 10,
-    backgroundColor: '#444',
     paddingVertical: 10,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    borderWidth: 2,
+    borderColor: '#7fcfff',
     borderRadius: 10,
-    marginBottom: 20,
+    textAlign: 'center',
   },
-  revealText: {
-    color: '#fff',
+  buttonOutlined: {
+    marginTop: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 26,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#7fcfff',
+    marginBottom: 24,
+  },
+  buttonFilled: {
+    backgroundColor: '#7fcfff',
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: '#7fcfff',
     fontWeight: 'bold',
     fontSize: 16,
   },
-  nextButton: {
-    backgroundColor: '#ffb347',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-  },
-  nextText: {
-    color: '#000',
+  buttonTextDark: {
+    color: '#001f2f',
     fontWeight: 'bold',
     fontSize: 16,
   },
