@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import challenges from '../../../app/data/challenges.json';
 import ChallengeCard from '../../../components/ChallengeCard';
 import EventCard from '../../../components/events/EventCard';
 import EventSpecial1 from '../../../components/events/EventSpecial1';
@@ -27,6 +28,7 @@ export default function PlayGame() {
   const [game, setGame] = useState<GameState | null>(null);
   const [current, setCurrent] = useState<any | null>(null);
   const [showStats, setShowStats] = useState(false);
+  const [showTestMode, setShowTestMode] = useState(false);
 
   const { nextChallenge } = useGameEngine(game, setGame, setCurrent);
 
@@ -73,15 +75,15 @@ export default function PlayGame() {
   const getBackgroundColor = (type: string) => {
     switch (type) {
       case 'challenge':
-        return '#1a0000'; // rouge foncé
+        return '#1a0000';
       case 'question':
-        return '#001f2f'; // bleu foncé
+        return '#001f2f';
       case 'event':
-        return '#07076e'; // jaune-brun
+        return '#07076e';
       case 'roulette':
-        return '#1a0022'; // violet foncé
+        return '#1a0022';
       case 'wheelshot':
-        return '#4a004f'; // vert foncé
+        return '#4a004f';
       default:
         return '#000000';
     }
@@ -101,12 +103,7 @@ export default function PlayGame() {
           />
         );
       case 'wheelshot':
-        return (
-          <WheelShotCard
-            players={game.players}
-            onNext={() => nextChallenge()}
-          />
-        );
+        return <WheelShotCard players={game.players} onNext={() => nextChallenge()} />;
       case 'flashquiz':
         return <FlashQuizCard data={current} onNext={nextChallenge} />;
       case 'hotseat':
@@ -138,23 +135,109 @@ export default function PlayGame() {
     }
   };
 
+  const allTestItems = challenges.filter((c) => !!c);
+
   return (
-    <View style={[styles.container, { backgroundColor: getBackgroundColor(current.type) }]}>
-      <GameHeader round={game.rounds} type={current.type} onStatsPress={() => setShowStats(true)} />
-      {renderCard()}
-      <StatsModal
-        visible={showStats}
-        onClose={() => setShowStats(false)}
-        heat={game.heat}
-        rounds={game.rounds}
-        stats={game.stats}
-      />
-    </View>
+    <>
+      <TouchableOpacity
+        onPress={() => setShowTestMode(true)}
+        style={styles.testButton}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>🧪 TEST</Text>
+      </TouchableOpacity>
+
+      <View style={[styles.container, { backgroundColor: getBackgroundColor(current.type) }]}>
+        <GameHeader round={game.rounds} type={current.type} onStatsPress={() => setShowStats(true)} />
+        {renderCard()}
+        <StatsModal
+          visible={showStats}
+          onClose={() => setShowStats(false)}
+          heat={game.heat}
+          rounds={game.rounds}
+          stats={game.stats}
+        />
+      </View>
+
+      <Modal visible={showTestMode} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>🎯 Choisir un défi à tester</Text>
+            <FlatList
+              data={allTestItems}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.testItem}
+                  onPress={() => {
+                    setCurrent({
+                      ...item,
+                      targets: game?.players.slice(0, 2) || [],
+                      text: item.text,
+                    });
+                    setShowTestMode(false);
+                  }}
+                >
+                  <Text style={{ color: '#fff' }}>{item.id} — {item.type}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity onPress={() => setShowTestMode(false)} style={styles.closeButton}>
+              <Text style={styles.closeText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  testButton: {
+    position: 'absolute',
+    top: 50,
+    right: 70,
+    backgroundColor: '#222',
+    padding: 10,
+    borderRadius: 8,
+    zIndex: 99,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#1a0000',
+    padding: 20,
+    borderRadius: 10,
+    width: '90%',
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 12,
+  },
+  testItem: {
+    padding: 12,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  closeButton: {
+    marginTop: 10,
+    backgroundColor: '#ffb347',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  closeText: {
+    color: '#000',
+    fontWeight: 'bold',
   },
 });
