@@ -1,3 +1,4 @@
+import { Audio } from 'expo-av';
 import { Slot } from 'expo-router';
 import { useEffect, useState } from 'react';
 import LoadingScreen from '../components/LoadingScreen';
@@ -6,9 +7,17 @@ export default function Layout() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Simule un petit chargement puis accès libre à l’app
+    Audio.setAudioModeAsync({
+      interruptionModeIOS: 1,         // MIX_WITH_OTHERS
+      interruptionModeAndroid: 1,     // DO_NOT_MIX
+      shouldDuckAndroid: false,
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: false,
+    }).catch(console.warn);
+
     const simulateLoading = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1s
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       setChecking(false);
     };
 
