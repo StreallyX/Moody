@@ -113,7 +113,15 @@ export default function PlayGame() {
       case 'selfie':
         return <SelfieCard data={current} onNext={nextChallenge} />;
       case 'guessword':
-        return <GuessWordCard data={current} onNext={nextChallenge} />;
+        return (
+          <GuessWordCard
+            data={current}
+            onNext={nextChallenge}
+            players={game.players}
+            selectedPlayers={current.targets || game.players.slice(0, 2)}
+          />
+        );
+
       case 'explosion':
         return <ExplosionCard data={current} onNext={nextChallenge} />;
       case 'oracle':

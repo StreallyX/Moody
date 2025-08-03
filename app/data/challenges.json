@@ -32,10 +32,40 @@
 {
   "id": "g_gw1",
   "type": "guessword",
-  "text": "Fais deviner le mot sans dire les 3 mots interdits !",
+  "text": "%PLAYER%, tu dois faire deviner le mot secret à %PLAYER1% sans dire les 3 mots interdits !",
+  "word": "Plage",
+  "forbidden": ["Sable", "Mer", "Vacances"],
   "level": 3,
   "modes": ["friends", "caliente", "couple"]
+},
+{
+  "id": "g_gw2",
+  "type": "guessword",
+  "text": "%PLAYER%, fais deviner le mot à %PLAYER1% sans dire les 3 mots interdits !",
+  "word": "Pizza",
+  "forbidden": ["Fromage", "Tomate", "Italie"],
+  "level": 2,
+  "modes": ["friends"]
+},
+{
+  "id": "g_gw3",
+  "type": "guessword",
+  "text": "%PLAYER%, à toi de jouer ! %PLAYER1% doit deviner sans entendre les mots interdits.",
+  "word": "Amour",
+  "forbidden": ["Cœur", "Couple", "Sentiment"],
+  "level": 5,
+  "modes": ["caliente", "couple"]
+},
+{
+  "id": "g_gw4",
+  "type": "guessword",
+  "text": "%PLAYER%, fais deviner ce mot difficile à %PLAYER1%, mais attention aux pièges !",
+  "word": "Téléphone",
+  "forbidden": ["Appel", "Portable", "Sonnerie"],
+  "level": 4,
+  "modes": ["friends", "couple"]
 }
+
 ,
 {
   "id": "g_s1",
