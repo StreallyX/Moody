@@ -7,7 +7,19 @@ const challenges = rawChallenges as Challenge[];
 
 type Challenge = {
   id: string;
-  type: 'challenge' | 'question' | 'roulette' | 'wheelshot' | 'event';
+  type:
+    | 'challenge'
+    | 'question'
+    | 'roulette'
+    | 'wheelshot'
+    | 'event'
+    | 'oracle'
+    | 'explosion'
+    | 'guessword'
+    | 'selfie'
+    | 'tapbattle'
+    | 'hotseat'
+    | 'flashquiz';
   text: string;
   level: number;
   modes: string[];
