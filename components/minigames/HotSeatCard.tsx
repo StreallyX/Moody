@@ -25,7 +25,7 @@ export default function HotSeatCard({ data, onNext }: { data: any; onNext: () =>
 
       <Text style={styles.instruction}>Tu dois répondre honnêtement... ou boire ! 🍻</Text>
 
-      <Pressable style={styles.button} onPress={onNext}>
+      <Pressable style={styles.button} onPress={() => onNext()}>
         <Text style={styles.buttonText}>Suivant</Text>
       </Pressable>
     </View>
