@@ -17,7 +17,6 @@ export default function EventSpecial2({ onNext }: { onNext: () => void }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#07076e',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 30,

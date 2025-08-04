@@ -79,7 +79,7 @@ export default function PlayGame() {
       case 'question':
         return '#001f2f';
       case 'event':
-        return '#07076e';
+        return '#1e0038';
       case 'roulette':
         return '#1a0022';
       case 'wheelshot':
@@ -142,6 +142,7 @@ export default function PlayGame() {
       case 'oracle':
         return <OracleCard data={current} players={game.players} onNext={nextChallenge} />;
       case 'event':
+        
         if (current.id?.startsWith('event:special_')) {
           switch (current.id) {
             case 'event:special_1':

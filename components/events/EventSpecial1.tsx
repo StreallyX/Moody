@@ -1,24 +1,39 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function EventSpecial1({ onNext }: { onNext: () => void }) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🎊 SPÉCIAL 🎊</Text>
-      <Text style={styles.text}>Tous les joueurs doivent danser pendant 10 secondes !</Text>
-      <TouchableOpacity style={styles.button} onPress={() => onNext()}>
-        <Text style={styles.buttonText}>OK !</Text>
-      </TouchableOpacity>
-    </View>
+    <LinearGradient
+      colors={['#1e0038', '#07076e']}
+      style={styles.container}
+    >
+      <View style={styles.card}>
+        <Text style={styles.title}>🎊 SPÉCIAL 🎊</Text>
+        <Text style={styles.text}>
+          Tous les joueurs doivent se fixer dans les yeux. Le premier qui rigole boit !
+        </Text>
+        <TouchableOpacity style={styles.button} onPress={() => onNext()}>
+          <Text style={styles.buttonText}>OK !</Text>
+        </TouchableOpacity>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#07076e',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  card: {
+    backgroundColor: '#ffffff0c',
+    borderRadius: 20,
     padding: 30,
+    borderWidth: 2,
+    borderColor: '#ffd166',
+    alignItems: 'center',
+    marginHorizontal: 20,
   },
   title: {
     fontSize: 30,
