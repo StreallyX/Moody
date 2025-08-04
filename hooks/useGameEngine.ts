@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import rawChallenges from '../app/data/challenges.json';
 import type { GameState } from '../lib/storage';
 import { saveGameState } from '../lib/storage';
@@ -30,11 +30,17 @@ type Challenge = {
 
 type NextOpts = { level?: number; target?: string };
 
+// 👇 CONSTANTE : combien d’IDs on mémorise
+const RECENT_MEMORY = 50;
+// ... imports & types inchangés
+
 export function useGameEngine(
   game: GameState | null,
   setGame: (g: GameState) => void,
   setCurrent: (c: any) => void
 ) {
+  const lastPicked = useRef<string[]>([]);
+
   const balancedRandom = useCallback(
     (n: number) => {
       if (!game) return [];
@@ -50,9 +56,6 @@ export function useGameEngine(
     (opts: NextOpts = {}) => {
       if (!game) return;
 
-      console.log('🎯 Paramètres reçus :', opts);
-
-      // Calcule le "prochain tour" selon si on va l'incrémenter
       const nextRound =
         (game as any)?.current?.targets && opts.level !== -0
           ? game.rounds + 1
@@ -61,77 +64,86 @@ export function useGameEngine(
       const isMiniGameRound = nextRound > 0 && nextRound % 10 === 5;
       const isEventRound = nextRound > 0 && nextRound % 10 === 0;
 
-      // 🔁 Mise à jour stats & tour
+      console.log(`▶️ Lancement du tour ${nextRound}`);
+      if (isMiniGameRound) {
+        console.log('🎰 Tour spécial : Mini-jeu');
+      } else if (isEventRound) {
+        console.log('🎉 Tour spécial : Événement');
+      } else {
+        console.log('🎲 Tour normal : Défi ou question');
+      }
+
       if ((game as any)?.current?.targets && opts.level !== -0) {
-        const newStats = { ...game.stats };
+        const stats = { ...game.stats };
         (game as any).current.targets.forEach((p: string) => {
-          newStats[p] = (newStats[p] || 0) + 1;
+          stats[p] = (stats[p] || 0) + 1;
         });
-        game.stats = newStats;
+        game.stats = stats;
         game.rounds = nextRound;
         game.heat = Math.min(10, 1 + Math.floor(game.rounds / 3));
       }
 
-      // ℹ️ Log tour
-      console.log(`▶️ Lancement du tour ${nextRound}`);
+      const baseFilter = (strictMode = true) =>
+        challenges.filter((c) => {
+          const modeOK =
+            strictMode
+              ? c.modes?.includes(game.mode)
+              : c.modes?.includes(game.mode) || c.modes?.includes('friends');
 
-      // 🎯 Filtrage par type
-      let validChallenges = challenges.filter(
-        (c) =>
-          c.modes?.includes(game.mode) &&
-          (c.minPlayers ?? 1) <= game.players.length &&
-          (
-            isMiniGameRound
-                ? (
-                    [
-                        'roulette',
-                        'wheelshot',
-                        'oracle',
-                        'explosion',
-                        'guessword',
-                        'selfie',
-                        'tapbattle',
-                        'hotseat',
-                        'flashquiz'
-                    ].includes(c.type)
-                    )
-                : isEventRound
-                ? (c.type === 'event')
-                : (c.type === 'challenge' || c.type === 'question')
+          if (!modeOK) return false;
+          if ((c.minPlayers ?? 1) > game.players.length) return false;
+
+          if (isMiniGameRound)
+            return [
+              'roulette',
+              'wheelshot',
+              'oracle',
+              'explosion',
+              'guessword',
+              'selfie',
+              'tapbattle',
+              'hotseat',
+              'flashquiz',
+            ].includes(c.type);
+
+          if (isEventRound) return c.type === 'event';
+          if (c.type !== 'challenge' && c.type !== 'question') return false;
+
+          if (
+            opts.level !== undefined &&
+            opts.level !== -0 &&
+            c.level !== opts.level
           )
-      );
+            return false;
 
-      if (isMiniGameRound) console.log('🎰 Tour spécial : Mini-jeu');
-      else if (isEventRound) console.log('🎉 Tour spécial : Événement');
-      else console.log('🎲 Tour normal : Défi ou question');
+          return true;
+        });
 
-      // 🎯 Si niveau précisé ET hors mini-jeu/event, filtre plus fin
-      if (
-        opts.level !== undefined &&
-        opts.level !== -0 &&
-        !isMiniGameRound &&
-        !isEventRound
-      ) {
-        validChallenges = validChallenges.filter(
-          (c) =>
-            c.level === opts.level &&
-            (c.type === 'challenge' || c.type === 'question')
-        );
+      let validChallenges = baseFilter(true);
+
+      if (isMiniGameRound && validChallenges.length) {
+        const grouped: Record<string, Challenge[]> = {};
+        validChallenges.forEach((c) => {
+          (grouped[c.type] ??= []).push(c);
+        });
+        const types = Object.keys(grouped);
+        const chosenType = types[Math.floor(Math.random() * types.length)];
+        validChallenges = grouped[chosenType];
+        console.log(`🎯 Type de mini-jeu choisi aléatoirement : ${chosenType}`);
       }
 
-      // 🧠 Pool pondéré
-      const weightedPool: Challenge[] = [];
-      validChallenges.forEach((challenge) => {
-        const level = challenge.level ?? 1;
-        const heat = game.heat;
-        const weight = Math.max(1, 10 - Math.abs(level - heat));
-        for (let i = 0; i < weight; i++) {
-          weightedPool.push(challenge);
-        }
-      });
+      const fresh = validChallenges.filter(
+        (c) => !lastPicked.current.includes(c.id)
+      );
+      if (fresh.length) validChallenges = fresh;
 
-      if (weightedPool.length === 0) {
-        console.warn('⚠️ Aucun défi disponible pour ce tour.');
+      if (validChallenges.length === 0) {
+        console.warn('⚠️ Aucun défi strict ; fallback plus large');
+        validChallenges = baseFilter(false);
+      }
+
+      if (validChallenges.length === 0) {
+        console.warn('❌ Toujours rien à proposer.');
         setCurrent({
           type: 'info',
           text: 'Plus de défis adaptés 😢',
@@ -140,41 +152,51 @@ export function useGameEngine(
         return;
       }
 
-      // 🎯 Sélection
-      const picked = weightedPool[Math.floor(Math.random() * weightedPool.length)];
-      const textPlaceholders = [...new Set(picked.text.match(/%PLAYER\d*%/g) ?? [])];
-      const totalNeeded = textPlaceholders.length;
-      const allPlayers = [...game.players];
+      const weightedPool: Challenge[] = [];
+      validChallenges.forEach((c) => {
+        const weight = Math.max(1, 10 - Math.abs(c.level - game.heat));
+        for (let i = 0; i < weight; i++) weightedPool.push(c);
+      });
 
-      let targets: string[] = [];
+      const picked =
+        weightedPool[Math.floor(Math.random() * weightedPool.length)];
+
+      const placeholders = [...new Set(picked.text.match(/%PLAYER\d*%/g) ?? [])];
+      const targets: string[] = [];
+
+      const availablePlayers = [...game.players];
       if (opts.target) {
         targets.push(opts.target);
-        allPlayers.splice(allPlayers.indexOf(opts.target), 1);
+        availablePlayers.splice(availablePlayers.indexOf(opts.target), 1);
       }
-
-      while (targets.length < totalNeeded && allPlayers.length > 0) {
-        const index = Math.floor(Math.random() * allPlayers.length);
-        const player = allPlayers.splice(index, 1)[0];
-        targets.push(player);
+      while (targets.length < placeholders.length && availablePlayers.length) {
+        const p = availablePlayers.splice(
+          Math.floor(Math.random() * availablePlayers.length),
+          1
+        )[0];
+        targets.push(p);
       }
-
-      if (targets.length < totalNeeded) {
-        console.warn(`❌ Pas assez de joueurs pour le défi (${totalNeeded} requis).`);
+      if (targets.length < placeholders.length) {
         setCurrent({
           type: 'info',
-          text: `Pas assez de joueurs différents pour ce défi (${totalNeeded} requis) 😢`,
+          text: 'Pas assez de joueurs pour ce défi 😢',
           targets: [],
         });
         return;
       }
 
       let finalText = picked.text;
-      textPlaceholders.forEach((ph, i) => {
-        finalText = finalText.replaceAll(ph, targets[i] ?? targets[0]);
+      placeholders.forEach((ph, i) => {
+        finalText = finalText.replaceAll(ph, targets[i]);
       });
+
+      lastPicked.current.push(picked.id);
+      if (lastPicked.current.length > RECENT_MEMORY)
+        lastPicked.current.shift();
 
       console.log(`📝 Défi sélectionné : ${finalText}`);
       console.log(`🎯 Joueurs ciblés : ${targets.join(', ')}`);
+      console.log(`🎯 Paramètres reçus : ${JSON.stringify(opts)}`);
 
       const newCurrent = { ...picked, targets, text: finalText };
       (game as any).current = newCurrent;
