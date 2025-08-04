@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     justifyContent: 'center',
+    backgroundColor: '#1a0000',
     alignItems: 'center',
   },
   bubble: {
