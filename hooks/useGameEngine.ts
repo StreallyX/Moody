@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import rawChallenges from '../app/data/challenges.json';
+import rawChallenges from '../app/data/data.json';
 import type { GameState } from '../lib/storage';
 import { saveGameState } from '../lib/storage';
 

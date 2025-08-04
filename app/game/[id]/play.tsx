@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import challenges from '../../../app/data/challenges.json';
+import challenges from '../../../app/data/data.json';
 import ChallengeCard from '../../../components/ChallengeCard';
 import EventCard from '../../../components/events/EventCard';
 import EventSpecial1 from '../../../components/events/EventSpecial1';
