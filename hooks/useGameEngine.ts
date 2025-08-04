@@ -58,8 +58,8 @@ export function useGameEngine(
           ? game.rounds + 1
           : game.rounds;
 
-      const isMiniGameRound = nextRound > 0 && nextRound % 20 === 10;
-      const isEventRound = nextRound > 0 && nextRound % 20 === 0;
+      const isMiniGameRound = nextRound > 0 && nextRound % 10 === 5;
+      const isEventRound = nextRound > 0 && nextRound % 10 === 0;
 
       // 🔁 Mise à jour stats & tour
       if ((game as any)?.current?.targets && opts.level !== -0) {
