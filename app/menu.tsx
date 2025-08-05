@@ -1,8 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,7 +20,6 @@ import {
 
 function MenuImage({ source }: { source: any }) {
   const [loading, setLoading] = useState(true);
-
   return (
     <View style={styles.imageWrapper}>
       <Image
@@ -40,11 +41,15 @@ export default function MenuScreen() {
   const [playerList, setPlayerList] = useState<string[]>([]);
   const [hasSavedGame, setHasSavedGame] = useState(false);
   const [lastMode, setLastMode] = useState<string>('friends');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const init = async () => {
-      const loadedPlayers = await loadPlayers();
+      const logged = await AsyncStorage.getItem('isLoggedIn');
+      setIsLoggedIn(logged === 'true');
 
+      const loadedPlayers = await loadPlayers();
       if (!loadedPlayers || loadedPlayers.length === 0) {
         router.replace('/');
         return;
@@ -53,7 +58,6 @@ export default function MenuScreen() {
       setPlayerList(loadedPlayers);
 
       const game = await loadGameState();
-
       if (
         game &&
         game.players.length > 0 &&
@@ -72,9 +76,9 @@ export default function MenuScreen() {
 
   const menuButtons = [
     { id: 'friends', title: 'Friends', image: require('../assets/images/game1.png'), locked: false },
-    { id: 'caliente', title: 'Caliente', image: require('../assets/images/game2.png'), locked: false },
-    { id: 'mystery',  title: 'Mystery',  image: require('../assets/images/game3.png'), locked: true },
-    { id: 'couple',   title: 'Couple',   image: require('../assets/images/game4.png'), locked: false },
+    { id: 'caliente', title: 'Caliente', image: require('../assets/images/game2.png'), locked: !isLoggedIn },
+    { id: 'mystery', title: 'Mystery', image: require('../assets/images/game3.png'), locked: true },
+    { id: 'couple', title: 'Couple', image: require('../assets/images/game4.png'), locked: false },
   ];
 
   return (
@@ -113,27 +117,68 @@ export default function MenuScreen() {
 
       {/* GAME MODE BUTTONS */}
       <ScrollView contentContainerStyle={styles.buttonList}>
-        {menuButtons.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={[styles.menuButton, item.locked && styles.locked]}
-            activeOpacity={item.locked ? 1 : 0.7}
-            onPress={async () => {
-              if (!item.locked) {
-                await clearGameState();
-                setHasSavedGame(false);
-                router.push(`/game/${item.id}`);
-              }
-            }}
-            disabled={item.locked}
-          >
-            <MenuImage source={item.image} />
-            <Text style={styles.buttonTitle}>
-              {item.locked ? '🔒 ' : ''}{item.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {menuButtons.map((item) => {
+          const locked = item.locked;
+
+          return (
+            <View key={item.id} style={{ position: 'relative', width: '100%' }}>
+              <TouchableOpacity
+                style={[styles.menuButton, locked && styles.locked]}
+                activeOpacity={locked ? 0.9 : 0.7}
+                onPress={async () => {
+                  if (locked) {
+                    setShowModal(true);
+                    return;
+                  }
+                  await clearGameState();
+                  setHasSavedGame(false);
+                  router.push(`/game/${item.id}`);
+                }}
+                disabled={false}
+              >
+                <MenuImage source={item.image} />
+                <Text style={styles.buttonTitle}>
+                  {locked ? '🔒 ' : ''}{item.title}
+                </Text>
+              </TouchableOpacity>
+
+              {/* BULLE D’INFO POUR CALIENTE */}
+              {locked && (
+                <View style={styles.bubble}>
+                  <Text style={styles.bubbleText}>Clique ici pour débloquer 🔓</Text>
+                </View>
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
+
+      {/* MODAL POUR CALIENTE BLOQUÉ */}
+      <Modal
+        visible={showModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setShowModal(false)}>
+              <Text style={{ fontSize: 20 }}>❌</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Créer un compte pour avoir accès</Text>
+            <Text style={styles.modalText}>Le mode Caliente est réservé aux joueurs connectés 🔥</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                setShowModal(false);
+                router.push('/auth/login');
+              }}
+            >
+              <Icon name="arrow-right" size={24} color="#000" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -252,5 +297,64 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 4,
     borderRadius: 10,
+  },
+  bubble: {
+    position: 'absolute',
+    bottom: 8,
+    alignSelf: 'center',
+    backgroundColor: '#fff4c4',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    elevation: 3,
+  },
+  bubbleText: {
+    color: '#222',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '80%',
+    alignItems: 'center',
+    elevation: 5,
+    position: 'relative',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 14,
+    color: '#444',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: '#ffb347',
+    padding: 12,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 50,
+    height: 50,
+  },
+  modalClose: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    padding: 6,
+    zIndex: 10,
   },
 });
