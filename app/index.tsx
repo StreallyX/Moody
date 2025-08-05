@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { getCurrentUserEmail, isUserLoggedIn } from '../lib/auth'; // <-- NEW
-import { loadPlayers, savePlayers } from '../lib/storage'; // adapte le chemin si nécessaire
+import { getCurrentUserEmail, isAccountStillValidOnline, isUserLoggedIn } from '../lib/auth';
+import { loadPlayers, savePlayers } from '../lib/storage';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -34,21 +34,28 @@ export default function HomeScreen() {
       const loggedIn = await isUserLoggedIn();
       if (!loggedIn) return;
 
+      const stillValid = await isAccountStillValidOnline();
+      if (!stillValid) {
+        console.warn('Compte invalide ou supprimé, on déconnecte...');
+        await AsyncStorage.clear();
+        router.replace('/auth/login');
+        return;
+      }
+      
       const email = await getCurrentUserEmail();
       const shouldShow = await AsyncStorage.getItem('showLoginModal');
 
       if (shouldShow === 'true') {
         setLoginEmail(email);
         setShowLoginModal(true);
-        await AsyncStorage.removeItem('showLoginModal'); // Supprime après affichage
+        await AsyncStorage.removeItem('showLoginModal');
       }
     };
 
     init();
   }, []);
 
-
-  /* ----------- Gestion des joueurs ----------- */
+    /* ----------- Gestion des joueurs ----------- */
   const removePlayer = (name: string) => {
     const updated = players.filter((p) => p !== name);
     setPlayers(updated);

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
-import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { addDoc, collection, doc, doc as docRef, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db } from './firebase';
 
 // Fonction pour hacher un mot de passe
@@ -31,7 +31,6 @@ export async function registerUser(email: string, password: string) {
   return true;
 }
 
-// ✅ Connecte un utilisateur
 export async function loginUser(email: string, password: string) {
   const usersRef = collection(db, 'users');
   const q = query(usersRef, where('email', '==', email));
@@ -48,6 +47,12 @@ export async function loginUser(email: string, password: string) {
   if (userData.password !== hashedPassword) {
     throw new Error('Mot de passe incorrect');
   }
+
+  // 🔥 Met à jour la date de dernière connexion
+  const userDocRef = docRef(db, 'users', userDoc.id);
+  await updateDoc(userDocRef, {
+    lastLogin: new Date(),
+  });
 
   // Stocke localement l'état connecté
   await AsyncStorage.setItem('isLoggedIn', 'true');
@@ -84,3 +89,20 @@ export const getCurrentUserEmail = async (): Promise<string | null> => {
   return value;
 };
 
+// Vérifie si le compte utilisateur est encore valide en ligne
+export async function isAccountStillValidOnline(): Promise<boolean> {
+  const userId = await AsyncStorage.getItem('userId');
+  if (!userId) return false;
+
+  const userDocRef = doc(db, 'users', userId);
+  const userSnap = await getDoc(userDocRef);
+
+  if (!userSnap.exists()) return false;
+
+  // 🔥 Met à jour la date de dernière connexion
+  await updateDoc(userDocRef, {
+    lastLogin: new Date(),
+  });
+
+  return true;
+}
