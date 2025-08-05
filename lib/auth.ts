@@ -25,6 +25,8 @@ export async function registerUser(email: string, password: string) {
   await AsyncStorage.setItem('isLoggedIn', 'true');
   await AsyncStorage.setItem('userId', doc.id);
   await AsyncStorage.setItem('userEmail', email);
+  await AsyncStorage.setItem('showLoginModal', 'true');
+
 
   return true;
 }
@@ -51,6 +53,7 @@ export async function loginUser(email: string, password: string) {
   await AsyncStorage.setItem('isLoggedIn', 'true');
   await AsyncStorage.setItem('userId', userDoc.id);
   await AsyncStorage.setItem('userEmail', userData.email);
+  await AsyncStorage.setItem('showLoginModal', 'true');
 
   return {
     id: userDoc.id,

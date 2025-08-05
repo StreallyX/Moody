@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -10,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
 import { getCurrentUserEmail, isUserLoggedIn } from '../lib/auth'; // <-- NEW
 import { loadPlayers, savePlayers } from '../lib/storage'; // adapte le chemin si nécessaire
 
@@ -28,20 +28,25 @@ export default function HomeScreen() {
   /* ----------- Initialisation ----------- */
   useEffect(() => {
     const init = async () => {
-      // Charge la liste des joueurs
       const storedPlayers = await loadPlayers();
       setPlayers(storedPlayers);
 
-      // Vérifie la connexion
       const loggedIn = await isUserLoggedIn();
-      if (loggedIn) {
-        const email = await getCurrentUserEmail();
+      if (!loggedIn) return;
+
+      const email = await getCurrentUserEmail();
+      const shouldShow = await AsyncStorage.getItem('showLoginModal');
+
+      if (shouldShow === 'true') {
         setLoginEmail(email);
         setShowLoginModal(true);
+        await AsyncStorage.removeItem('showLoginModal'); // Supprime après affichage
       }
     };
+
     init();
   }, []);
+
 
   /* ----------- Gestion des joueurs ----------- */
   const removePlayer = (name: string) => {
