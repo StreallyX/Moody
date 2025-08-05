@@ -41,7 +41,7 @@ export default function HomeScreen() {
         router.replace('/auth/login');
         return;
       }
-      
+
       const email = await getCurrentUserEmail();
       const shouldShow = await AsyncStorage.getItem('showLoginModal');
 
@@ -116,22 +116,27 @@ export default function HomeScreen() {
       </View>
 
       {/* Bloc liste des joueurs */}
-      <View style={styles.block2}>
+      <View style={{ position: 'relative', width: '100%' }}>
         <FlatList
           data={players}
           keyExtractor={(item) => item}
           contentContainerStyle={styles.playerList}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.playerChip}
-              onPress={() => removePlayer(item)}
-            >
+            <TouchableOpacity style={styles.playerChip} onPress={() => removePlayer(item)}>
               <Text style={styles.playerText}>✕ {item}</Text>
             </TouchableOpacity>
           )}
           horizontal
+          showsHorizontalScrollIndicator={false}
         />
+
+        {players.length > 3 && (
+  <View style={styles.scrollHintContainer} pointerEvents="none">
+    <Text style={styles.scrollHintText}>Faites glisser →</Text>
+  </View>
+)}
       </View>
+
 
       {/* Bloc ajout de joueur */}
       <View style={styles.block3}>
@@ -297,4 +302,21 @@ const styles = StyleSheet.create({
   modalCloseText: { fontSize: 20, color: '#000' },
   modalText: { fontSize: 16, fontWeight: '600', textAlign: 'center', color: '#000' },
   modalEmail: { color: '#ff5722' },
+  scrollHintContainer: {
+  position: 'absolute',
+  right: 10,
+  top: '42%',
+  backgroundColor: 'rgba(26,0,0,0.6)',
+  paddingHorizontal: 10,
+  paddingVertical: 4,
+  borderRadius: 12,
+  zIndex: 10,
+  },
+  scrollHintText: {
+    color: '#ffb347',
+    fontSize: 12,
+    fontStyle: 'italic',
+    fontWeight: '600',
+  },
+
 });
