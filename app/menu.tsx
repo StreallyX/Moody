@@ -77,9 +77,10 @@ export default function MenuScreen() {
   const menuButtons = [
     { id: 'friends', title: 'Friends', image: require('../assets/images/game1.png'), locked: false },
     { id: 'caliente', title: 'Caliente', image: require('../assets/images/game2.png'), locked: !isLoggedIn },
-    { id: 'mystery', title: 'Mystery', image: require('../assets/images/game3.png'), locked: true },
-    { id: 'couple', title: 'Couple', image: require('../assets/images/game4.png'), locked: false },
+    { id: 'mystery', title: 'Mystery', image: require('../assets/images/build.png'), locked: true, disabled: true },
+    { id: 'couple', title: 'Couple', image: require('../assets/images/build.png'), locked: true, disabled: true },
   ];
+
 
   return (
     <View style={styles.container}>
@@ -119,13 +120,15 @@ export default function MenuScreen() {
       <ScrollView contentContainerStyle={styles.buttonList}>
         {menuButtons.map((item) => {
           const locked = item.locked;
+          const disabled = item.disabled;
 
           return (
             <View key={item.id} style={{ position: 'relative', width: '100%' }}>
               <TouchableOpacity
-                style={[styles.menuButton, locked && styles.locked]}
-                activeOpacity={locked ? 0.9 : 0.7}
+                style={[styles.menuButton, (locked || disabled) && styles.locked]}
+                activeOpacity={0.9}
                 onPress={async () => {
+                  if (disabled) return;
                   if (locked) {
                     setShowModal(true);
                     return;
@@ -134,20 +137,19 @@ export default function MenuScreen() {
                   setHasSavedGame(false);
                   router.push(`/game/${item.id}`);
                 }}
-                disabled={false}
+                disabled={disabled}
               >
                 <MenuImage source={item.image} />
                 <Text style={styles.buttonTitle}>
-                  {locked ? '🔒 ' : ''}{item.title}
+                  {disabled ? '🚧 En construction' : locked ? '🔒 ' + item.title : item.title}
                 </Text>
               </TouchableOpacity>
-
-              {/* BULLE D’INFO POUR CALIENTE */}
-              {locked && (
-                <View style={styles.bubble}>
-                  <Text style={styles.bubbleText}>Clique ici pour débloquer 🔓</Text>
-                </View>
-              )}
+               {/* BULLE D’INFO */}
+                {locked && !disabled && (
+                  <View style={styles.bubble}>
+                    <Text style={styles.bubbleText}>Clique ici pour débloquer 🔓</Text>
+                  </View>
+                )}
             </View>
           );
         })}
@@ -267,7 +269,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   locked: {
-    opacity: 0.4,
+    opacity: 0.7,
   },
   imageWrapper: {
     position: 'absolute',
