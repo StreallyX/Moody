@@ -32,8 +32,6 @@ export default function GameStartScreen() {
   const backgrounds: Record<string, any> = {
     friends: require('../../../assets/images/game1.png'),
     caliente: require('../../../assets/images/game2.png'),
-    mystery: require('../../../assets/images/game3.png'),
-    couple: require('../../../assets/images/game4.png'),
   };
 
   const bgImage = backgrounds[id] ?? require('../../../assets/images/default.png'); // image par défaut si id inconnu
