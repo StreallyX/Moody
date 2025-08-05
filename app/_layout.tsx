@@ -1,32 +1,24 @@
-import { Audio } from 'expo-av';
-import { Slot } from 'expo-router';
+import { Slot, usePathname, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import LoadingScreen from '../components/LoadingScreen';
+import { monitorAuthState } from '../lib/auth';
 
 export default function Layout() {
   const [checking, setChecking] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname(); // pour ne pas re-router en boucle
 
   useEffect(() => {
-    Audio.setAudioModeAsync({
-      interruptionModeIOS: 1,         // MIX_WITH_OTHERS
-      interruptionModeAndroid: 1,     // DO_NOT_MIX
-      shouldDuckAndroid: false,
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-    }).catch(console.warn);
+    monitorAuthState();
 
-    const simulateLoading = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    const initApp = async () => {
+     
       setChecking(false);
     };
 
-    simulateLoading();
+    initApp();
   }, []);
 
-  if (checking) {
-    return <LoadingScreen />;
-  }
-
+  if (checking) return <LoadingScreen />;
   return <Slot />;
 }
