@@ -3,24 +3,47 @@ import { useEffect, useState } from 'react';
 import {
   FlatList,
   Image,
+  Modal,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import { getCurrentUserEmail, isUserLoggedIn } from '../lib/auth'; // <-- NEW
 import { loadPlayers, savePlayers } from '../lib/storage'; // adapte le chemin si nécessaire
 
 export default function HomeScreen() {
   const router = useRouter();
 
+  /* ----------- État des joueurs ----------- */
   const [players, setPlayers] = useState<string[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
 
+  /* ----------- État du Modal de connexion ----------- */
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginEmail, setLoginEmail] = useState<string | null>(null);
+
+  /* ----------- Initialisation ----------- */
   useEffect(() => {
-    loadPlayers().then(setPlayers);
+    const init = async () => {
+      // Charge la liste des joueurs
+      const storedPlayers = await loadPlayers();
+      setPlayers(storedPlayers);
+
+      // Vérifie la connexion
+      const loggedIn = await isUserLoggedIn();
+      if (loggedIn) {
+        const email = await getCurrentUserEmail();
+        setLoginEmail(email);
+        setShowLoginModal(true);
+      }
+    };
+    init();
   }, []);
 
+  /* ----------- Gestion des joueurs ----------- */
   const removePlayer = (name: string) => {
     const updated = players.filter((p) => p !== name);
     setPlayers(updated);
@@ -37,14 +60,39 @@ export default function HomeScreen() {
     }
   };
 
+  /* ----------- Navigation ----------- */
   const startGame = () =>
     router.push({
       pathname: '/menu',
       params: { players: JSON.stringify(players) },
     });
 
+  /* ----------- Rendu ----------- */
   return (
     <View style={styles.container}>
+      {/* ---------- MODAL Connexion ---------- */}
+      <Modal
+        visible={showLoginModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLoginModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.modalClose}
+              onPress={() => setShowLoginModal(false)}
+            >
+              <Text style={styles.modalCloseText}>✕</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalText}>
+              Connecté avec{'\n'}
+              <Text style={styles.modalEmail}>{loginEmail}</Text>
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
       {/* Bloc logo */}
       <View style={styles.block1}>
         <Image
@@ -105,9 +153,13 @@ export default function HomeScreen() {
           <TouchableOpacity style={styles.sideButton}>
             <Text style={styles.sideText}>🌐{'\n'}Langue</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sideButton}>
-            <Text style={styles.sideText}>🔗{'\n'}Partager</Text>
+          <TouchableOpacity
+            style={styles.sideButton}
+            onPress={() => router.push('/auth/profile')}
+          >
+            <Text style={styles.sideText}>👤{'\n'}Account</Text>
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.sideButton}>
             <Text style={styles.sideText}>✉️{'\n'}Contact</Text>
           </TouchableOpacity>
@@ -120,37 +172,25 @@ export default function HomeScreen() {
   );
 }
 
+/* -------------------- Styles -------------------- */
 const styles = StyleSheet.create({
+  /* --- container et blocs existants --- */
   container: {
     flex: 1,
     backgroundColor: '#1a0000',
     paddingTop: 40,
   },
-  block1: {
-    flex: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  block2: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  block3: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  block1: { flex: 2, justifyContent: 'center', alignItems: 'center' },
+  block2: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  block3: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   block4: {
     flex: 4,
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingBottom: 20,
   },
-  logo: {
-    width: 300,
-    height: 140,
-  },
+  /* --- éléments existants --- */
+  logo: { width: 300, height: 140 },
   slogan: {
     marginTop: 10,
     color: '#ffb347',
@@ -159,10 +199,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
   },
-  playerList: {
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
+  playerList: { paddingVertical: 10, alignItems: 'center' },
   playerChip: {
     backgroundColor: '#fff',
     borderRadius: 999,
@@ -175,15 +212,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
-  playerText: {
-    fontWeight: '600',
-    color: '#000',
-    fontSize: 14,
-  },
-  addPlayerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  playerText: { fontWeight: '600', color: '#000', fontSize: 14 },
+  addPlayerContainer: { flexDirection: 'row', alignItems: 'center' },
   input: {
     height: 42,
     width: 200,
@@ -203,11 +233,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     elevation: 3,
   },
-  plusText: {
-    fontSize: 26,
-    color: '#000',
-    fontWeight: '600',
-  },
+  plusText: { fontSize: 26, color: '#000', fontWeight: '600' },
   startButton: {
     backgroundColor: '#ffb347',
     borderRadius: 999,
@@ -221,11 +247,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
-  startText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-  },
+  startText: { fontSize: 18, fontWeight: 'bold', color: '#000' },
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -243,10 +265,24 @@ const styles = StyleSheet.create({
     borderColor: '#ffb347',
     borderWidth: 1,
   },
-  sideText: {
-    color: '#ffb347',
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: '600',
+  sideText: { color: '#ffb347', textAlign: 'center', fontSize: 11, fontWeight: '600' },
+
+  /* --- styles du Modal --- */
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalClose: { position: 'absolute', top: 10, right: 10 },
+  modalCloseText: { fontSize: 20, color: '#000' },
+  modalText: { fontSize: 16, fontWeight: '600', textAlign: 'center', color: '#000' },
+  modalEmail: { color: '#ff5722' },
 });
