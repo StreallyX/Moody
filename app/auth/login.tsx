@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
   Alert,
   Image,
+  Linking,
   StyleSheet,
   Text,
   TextInput,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import BackButton from '../../components/BackButton';
 import { loginUser } from '../../lib/auth';
+
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -68,6 +70,16 @@ export default function LoginScreen() {
         <TouchableOpacity onPress={() => router.push('/auth/signup')}>
           <Text style={styles.link}>Pas encore inscrit ?</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            // Ouvre le site dans le navigateur du téléphone
+            Linking.openURL('https://moody-website-tawny.vercel.app/reset-password')
+          }}
+        >
+          <Text style={styles.link}>Mot de passe oublié ?</Text>
+        </TouchableOpacity>
+
       </View>
     </View>
   );
