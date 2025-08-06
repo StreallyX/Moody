@@ -177,7 +177,10 @@ export default function HomeScreen() {
             <Text style={styles.sideText}>👤{'\n'}Account</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.sideButton}>
+          <TouchableOpacity
+            style={styles.sideButton}
+            onPress={() => router.push('/contact')}
+          >
             <Text style={styles.sideText}>✉️{'\n'}Contact</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.sideButton}>

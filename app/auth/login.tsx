@@ -67,18 +67,18 @@ export default function LoginScreen() {
           <Text style={styles.buttonText}>Se connecter</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/auth/signup')}>
+        <TouchableOpacity onPress={() => router.push('/auth/signup')} style={{ marginBottom: 30 }}>
           <Text style={styles.link}>Pas encore inscrit ?</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => {
-            // Ouvre le site dans le navigateur du téléphone
             Linking.openURL('https://moody-website-tawny.vercel.app/reset-password')
           }}
         >
           <Text style={styles.link}>Mot de passe oublié ?</Text>
         </TouchableOpacity>
+
 
       </View>
     </View>
