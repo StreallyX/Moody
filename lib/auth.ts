@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
-import { addDoc, collection, doc, doc as docRef, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db } from './firebase';
 
 // Fonction pour hacher un mot de passe
@@ -19,14 +19,20 @@ export async function registerUser(email: string, password: string) {
   }
 
   const hashedPassword = await hashPassword(password);
-  const doc = await addDoc(usersRef, { email, password: hashedPassword, createdAt: new Date() });
+
+  // Ajoute admin=false par défaut
+  const docRef = await addDoc(usersRef, { 
+    email, 
+    password: hashedPassword, 
+    admin: false, 
+    createdAt: new Date() 
+  });
 
   // Stocke localement l'état connecté
   await AsyncStorage.setItem('isLoggedIn', 'true');
-  await AsyncStorage.setItem('userId', doc.id);
+  await AsyncStorage.setItem('userId', docRef.id);
   await AsyncStorage.setItem('userEmail', email);
   await AsyncStorage.setItem('showLoginModal', 'true');
-
 
   return true;
 }
@@ -49,7 +55,7 @@ export async function loginUser(email: string, password: string) {
   }
 
   // 🔥 Met à jour la date de dernière connexion
-  const userDocRef = docRef(db, 'users', userDoc.id);
+  const userDocRef = doc(db, 'users', userDoc.id);
   await updateDoc(userDocRef, {
     lastLogin: new Date(),
   });
@@ -79,9 +85,9 @@ export async function isUserLoggedIn(): Promise<boolean> {
   return value === 'true';
 }
 
-// ✅ (optionnel) permet de synchroniser en live (non nécessaire ici, mais utile si tu veux écouter un logout dans un autre onglet plus tard)
+// (optionnel) permet de synchroniser en live
 export function monitorAuthState() {
-  // Rien à faire dans ce cas précis car on ne peut pas écouter AsyncStorage
+  // Rien à faire ici pour AsyncStorage
 }
 
 export const getCurrentUserEmail = async (): Promise<string | null> => {
