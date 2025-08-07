@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function FlashQuizCard({ data, onNext }: Props) {
+  const { t } = useTranslation();
   const [answered, setAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
@@ -21,7 +23,7 @@ export default function FlashQuizCard({ data, onNext }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🎯 Vrai ou Faux</Text>
+      <Text style={styles.title}>{t('flash.title')}</Text>
 
       <View style={styles.questionBox}>
         <Text style={styles.statement}>{data.text}</Text>
@@ -33,13 +35,13 @@ export default function FlashQuizCard({ data, onNext }: Props) {
             style={[styles.button, { backgroundColor: '#00cc66' }]}
             onPress={() => handleAnswer(true)}
           >
-            <Text style={styles.buttonText}>Vrai</Text>
+            <Text style={styles.buttonText}>{t('flash.true')}</Text>
           </Pressable>
           <Pressable
             style={[styles.button, { backgroundColor: '#cc0033' }]}
             onPress={() => handleAnswer(false)}
           >
-            <Text style={styles.buttonText}>Faux</Text>
+            <Text style={styles.buttonText}>{t('flash.false')}</Text>
           </Pressable>
         </View>
       ) : (
@@ -50,10 +52,10 @@ export default function FlashQuizCard({ data, onNext }: Props) {
               { color: isCorrect ? '#7CFC00' : '#ff4d4d' },
             ]}
           >
-            {isCorrect ? 'Bonne réponse ! 🎉' : 'Faux ! 1 pénalité ! '}
+            {isCorrect ? t('flash.correct') : t('flash.wrong')}
           </Text>
           <Pressable style={styles.nextButton} onPress={() => onNext()}>
-            <Text style={styles.nextButtonText}>Suivant</Text>
+            <Text style={styles.nextButtonText}>{t('flash.next')}</Text>
           </Pressable>
         </>
       )}
@@ -76,7 +78,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   questionBox: {
-
     padding: 24,
     borderRadius: 14,
     marginBottom: 30,

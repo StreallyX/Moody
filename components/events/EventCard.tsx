@@ -1,17 +1,20 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function EventCard({ text, onNext }: { text: string; onNext: () => void }) {
+  const { t } = useTranslation();
+
   return (
     <LinearGradient
       colors={['#1e0038', '#07076e']}
       style={styles.container}
     >
       <View style={styles.card}>
-        <Text style={styles.title}>ÉVÉNEMENT</Text>
+        <Text style={styles.title}>{t('event.title')}</Text>
         <Text style={styles.text}>{text}</Text>
         <TouchableOpacity style={styles.button} onPress={() => onNext()}>
-          <Text style={styles.buttonText}>Continuer</Text>
+          <Text style={styles.buttonText}>{t('event.continue')}</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>

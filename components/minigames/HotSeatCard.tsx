@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function HotSeatCard({ data, onNext }: { data: any; onNext: () => void }) {
+  const { t } = useTranslation();
   const [player, setPlayer] = useState('');
 
   useEffect(() => {
     const players: string[] = data.players || [];
     if (players.length === 0) {
-      setPlayer('Un joueur');
+      setPlayer(t('hotseat.defaultPlayer'));
     } else {
       const random = players[Math.floor(Math.random() * players.length)];
       setPlayer(random);
@@ -16,20 +18,20 @@ export default function HotSeatCard({ data, onNext }: { data: any; onNext: () =>
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hot Seat</Text>
+      <Text style={styles.title}>{t('hotseat.title')}</Text>
 
       <View style={styles.playerTag}>
-        <Text style={styles.playerText}>{player}, tu es sur le gril !</Text>
+        <Text style={styles.playerText}>{t('hotseat.onGrill', { player })}</Text>
       </View>
 
       <View style={styles.questionBox}>
         <Text style={styles.question}>{data.text}</Text>
       </View>
 
-      <Text style={styles.instruction}>Tu dois répondre honnêtement... ou boire 🔥</Text>
+      <Text style={styles.instruction}>{t('hotseat.instruction')}</Text>
 
       <Pressable style={styles.button} onPress={() => onNext()}>
-        <Text style={styles.buttonText}>Continuer</Text>
+        <Text style={styles.buttonText}>{t('hotseat.continue')}</Text>
       </Pressable>
     </View>
   );

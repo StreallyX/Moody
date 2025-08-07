@@ -1,12 +1,17 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function ChallengeCard({ data, onNext }: any) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <View style={styles.levelRow}>
         <Icon name="fire" size={20} color="#ffb347" style={{ marginRight: 8 }} />
-        <Text style={styles.level}>Défi – Niveau {data.level}/10</Text>
+        <Text style={styles.level}>
+          {t('challenge.level', { level: data.level })}
+        </Text>
       </View>
 
       <Text style={styles.text}>
@@ -18,12 +23,11 @@ export default function ChallengeCard({ data, onNext }: any) {
       )}
 
       <TouchableOpacity style={styles.nextBtn} onPress={() => onNext()}>
-        <Text style={styles.nextTxt}>Suivant ➡</Text>
+        <Text style={styles.nextTxt}>{t('next')} ➡</Text>
       </TouchableOpacity>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -83,9 +87,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   levelRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
 });

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,14 +10,15 @@ export default function FooterBar({
   onReportPress: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 8 }]}>
       <TouchableOpacity style={[styles.button, styles.select]} onPress={onSelectPress}>
-        <Text style={styles.selectText}>🧪 SELECT</Text>
+        <Text style={styles.selectText}>🧪 {t('footer.select')}</Text>
       </TouchableOpacity>
       <TouchableOpacity style={[styles.button, styles.report]} onPress={onReportPress}>
-        <Text style={styles.reportText}>🚨 REPORT</Text>
+        <Text style={styles.reportText}>🚨 {t('footer.report')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -34,10 +36,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   select: {
-    backgroundColor: '#2b1b54', // violet foncé élégant
+    backgroundColor: '#2b1b54',
   },
   report: {
-    backgroundColor: '#702222', // rouge foncé
+    backgroundColor: '#702222',
   },
   selectText: {
     color: '#b4aaff',

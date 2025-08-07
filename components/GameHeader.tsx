@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -12,6 +13,7 @@ export default function GameHeader({
   onStatsPress: () => void;
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const backgroundColor = 'transparent';
 
@@ -25,7 +27,7 @@ export default function GameHeader({
       </TouchableOpacity>
 
       <View style={styles.roundContainer}>
-        <Text style={styles.roundText}>Tour #{round}</Text>
+        <Text style={styles.roundText}>{t('gameHeader.round', { round })}</Text>
       </View>
 
       <TouchableOpacity
@@ -37,7 +39,6 @@ export default function GameHeader({
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   header: {

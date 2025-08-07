@@ -1,13 +1,16 @@
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function SelfieCard({ data, onNext }: { data: any; onNext: () => void }) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📸 Selfie Challenge</Text>
-      <Text style={styles.subtitle}>Jeu en construction… 🚧</Text>
+      <Text style={styles.title}>📸 {t('selfie.title')}</Text>
+      <Text style={styles.subtitle}>{t('selfie.subtitle')}</Text>
 
       <Pressable style={styles.button} onPress={() => onNext()}>
-        <Text style={styles.buttonText}>Suivant</Text>
+        <Text style={styles.buttonText}>{t('selfie.next')}</Text>
       </Pressable>
     </View>
   );

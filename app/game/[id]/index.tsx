@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ImageBackground,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
 import { loadPlayers } from '../../../lib/storage';
 
 export default function GameStartScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -34,7 +36,7 @@ export default function GameStartScreen() {
     caliente: require('../../../assets/images/game2.png'),
   };
 
-  const bgImage = backgrounds[id] ?? require('../../../assets/images/default.png'); // image par défaut si id inconnu
+  const bgImage = backgrounds[id] ?? require('../../../assets/images/default.png');
 
   return (
     <TouchableOpacity style={styles.container} onPress={handleStart}>
@@ -44,11 +46,11 @@ export default function GameStartScreen() {
         resizeMode="cover"
       >
         <View style={styles.bubble}>
-          <Text style={styles.title}>Prêt à jouer ?</Text>
+          <Text style={styles.title}>{t('gamestart.ready')}</Text>
           {playerList.map((name, index) => (
             <Text key={index} style={styles.player}>👤 {name}</Text>
           ))}
-          <Text style={styles.tap}>[Touchez pour commencer]</Text>
+          <Text style={styles.tap}>{t('gamestart.tapToStart')}</Text>
         </View>
       </ImageBackground>
     </TouchableOpacity>

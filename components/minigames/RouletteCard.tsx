@@ -1,5 +1,5 @@
-// components/SlotRouletteCard.tsx
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Animated,
   Easing,
@@ -16,23 +16,15 @@ type Props = {
 };
 
 export default function SlotRouletteCard({ players, onNext }: Props) {
-  /* ───────── états ───────── */
+  const { t } = useTranslation();
+
   const [helpVisible, setHelpVisible] = useState(false);
-
-  /** joueur à qui c’est le tour (intro) */
-  const [turnPlayer] = useState(
-    players[Math.floor(Math.random() * players.length)]
-  );
-
-  /** résultat final */
+  const [turnPlayer] = useState(players[Math.floor(Math.random() * players.length)]);
   const [number, setNumber] = useState<number | null>(null);
   const [target, setTarget] = useState<string | null>(null);
-
-  /** spinning flags -> désactivation des boutons */
   const [spinNum, setSpinNum] = useState(false);
   const [spinPlayer, setSpinPlayer] = useState(false);
 
-  /* ───────── animation intro nom qui monte ───────── */
   const introY = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(introY, {
@@ -43,13 +35,10 @@ export default function SlotRouletteCard({ players, onNext }: Props) {
     }).start();
   }, []);
 
-  /* ───────── helpers de spin ───────── */
   const runNumberSpin = () => {
     if (spinNum) return;
     setSpinNum(true);
-    let tick = 0;
     const id = setInterval(() => {
-      tick++;
       setNumber(Math.floor(Math.random() * 10) + 1);
     }, 70);
     setTimeout(() => {
@@ -63,9 +52,7 @@ export default function SlotRouletteCard({ players, onNext }: Props) {
   const runPlayerSpin = () => {
     if (spinPlayer) return;
     setSpinPlayer(true);
-    let tick = 0;
     const id = setInterval(() => {
-      tick++;
       setTarget(players[Math.floor(Math.random() * players.length)]);
     }, 90);
     setTimeout(() => {
@@ -76,71 +63,50 @@ export default function SlotRouletteCard({ players, onNext }: Props) {
     }, 1700);
   };
 
-  /* ───────── ready to go ? ───────── */
   const ready = number !== null && target !== null && !spinNum && !spinPlayer;
 
-  /* ───────── rendu ───────── */
   return (
     <View style={styles.container}>
-      {/* bouton aide */}
-      <TouchableOpacity
-        style={styles.helpBtn}
-        onPress={() => setHelpVisible(true)}
-      >
+      <TouchableOpacity style={styles.helpBtn} onPress={() => setHelpVisible(true)}>
         <Text style={styles.helpTxt}>?</Text>
       </TouchableOpacity>
 
-      {/* intro / nom qui monte */}
       <Animated.Text
-        style={[
-          styles.turnText,
-          { transform: [{ translateY: introY }] },
-        ]}
+        style={[styles.turnText, { transform: [{ translateY: introY }] }]}
       >
-        À {turnPlayer} de jouer !
+        {t('slot.intro', { player: turnPlayer })}
       </Animated.Text>
 
-      {/* rouleaux */}
       <View style={styles.slotRow}>
-        {/* rouleau gauche : nombre */}
         <View style={styles.reel}>
-          <Text style={styles.reelLabel}>DEFI</Text>
+          <Text style={styles.reelLabel}>{t('slot.challenge')}</Text>
           <Text style={styles.reelValue}>{number ?? '-'}</Text>
         </View>
 
-        {/* rouleau droit : prénom */}
         <View style={styles.reel}>
-          <Text style={styles.reelLabel}>JOUEUR</Text>
+          <Text style={styles.reelLabel}>{t('slot.player')}</Text>
           <Text style={styles.reelValue}>{target ?? '- - -'}</Text>
         </View>
       </View>
 
-      {/* boutons spin */}
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            spinNum && styles.disabled,
-          ]}
+          style={[styles.actionBtn, spinNum && styles.disabled]}
           onPress={runNumberSpin}
           disabled={spinNum}
         >
-          <Text style={styles.actionTxt}>Défi (1 shot)</Text>
+          <Text style={styles.actionTxt}>{t('slot.spinChallenge')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            spinPlayer && styles.disabled,
-          ]}
+          style={[styles.actionBtn, spinPlayer && styles.disabled]}
           onPress={runPlayerSpin}
           disabled={spinPlayer}
         >
-          <Text style={styles.actionTxt}>Personne (2 shots)</Text>
+          <Text style={styles.actionTxt}>{t('slot.spinPlayer')}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* flèche “go” */}
       {ready && (
         <TouchableOpacity
           style={styles.goBtn}
@@ -150,18 +116,11 @@ export default function SlotRouletteCard({ players, onNext }: Props) {
         </TouchableOpacity>
       )}
 
-
-      {/* modal aide */}
       <Modal visible={helpVisible} transparent animationType="slide">
         <View style={styles.modalBackdrop}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Règles</Text>
-            <Text style={styles.modalText}>
-              1. Clique « Défi » pour faire tourner le chiffre (1 ‑ 10).{'\n'}
-              2. Clique « Personne » pour désigner qui boira.{'\n'}
-              3. Quand les deux rouleaux sont fixés, appuie sur ➡️ GO pour
-              révéler le défi correspondant !
-            </Text>
+            <Text style={styles.modalTitle}>{t('slot.rulesTitle')}</Text>
+            <Text style={styles.modalText}>{t('slot.rulesText')}</Text>
             <TouchableOpacity
               style={styles.modalClose}
               onPress={() => setHelpVisible(false)}
@@ -187,8 +146,8 @@ const styles = StyleSheet.create({
     top: 100,
     right: 24,
     backgroundColor: '#ffd166',
-    width: 70,
-    height: 70,
+    width: 50,
+    height: 50,
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
@@ -199,13 +158,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
-
   turnText: {
     color: '#fefae0',
     fontSize: 34,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 0,
     marginTop: 40,
     textShadowColor: '#000',
     textShadowOffset: { width: 1, height: 2 },

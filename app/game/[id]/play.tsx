@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import challenges from '../../../app/data/data.json';
 import {
@@ -40,6 +41,7 @@ type CardData = {
 };
 
 export default function PlayGame() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -113,13 +115,27 @@ export default function PlayGame() {
           if (data.id === 'event:special_2') return <EventSpecial2 onNext={nextChallenge} />;
         }
         return <EventCard text={data.text} onNext={nextChallenge} />;
-      case 'roulette': return <RouletteCard players={game.players} onNext={({ level, target }) => nextChallenge({ level, target })} />;
+      case 'roulette':
+        return (
+          <RouletteCard
+            players={game.players}
+            onNext={({ level, target }) => nextChallenge({ level, target })}
+          />
+        );
       case 'wheelshot': return <WheelShotCard players={game.players} onNext={nextChallenge} />;
       case 'flashquiz': return <FlashQuizCard data={data} onNext={nextChallenge} />;
       case 'hotseat': return <HotSeatCard data={{ ...data, players: game.players }} onNext={nextChallenge} />;
       case 'tapbattle': return <ReflexGame players={game.players} onNext={nextChallenge} />;
       case 'selfie': return <SelfieCard data={data} onNext={nextChallenge} />;
-      case 'guessword': return <GuessWordCard data={data} onNext={nextChallenge} players={game.players} selectedPlayers={data.targets || game.players.slice(0, 2)} />;
+      case 'guessword':
+        return (
+          <GuessWordCard
+            data={data}
+            onNext={nextChallenge}
+            players={game.players}
+            selectedPlayers={data.targets || game.players.slice(0, 2)}
+          />
+        );
       case 'explosion': return <ExplosionCard data={data} onNext={nextChallenge} />;
       case 'oracle': return <OracleCard data={data} players={game.players} onNext={nextChallenge} />;
       default: return <ChallengeCard data={data} onNext={nextChallenge} />;
@@ -130,7 +146,9 @@ export default function PlayGame() {
     <>
       <View style={[styles.container, { backgroundColor: getBackgroundColor(current.type) }]}>
         <GameHeader round={game.rounds} type={current.type} onStatsPress={() => setShowStats(true)} />
+
         {renderCard()}
+
         <StatsModal
           visible={showStats}
           onClose={() => setShowStats(false)}
@@ -139,6 +157,7 @@ export default function PlayGame() {
           stats={game.stats}
           history={game.history || []}
         />
+
         <SelectModal
           visible={showSelectModal}
           onClose={() => setShowSelectModal(false)}
@@ -152,11 +171,13 @@ export default function PlayGame() {
             setShowSelectModal(false);
           }}
         />
+
         <ReportModal
           visible={showReportModal}
           onClose={() => setShowReportModal(false)}
           cardId={current.id}
         />
+
         <FooterBar
           onSelectPress={() => setShowSelectModal(true)}
           onReportPress={() => setShowReportModal(true)}

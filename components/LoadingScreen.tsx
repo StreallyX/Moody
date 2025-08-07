@@ -1,6 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 
 export default function LoadingScreen() {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <Image
@@ -11,7 +14,7 @@ export default function LoadingScreen() {
 
       <ActivityIndicator size="large" color="#ffb347" style={styles.spinner} />
 
-      <Text style={styles.text}>Chargement...</Text>
+      <Text style={styles.text}>{t('loading.message')}</Text>
     </View>
   );
 }

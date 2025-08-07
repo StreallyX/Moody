@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function GuessWordCard({
@@ -12,6 +13,7 @@ export default function GuessWordCard({
   players: string[];
   selectedPlayers: string[];
 }) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [revealed, setRevealed] = useState(false);
 
@@ -26,24 +28,24 @@ export default function GuessWordCard({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Devine le mot</Text>
+      <Text style={styles.title}>{t('guess.title')}</Text>
 
       {step === 1 ? (
         <>
           <Text style={styles.instructions}>{replacedText}</Text>
           <TouchableOpacity style={styles.buttonOutlined} onPress={() => setStep(2)}>
-            <Text style={styles.buttonText}>Afficher le mot</Text>
+            <Text style={styles.buttonText}>{t('guess.showWord')}</Text>
           </TouchableOpacity>
         </>
       ) : (
         <>
           <View style={styles.wordBox}>
-            <Text style={styles.label}>Mot :</Text>
+            <Text style={styles.label}>{t('guess.wordLabel')}</Text>
             <Text style={styles.wordBoxText}>{displayWord(data.word)}</Text>
           </View>
 
           <View style={styles.wordBox}>
-            <Text style={styles.label}>Mots interdits :</Text>
+            <Text style={styles.label}>{t('guess.forbiddenLabel')}</Text>
             <Text style={styles.wordBoxText}>
               {data.forbidden?.map((w: string) => displayWord(w)).join(' / ')}
             </Text>
@@ -51,11 +53,11 @@ export default function GuessWordCard({
 
           {!revealed ? (
             <TouchableOpacity onPress={() => setRevealed(true)} style={styles.buttonOutlined}>
-              <Text style={styles.buttonText}>👁️ Voir les mots</Text>
+              <Text style={styles.buttonText}>{t('guess.reveal')}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.buttonFilled} onPress={() => onNext()}>
-              <Text style={styles.buttonTextDark}>Continuer</Text>
+              <Text style={styles.buttonTextDark}>{t('guess.continue')}</Text>
             </TouchableOpacity>
           )}
         </>

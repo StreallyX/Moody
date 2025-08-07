@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ScrollView,
   StyleSheet,
@@ -17,6 +18,7 @@ export default function OracleCard({
   players: string[];
   onNext: () => void;
 }) {
+  const { t } = useTranslation();
   const [votes, setVotes] = useState<{ [key: string]: number }>({});
   const [voted, setVoted] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function OracleCard({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>🔮 Oracle du groupe</Text>
+        <Text style={styles.title}>🔮 {t('oracle.title')}</Text>
         <Text style={styles.text}>{data.text}</Text>
       </View>
 
@@ -51,23 +53,24 @@ export default function OracleCard({
               style={styles.voteButton}
               onPress={() => handleVote(player)}
             >
-              <Text style={styles.voteButtonText}>Vote pour</Text>
+              <Text style={styles.voteButtonText}>{t('oracle.voteFor')}</Text>
               <Text style={styles.voteButtonName}>{player}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       ) : (
         <View style={styles.resultBox}>
-          <Text style={styles.resultTitle}>🎉 Verdict de l’oracle</Text>
+          <Text style={styles.resultTitle}>🎉 {t('oracle.resultTitle')}</Text>
           <Text style={styles.resultText}>
-            <Text style={{ fontWeight: 'bold', color: '#fff' }}>{winner}</Text> a été désigné par le groupe ! Il/elle boit 🍻
+            <Text style={{ fontWeight: 'bold', color: '#fff' }}>{winner}</Text>{' '}
+            {t('oracle.resultText')}
           </Text>
         </View>
       )}
 
       {voted && (
         <TouchableOpacity style={styles.button} onPress={() => onNext()}>
-          <Text style={styles.buttonText}>Continuer</Text>
+          <Text style={styles.buttonText}>{t('oracle.continue')}</Text>
         </TouchableOpacity>
       )}
     </View>

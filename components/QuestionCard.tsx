@@ -1,12 +1,17 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function QuestionCard({ data, onNext }: any) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <View style={styles.levelRow}>
         <Icon name="question-circle" size={20} color="#8ecae6" style={{ marginRight: 8 }} />
-        <Text style={styles.level}>Question – Niveau {data.level}/10</Text>
+        <Text style={styles.level}>
+          {t('question.level', { level: data.level })}
+        </Text>
       </View>
 
       <Text style={styles.text}>
@@ -18,7 +23,7 @@ export default function QuestionCard({ data, onNext }: any) {
       )}
 
       <TouchableOpacity style={styles.nextBtn} onPress={() => onNext()}>
-        <Text style={styles.nextTxt}>Suivant ➡</Text>
+        <Text style={styles.nextTxt}>{t('question.next')}</Text>
       </TouchableOpacity>
     </View>
   );

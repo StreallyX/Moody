@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Animated,
   Easing,
@@ -14,6 +15,7 @@ const SECTOR_ANGLE = 360 / SECTORS.length;
 type Props = { players: string[]; onNext: () => void };
 
 export default function WheelShotCard({ players, onNext }: Props) {
+  const { t } = useTranslation();
   const [turnPlayer] = useState(
     players[Math.floor(Math.random() * players.length)]
   );
@@ -21,16 +23,14 @@ export default function WheelShotCard({ players, onNext }: Props) {
   const [spinning, setSpinning] = useState(false);
   const spinValue = useRef(new Animated.Value(0)).current;
 
-  /* ───────── spin ───────── */
   const spin = () => {
     if (spinning || selected) return;
     setSpinning(true);
 
-    const extraTurns = Math.floor(Math.random() * 4) + 4;   // 4‑7 tours
+    const extraTurns = Math.floor(Math.random() * 4) + 4;
     const randomSector = Math.floor(Math.random() * SECTORS.length);
 
-    // angle (en °) pour que le sector voulu arrive sous la flèche
-    const finalDeg = -(extraTurns * 360 + randomSector * SECTOR_ANGLE); // signe ‑
+    const finalDeg = -(extraTurns * 360 + randomSector * SECTOR_ANGLE);
 
     Animated.timing(spinValue, {
       toValue: finalDeg,
@@ -43,20 +43,18 @@ export default function WheelShotCard({ players, onNext }: Props) {
     });
   };
 
-  /* ───────── rendu ───────── */
   return (
     <View style={styles.container}>
-      <Text style={styles.turnTxt}>À {turnPlayer.toUpperCase()} DE JOUER !</Text>
+      <Text style={styles.turnTxt}>
+        {t('wheel.turn', { player: turnPlayer.toUpperCase() })}
+      </Text>
 
-      {/* flèche uniquement avant sélection */}
       {!selected && (
         <View style={styles.pointerWrapper}>
           <View style={styles.pointer} />
         </View>
       )}
 
-
-      {/* roue animée */}
       <Animated.View
         style={[
           styles.wheel,
@@ -95,26 +93,27 @@ export default function WheelShotCard({ players, onNext }: Props) {
         })}
       </Animated.View>
 
-      {/* bouton spin / résultat */}
       {!selected ? (
         <TouchableOpacity
           style={[styles.spinBtn, spinning && styles.disabled]}
           onPress={spin}
           disabled={spinning}
         >
-          <Text style={styles.spinTxt}>{spinning ? '...' : 'TOURNE !'}</Text>
+          <Text style={styles.spinTxt}>
+            {spinning ? '...' : t('wheel.spin')}
+          </Text>
         </TouchableOpacity>
       ) : (
         <>
           <Text style={styles.result}>
             {selected === 'SAFE'
-              ? 'SAFE — choisis qui boit !'
+              ? t('wheel.safe')
               : selected === 'SHOT'
-              ? 'Cul sec !'
-              : `Bois ${selected} gorgée(s) !`}
+              ? t('wheel.shot')
+              : t('wheel.drink', { count: parseInt(selected) })}
           </Text>
-          <TouchableOpacity style={styles.nextBtn} onPress={onNext}>
-            <Text style={styles.nextTxt}>➡ Suivant</Text>
+          <TouchableOpacity style={styles.nextBtn} onPress={() => onNext()}>
+            <Text style={styles.nextTxt}>➡ {t('wheel.next')}</Text>
           </TouchableOpacity>
         </>
       )}
@@ -122,7 +121,6 @@ export default function WheelShotCard({ players, onNext }: Props) {
   );
 }
 
-/* ───────── styles ───────── */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -141,21 +139,20 @@ const styles = StyleSheet.create({
   },
   pointerWrapper: {
     position: 'absolute',
-    top: '32%', // ← remonte la flèche
+    top: '25%',
     zIndex: 10,
     alignItems: 'center',
   },
   pointer: {
-  width: 0,
-  height: 0,
-  borderLeftWidth: 10,
-  borderRightWidth: 10,
-  borderTopWidth: 16, // 🔁 inversé
-  borderLeftColor: 'transparent',
-  borderRightColor: 'transparent',
-  borderTopColor: '#ffde59', // 🔁 inversé
-},
-
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderTopWidth: 16,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#ffde59',
+  },
   wheel: {
     width: 240,
     height: 240,
