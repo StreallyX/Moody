@@ -1,5 +1,6 @@
 import { addDoc, collection, getFirestore } from 'firebase/firestore';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface ReportModalProps {
@@ -9,6 +10,7 @@ interface ReportModalProps {
 }
 
 export default function ReportModal({ visible, onClose, cardId }: ReportModalProps) {
+  const { t } = useTranslation();
   const [message, setMessage] = useState('');
 
   const sendReport = async () => {
@@ -22,10 +24,10 @@ export default function ReportModal({ visible, onClose, cardId }: ReportModalPro
       });
       setMessage('');
       onClose();
-      alert('Signalement envoyé ✅');
+      alert(t('report.sent'));
     } catch (error) {
       console.error('Erreur lors de l’envoi du signalement :', error);
-      alert('Erreur lors de l’envoi.');
+      alert(t('report.error'));
     }
   };
 
@@ -33,16 +35,17 @@ export default function ReportModal({ visible, onClose, cardId }: ReportModalPro
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.content}>
-          {/* CROIX FERMETURE */}
           <TouchableOpacity style={styles.crossButton} onPress={onClose}>
             <Text style={styles.crossText}>✖</Text>
           </TouchableOpacity>
 
-          <Text style={styles.title}>🚨 Signaler une carte</Text>
-          <Text style={styles.subtitle}>Carte : {cardId}</Text>
+          <Text style={styles.title}>{t('report.title')}</Text>
+          <Text style={styles.subtitle}>
+            {t('report.card', { id: cardId })}
+          </Text>
 
           <TextInput
-            placeholder="Pourquoi signaler cette carte ?"
+            placeholder={t('report.placeholder')}
             placeholderTextColor="#555"
             multiline
             value={message}
@@ -51,7 +54,7 @@ export default function ReportModal({ visible, onClose, cardId }: ReportModalPro
           />
 
           <TouchableOpacity onPress={sendReport} style={styles.sendButton}>
-            <Text style={styles.sendText}>Envoyer</Text>
+            <Text style={styles.sendText}>{t('report.send')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -67,7 +70,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   content: {
-    backgroundColor: '#fff', // FOND BLANC
+    backgroundColor: '#fff',
     padding: 20,
     borderRadius: 10,
     width: '90%',

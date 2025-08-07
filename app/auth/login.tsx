@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Image,
@@ -14,9 +15,9 @@ import {
 import BackButton from '../../components/BackButton';
 import { loginUser } from '../../lib/auth';
 
-
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -27,7 +28,7 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('user', JSON.stringify(user));
       router.push('/');
     } catch (error: any) {
-      Alert.alert('Erreur', error.message);
+      Alert.alert(t('login.errorTitle'), error.message);
     }
   };
 
@@ -40,7 +41,7 @@ export default function LoginScreen() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.slogan}>Le jeu qui chauffe l’ambiance 🔥</Text>
+        <Text style={styles.slogan}>{t('login.slogan')}</Text>
       </View>
       <BackButton />
 
@@ -48,7 +49,7 @@ export default function LoginScreen() {
       <View style={styles.form}>
         <TextInput
           style={styles.input}
-          placeholder="Email"
+          placeholder={t('login.email')}
           placeholderTextColor="#aaa"
           onChangeText={setEmail}
           value={email}
@@ -56,7 +57,7 @@ export default function LoginScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Mot de passe"
+          placeholder={t('login.password')}
           placeholderTextColor="#aaa"
           onChangeText={setPassword}
           value={password}
@@ -64,22 +65,20 @@ export default function LoginScreen() {
         />
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Se connecter</Text>
+          <Text style={styles.buttonText}>{t('login.submit')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push('/auth/signup')} style={{ marginBottom: 30 }}>
-          <Text style={styles.link}>Pas encore inscrit ?</Text>
+          <Text style={styles.link}>{t('login.noAccount')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => {
-            Linking.openURL('https://moody-website-tawny.vercel.app/reset-password')
+            Linking.openURL('https://moody-website-tawny.vercel.app/reset-password');
           }}
         >
-          <Text style={styles.link}>Mot de passe oublié ?</Text>
+          <Text style={styles.link}>{t('login.forgotPassword')}</Text>
         </TouchableOpacity>
-
-
       </View>
     </View>
   );

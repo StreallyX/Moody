@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Image,
   StyleSheet,
@@ -11,10 +12,10 @@ import {
 import BackButton from '../../components/BackButton';
 import { isUserLoggedIn, logout } from '../../lib/auth';
 
-
 export default function ProfileScreen() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const checkAuthAndLoad = async () => {
@@ -45,16 +46,22 @@ export default function ProfileScreen() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.slogan}>Le jeu qui chauffe l’ambiance 🔥</Text>
+        <Text style={styles.slogan}>{t('profile.slogan')}</Text>
       </View>
-     <BackButton />
+
+      <BackButton />
+
       {/* Info utilisateur + déconnexion */}
       <View style={styles.content}>
-        <Text style={styles.title}>Bienvenue 👋</Text>
-        {userEmail && <Text style={styles.text}>Connecté avec : {userEmail}</Text>}
+        <Text style={styles.title}>{t('profile.welcome')}</Text>
+        {userEmail && (
+          <Text style={styles.text}>
+            {t('profile.connectedWith')} {userEmail}
+          </Text>
+        )}
 
         <TouchableOpacity style={styles.button} onPress={handleLogout}>
-          <Text style={styles.buttonText}>Se déconnecter</Text>
+          <Text style={styles.buttonText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
       </View>
     </View>

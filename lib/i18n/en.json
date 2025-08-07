@@ -1,14 +1,197 @@
 {
   "home": {
-    "slogan": "The game that heats up the party 🔥",
+    "slogan": "The game that heats up the mood 🔥",
     "playerPlaceholder": "Player name",
     "start": "Start",
     "scrollHint": "Swipe →",
     "language": "Language",
     "account": "Account",
     "contact": "Contact",
-    "rate": "Rate",
-    "connectedWith": "Logged in as",
+    "rate": "Rate us",
+    "connectedWith": "Connected with",
     "selectLanguage": "Choose a language"
+  },
+  "contact": {
+    "title": "Contact us",
+    "placeholderName": "Full name",
+    "placeholderEmail": "Your email",
+    "placeholderMessage": "Your message",
+    "send": "Send",
+    "successTitle": "Success",
+    "successMessage": "Your message has been sent.",
+    "errorTitle": "Error",
+    "errorFields": "Please fill in all fields.",
+    "errorSend": "Unable to send the message."
+  },
+  "menu": {
+    "friends": "Friends",
+    "caliente": "Caliente",
+    "mystery": "Mystery",
+    "couple": "Couple",
+    "back": "Back",
+    "players": "players",
+    "resumeQuestion": "Resume the game?",
+    "underConstruction": "🚧 Under construction",
+    "unlockHint": "Click here to unlock 🔓",
+    "modalTitle": "Unavailable mode",
+    "modalText": "The selected mode is only available to logged-in players. Please log in to access it 🔒"
+  },
+  "gamestart": {
+    "ready": "Ready to play?",
+    "tapToStart": "[Tap to start]"
+  },
+  "login": {
+    "slogan": "The game that heats up the mood 🔥",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Login",
+    "noAccount": "Not signed up yet?",
+    "forgotPassword": "Forgot password?",
+    "errorTitle": "Error"
+  },
+  "profile": {
+    "slogan": "The game that heats up the mood 🔥",
+    "welcome": "Welcome 👋",
+    "connectedWith": "Connected with:",
+    "logout": "Logout"
+  },
+  "signup": {
+    "slogan": "The game that heats up the mood 🔥",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "signup": "Sign up",
+    "alreadyHaveAccount": "Already have an account?",
+    "successTitle": "Success",
+    "successMessage": "Account created!",
+    "errorTitle": "Error"
+  },
+  "event": {
+    "title": "EVENT",
+    "continue": "Continue"
+  },
+  "explosion": {
+    "title": "Defuse the bomb!",
+    "instructions": "Only one wire will defuse the bomb. You have 5 seconds!",
+    "wire": "Wire {{number}}",
+    "success": "Well done, you defused the bomb!",
+    "fail": "Wrong wire... BOOM!",
+    "timeout": "Too late... The bomb exploded!",
+    "next": "Next"
+  },
+  "flash": {
+    "title": "🎯 True or False",
+    "true": "True",
+    "false": "False",
+    "correct": "Correct answer! 🎉",
+    "wrong": "Wrong! 1 penalty!",
+    "next": "Next"
+  },
+  "guess": {
+    "title": "Guess the word",
+    "showWord": "Show word",
+    "wordLabel": "Word:",
+    "forbiddenLabel": "Forbidden words:",
+    "reveal": "👁️ Reveal words",
+    "continue": "Continue"
+  },
+  "hotseat": {
+    "title": "Hot Seat",
+    "defaultPlayer": "A player",
+    "onGrill": "{{player}}, you're on the hot seat!",
+    "instruction": "You must answer honestly... or drink 🔥",
+    "continue": "Continue"
+  },
+  "oracle": {
+    "title": "Group Oracle",
+    "voteFor": "Vote for",
+    "resultTitle": "Oracle's verdict",
+    "resultText": "was chosen by the group! They drink 🍻",
+    "continue": "Continue"
+  },
+  "reflex": {
+    "playerTurn": "{{player}} plays!",
+    "instructions": "When the screen turns green, tap as fast as you can!",
+    "ready": "READY",
+    "prepare": "Get ready...",
+    "tooEarly": "Too early! You're cheating 😤",
+    "feedback1": "You haven't drunk enough, drink! 🍺",
+    "feedback2": "Not bad, but you can do better.",
+    "feedback3": "Wow you're slow... Another shot?",
+    "feedback4": "You've had a lot to drink... 🥴",
+    "next": "Next"
+  },
+  "slot": {
+    "intro": "{{player}}'s turn!",
+    "challenge": "CHALLENGE",
+    "player": "PLAYER",
+    "spinChallenge": "Challenge (1 shot)",
+    "spinPlayer": "Person (2 shots)",
+    "rulesTitle": "Rules",
+    "rulesText": "1. Click “Challenge” to spin a number (1‑10).\n2. Click “Person” to choose who drinks.\n3. When both wheels are locked, press ➡️ GO to reveal the challenge!"
+  },
+  "selfie": {
+    "title": "Selfie Challenge",
+    "subtitle": "Game under construction… 🚧",
+    "next": "Next"
+  },
+  "wheel": {
+    "turn": "{{player}}'S TURN!",
+    "spin": "SPIN!",
+    "safe": "SAFE — choose who drinks!",
+    "shot": "Bottoms up!",
+    "drink": "Drink {{count}} sip(s)!",
+    "next": "Next"
+  },
+  "back": "Back",
+  "challenge.level": "Challenge – Level {{level}}/10",
+  "next": "Next",
+  "footer": {
+    "select": "Select",
+    "report": "Report"
+  },
+  "gameHeader": {
+    "round": "Round #{{round}}"
+  },
+  "loading": {
+    "message": "Loading..."
+  },
+  "question": {
+    "level": "Question – Level {{level}}/10",
+    "next": "Next ➡"
+  },
+  "report": {
+    "title": "🚨 Report a card",
+    "card": "Card: {{id}}",
+    "placeholder": "Why report this card?",
+    "send": "Send",
+    "sent": "Report sent ✅",
+    "error": "Error while sending."
+  },
+  "select": {
+    "title": "🎯 Choose a card",
+    "close": "Close"
+  },
+  "stats": {
+    "title": "📊 Stats",
+    "heat": "🔥 Heat:",
+    "rounds": "🔁 Rounds played:",
+    "typeBreakdown": "📚 Type breakdown:",
+    "perPlayer": "👥 Challenges per player:",
+    "lastRounds": "🕓 Last rounds:",
+    "close": "Close"
+  },
+  "log": {
+    "round": "▶️ Starting round",
+    "miniGameRound": "🎰 Special round: Mini-game",
+    "eventRound": "🎉 Special round: Event",
+    "normalRound": "🎲 Normal round: Challenge or Question",
+    "miniGameType": "🎯 Randomly chosen mini-game type:",
+    "noStrict": "⚠️ No strict challenge; broader fallback",
+    "noContent": "❌ Still nothing to offer.",
+    "noChallengeLeft": "No suitable challenges left 😢",
+    "notEnoughPlayers": "Not enough players for this challenge 😢",
+    "selectedChallenge": "📝 Selected challenge:",
+    "selectedTargets": "🎯 Targeted players:",
+    "optionsReceived": "🎯 Options received:"
   }
 }

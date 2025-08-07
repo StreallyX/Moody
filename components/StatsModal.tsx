@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   ScrollView,
@@ -26,6 +27,7 @@ export default function StatsModal({
   stats,
   history,
 }: StatsModalProps) {
+  const { t } = useTranslation();
 
   const typeBreakdown: Record<string, number> = {};
   history.forEach((item) => {
@@ -35,26 +37,26 @@ export default function StatsModal({
   const playerStats = { ...stats };
   delete playerStats.history;
 
-  const last5 = history.slice(-5).reverse(); // dernières cartes (ordre inverse)
+  const last5 = history.slice(-5).reverse();
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>
         <View style={styles.modalBox}>
           <ScrollView style={{ maxHeight: 500 }} contentContainerStyle={{ paddingBottom: 20 }}>
-            <Text style={styles.modalTitle}>📊 Statistiques</Text>
+            <Text style={styles.modalTitle}>{t('stats.title')}</Text>
 
             <View style={styles.section}>
-              <Text style={styles.label}>🔥 Chaleur :</Text>
+              <Text style={styles.label}>{t('stats.heat')}</Text>
               <Text style={styles.value}>{heat}</Text>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.label}>🔁 Tours joués :</Text>
+              <Text style={styles.label}>{t('stats.rounds')}</Text>
               <Text style={styles.value}>{rounds}</Text>
             </View>
 
-            <Text style={[styles.label, { marginTop: 20 }]}>📚 Répartition des types :</Text>
+            <Text style={[styles.label, { marginTop: 20 }]}>{t('stats.typeBreakdown')}</Text>
             {Object.entries(typeBreakdown).map(([type, count]) => (
               <View key={type} style={styles.statRow}>
                 <Text style={styles.playerName}>{type}</Text>
@@ -62,7 +64,7 @@ export default function StatsModal({
               </View>
             ))}
 
-            <Text style={[styles.label, { marginTop: 20 }]}>👥 Défis par joueur :</Text>
+            <Text style={[styles.label, { marginTop: 20 }]}>{t('stats.perPlayer')}</Text>
             {Object.entries(playerStats).map(([name, count]) => (
               <View key={name} style={styles.statRow}>
                 <Text style={styles.playerName}>{name}</Text>
@@ -70,7 +72,7 @@ export default function StatsModal({
               </View>
             ))}
 
-            <Text style={[styles.label, { marginTop: 20 }]}>🕓 Derniers tours :</Text>
+            <Text style={[styles.label, { marginTop: 20 }]}>{t('stats.lastRounds')}</Text>
             {last5.map((item, index) => (
               <View key={index} style={styles.statRow}>
                 <Text style={styles.playerName}>
@@ -84,7 +86,7 @@ export default function StatsModal({
           </ScrollView>
 
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Fermer</Text>
+            <Text style={styles.closeButtonText}>{t('stats.close')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -94,31 +96,19 @@ export default function StatsModal({
 
 const styles = StyleSheet.create({
   modalOverlay: {
-  flex: 1,
-  backgroundColor: 'rgba(0,0,0,0.5)',
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: 20,
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   modalBox: {
-  backgroundColor: '#fff',
-  borderRadius: 16,
-  padding: 24,
-  width: '100%',
-  maxWidth: 360,
-  maxHeight: '90%',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.3,
-  shadowRadius: 8,
-  elevation: 6,
-  },  
-  modal: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 24,
     width: '100%',
-    maxWidth: 340,
+    maxWidth: 360,
+    maxHeight: '90%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

@@ -1,6 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SelectModal({ visible, onClose, items, onSelect }: any) {
+  const { t } = useTranslation();
+
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
@@ -10,7 +13,7 @@ export default function SelectModal({ visible, onClose, items, onSelect }: any) 
             <Text style={styles.crossText}>✖</Text>
           </TouchableOpacity>
 
-          <Text style={styles.title}>🎯 Choisir une carte</Text>
+          <Text style={styles.title}>{t('select.title')}</Text>
 
           <FlatList
             data={items}
@@ -23,7 +26,7 @@ export default function SelectModal({ visible, onClose, items, onSelect }: any) 
           />
 
           <TouchableOpacity style={styles.close} onPress={onClose}>
-            <Text style={styles.closeText}>Fermer</Text>
+            <Text style={styles.closeText}>{t('select.close')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -39,7 +42,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   content: {
-    backgroundColor: '#fff', // fond blanc
+    backgroundColor: '#fff',
     padding: 20,
     borderRadius: 10,
     width: '90%',

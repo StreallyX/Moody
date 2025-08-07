@@ -1,13 +1,15 @@
 // components/BackButton.tsx
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 export default function BackButton() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <TouchableOpacity onPress={() => router.replace('/')} style={styles.button}>
-      <Text style={styles.text}>⬅ Retour</Text>
+      <Text style={styles.text}>⬅ {t('back')}</Text>
     </TouchableOpacity>
   );
 }

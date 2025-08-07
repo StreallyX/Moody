@@ -10,5 +10,190 @@
     "rate": "Noter",
     "connectedWith": "Connecté avec",
     "selectLanguage": "Choisissez une langue"
+  },
+  "contact": {
+  "title": "Contactez-nous",
+  "placeholderName": "Nom et prénom",
+  "placeholderEmail": "Votre email",
+  "placeholderMessage": "Votre message",
+  "send": "Envoyer",
+  "successTitle": "Succès",
+  "successMessage": "Votre message a été envoyé.",
+  "errorTitle": "Erreur",
+  "errorFields": "Veuillez remplir tous les champs.",
+  "errorSend": "Impossible d’envoyer le message."
+  },
+  "menu": {
+    "friends": "Amis",
+    "caliente": "Caliente",
+    "mystery": "Mystère",
+    "couple": "Couple",
+    "back": "Retour",
+    "players": "joueurs",
+    "resumeQuestion": "Reprendre la partie ?",
+    "underConstruction": "🚧 En construction",
+    "unlockHint": "Clique ici pour débloquer 🔓",
+    "modalTitle": "Mode indisponible",
+    "modalText": "Le mode sélectionné est réservé aux joueurs connectés. Veuillez vous connecter pour y accéder 🔒"
+  },
+  "gamestart": {
+  "ready": "Prêt à jouer ?",
+  "tapToStart": "[Touchez pour commencer]"
+  },
+   "login": {
+    "slogan": "Le jeu qui chauffe l’ambiance 🔥",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "noAccount": "Pas encore inscrit ?",
+    "forgotPassword": "Mot de passe oublié ?",
+    "errorTitle": "Erreur"
+  },
+  "profile": {
+    "slogan": "Le jeu qui chauffe l’ambiance 🔥",
+    "welcome": "Bienvenue 👋",
+    "connectedWith": "Connecté avec :",
+    "logout": "Se déconnecter"
+  },
+    "signup": {
+    "slogan": "Le jeu qui chauffe l’ambiance 🔥",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Mot de passe",
+    "signup": "S'inscrire",
+    "alreadyHaveAccount": "Déjà un compte ?",
+    "successTitle": "Succès",
+    "successMessage": "Compte créé !",
+    "errorTitle": "Erreur"
+  },
+  "event": {
+    "title": "ÉVÉNEMENT",
+    "continue": "Continuer"
+  },
+   "explosion": {
+    "title": "Désamorce la bombe !",
+    "instructions": "Un seul fil désamorce la bombe. Tu as 5 secondes !",
+    "wire": "Fil {{number}}",
+    "success": "Bien joué, tu as désamorcé la bombe !",
+    "fail": "Mauvais fil... BOUM !",
+    "timeout": "Trop tard... La bombe a explosé !",
+    "next": "Suivant"
+  },
+  "flash": {
+    "title": "🎯 Vrai ou Faux",
+    "true": "Vrai",
+    "false": "Faux",
+    "correct": "Bonne réponse ! 🎉",
+    "wrong": "Faux ! 1 pénalité !",
+    "next": "Suivant"
+  },
+  "guess": {
+    "title": "Devine le mot",
+    "showWord": "Afficher le mot",
+    "wordLabel": "Mot :",
+    "forbiddenLabel": "Mots interdits :",
+    "reveal": "👁️ Voir les mots",
+    "continue": "Continuer"
+  },
+  "hotseat": {
+    "title": "Hot Seat",
+    "defaultPlayer": "Un joueur",
+    "onGrill": "{{player}}, tu es sur le gril !",
+    "instruction": "Tu dois répondre honnêtement... ou boire 🔥",
+    "continue": "Continuer"
+  },
+  "oracle": {
+    "title": "Oracle du groupe",
+    "voteFor": "Vote pour",
+    "resultTitle": "Verdict de l’oracle",
+    "resultText": "a été désigné·e par le groupe ! Il/elle boit 🍻",
+    "continue": "Continuer"
+  },
+  "reflex": {
+    "playerTurn": "{{player}} joue !",
+    "instructions": "Quand l’écran devient vert, clique le plus vite possible !",
+    "ready": "READY",
+    "prepare": "Prépare-toi...",
+    "tooEarly": "Trop tôt ! Tu triches 😤",
+    "feedback1": "T’as pas assez bu, bois ! 🍺",
+    "feedback2": "Pas mal, mais tu peux faire mieux.",
+    "feedback3": "Oula t'es lent... Encore un shot ?",
+    "feedback4": "T’as bien bu toi... 🥴",
+    "next": "Suivant"
+  },
+  "slot": {
+    "intro": "À {{player}} de jouer !",
+    "challenge": "DEFI",
+    "player": "JOUEUR",
+    "spinChallenge": "Défi (1 shot)",
+    "spinPlayer": "Personne (2 shots)",
+    "rulesTitle": "Règles",
+    "rulesText": "1. Clique « Défi » pour faire tourner le chiffre (1 ‑ 10).\n2. Clique « Personne » pour désigner qui boira.\n3. Quand les deux rouleaux sont fixés, appuie sur ➡️ GO pour révéler le défi correspondant !"
+  },
+   "selfie": {
+    "title": "Défi Selfie",
+    "subtitle": "Jeu en construction… 🚧",
+    "next": "Suivant"
+  },
+   "wheel": {
+    "turn": "À {{player}} DE JOUER !",
+    "spin": "TOURNE !",
+    "safe": "SAFE — choisis qui boit !",
+    "shot": "Cul sec !",
+    "drink": "Bois {{count}} gorgée(s) !",
+    "next": "Suivant"
+  },
+  "back": "Back"
+  ,
+  "challenge.level": "Défi – Niveau {{level}}/10",
+  "next": "Suivant"
+  ,
+  "footer": {
+  "select": "Sélectionner",
+  "report": "Signaler"
+  }
+  ,"gameHeader": {
+  "round": "Tour #{{round}}"
+  },
+  "loading": {
+  "message": "Chargement..."
+  },
+  "question": {
+  "level": "Question – Niveau {{level}}/10",
+  "next": "Suivant ➡"
+  },
+  "report": {
+  "title": "🚨 Signaler une carte",
+  "card": "Carte : {{id}}",
+  "placeholder": "Pourquoi signaler cette carte ?",
+  "send": "Envoyer",
+  "sent": "Signalement envoyé ✅",
+  "error": "Erreur lors de l’envoi."
+  },
+  "select": {
+  "title": "🎯 Choisir une carte",
+  "close": "Fermer"
+  },
+  "stats": {
+  "title": "📊 Statistiques",
+  "heat": "🔥 Chaleur :",
+  "rounds": "🔁 Tours joués :",
+  "typeBreakdown": "📚 Répartition des types :",
+  "perPlayer": "👥 Défis par joueur :",
+  "lastRounds": "🕓 Derniers tours :",
+  "close": "Fermer"
+  },
+  "log": {
+  "round": "▶️ Lancement du tour",
+  "miniGameRound": "🎰 Tour spécial : Mini-jeu",
+  "eventRound": "🎉 Tour spécial : Événement",
+  "normalRound": "🎲 Tour normal : Défi ou question",
+  "miniGameType": "🎯 Type de mini-jeu choisi aléatoirement :",
+  "noStrict": "⚠️ Aucun défi strict ; fallback plus large",
+  "noContent": "❌ Toujours rien à proposer.",
+  "noChallengeLeft": "Plus de défis adaptés 😢",
+  "notEnoughPlayers": "Pas assez de joueurs pour ce défi 😢",
+  "selectedChallenge": "📝 Défi sélectionné :",
+  "selectedTargets": "🎯 Joueurs ciblés :",
+  "optionsReceived": "🎯 Paramètres reçus :"
   }
 }

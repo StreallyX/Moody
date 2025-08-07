@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Image,
@@ -37,6 +38,7 @@ function MenuImage({ source }: { source: any }) {
 }
 
 export default function MenuScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [playerList, setPlayerList] = useState<string[]>([]);
   const [hasSavedGame, setHasSavedGame] = useState(false);
@@ -75,27 +77,24 @@ export default function MenuScreen() {
   }, []);
 
   const menuButtons = [
-    { id: 'friends', title: 'Friends', image: require('../assets/images/game1.png'), locked: false },
-    { id: 'caliente', title: 'Caliente', image: require('../assets/images/game2.png'), locked: !isLoggedIn },
-    { id: 'mystery', title: 'Mystery', image: require('../assets/images/build.png'), locked: true, disabled: true },
-    { id: 'couple', title: 'Couple', image: require('../assets/images/build.png'), locked: true, disabled: true },
+    { id: 'friends', title: t('menu.friends'), image: require('../assets/images/game1.png'), locked: false },
+    { id: 'caliente', title: t('menu.caliente'), image: require('../assets/images/game2.png'), locked: !isLoggedIn },
+    { id: 'mystery', title: t('menu.mystery'), image: require('../assets/images/build.png'), locked: true, disabled: true },
+    { id: 'couple', title: t('menu.couple'), image: require('../assets/images/build.png'), locked: true, disabled: true },
   ];
-
 
   return (
     <View style={styles.container}>
-      {/* TOP BAR */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>⬅ Retour</Text>
+          <Text style={styles.backText}>⬅ {t('menu.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.playersText}>👥 {playerList.length} joueurs</Text>
+        <Text style={styles.playersText}>👥 {playerList.length} {t('menu.players')}</Text>
       </View>
 
-      {/* RESUME BLOCK */}
       {hasSavedGame && (
         <View style={styles.resumeContainer}>
-          <Text style={styles.resumeText}>Reprendre la partie ?</Text>
+          <Text style={styles.resumeText}>{t('menu.resumeQuestion')}</Text>
           <View style={styles.resumeButtons}>
             <TouchableOpacity
               style={[styles.resumeButton, { backgroundColor: '#2e7d32' }]}
@@ -116,7 +115,6 @@ export default function MenuScreen() {
         </View>
       )}
 
-      {/* GAME MODE BUTTONS */}
       <ScrollView contentContainerStyle={styles.buttonList}>
         {menuButtons.map((item) => {
           const locked = item.locked;
@@ -141,21 +139,24 @@ export default function MenuScreen() {
               >
                 <MenuImage source={item.image} />
                 <Text style={styles.buttonTitle}>
-                  {disabled ? '🚧 En construction' : locked ? '🔒 ' + item.title : item.title}
+                  {disabled
+                    ? t('menu.underConstruction')
+                    : locked
+                    ? `🔒 ${item.title}`
+                    : item.title}
                 </Text>
               </TouchableOpacity>
-               {/* BULLE D’INFO */}
-                {locked && !disabled && (
-                  <View style={styles.bubble}>
-                    <Text style={styles.bubbleText}>Clique ici pour débloquer 🔓</Text>
-                  </View>
-                )}
+
+              {locked && !disabled && (
+                <View style={styles.bubble}>
+                  <Text style={styles.bubbleText}>{t('menu.unlockHint')}</Text>
+                </View>
+              )}
             </View>
           );
         })}
       </ScrollView>
 
-      {/* MODAL POUR CALIENTE BLOQUÉ */}
       <Modal
         visible={showModal}
         transparent
@@ -165,13 +166,13 @@ export default function MenuScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <TouchableOpacity style={styles.modalClose} onPress={() => setShowModal(false)}>
-  <View style={styles.closeButtonCircle}>
-    <Text style={styles.closeButtonText}>✕</Text>
-  </View>
-</TouchableOpacity>
+              <View style={styles.closeButtonCircle}>
+                <Text style={styles.closeButtonText}>✕</Text>
+              </View>
+            </TouchableOpacity>
 
-            <Text style={styles.modalTitle}>Mode indisponible</Text>
-            <Text style={styles.modalText}>Le mode sélectionné est réservé aux joueurs connectés. Veuillez vous connecter pour y accéder 🔒</Text>
+            <Text style={styles.modalTitle}>{t('menu.modalTitle')}</Text>
+            <Text style={styles.modalText}>{t('menu.modalText')}</Text>
             <TouchableOpacity
               style={styles.modalButton}
               onPress={() => {

@@ -1,17 +1,19 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import BackButton from '../components/BackButton';
 import { db } from '../lib/firebase';
 
 export default function ContactScreen() {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
   const handleSend = async () => {
     if (!name || !email || !message) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
+      Alert.alert(t('contact.errorTitle'), t('contact.errorFields'));
       return;
     }
 
@@ -23,39 +25,36 @@ export default function ContactScreen() {
         createdAt: serverTimestamp(),
       });
 
-      Alert.alert('Succès', 'Votre message a été envoyé.');
+      Alert.alert(t('contact.successTitle'), t('contact.successMessage'));
       setName('');
       setEmail('');
       setMessage('');
     } catch (error) {
       console.error('Erreur Firestore:', error);
-      Alert.alert('Erreur', 'Impossible d’envoyer le message.');
+      Alert.alert(t('contact.errorTitle'), t('contact.errorSend'));
     }
   };
 
   return (
     <View style={styles.container}>
-      <BackButton />
-
-      {/* Logo */}
       <Image
         source={require('../assets/images/logo.png')}
         style={styles.logo}
         resizeMode="contain"
       />
-
-      <Text style={styles.title}>Contactez-nous</Text>
+      <BackButton />
+      <Text style={styles.title}>{t('contact.title')}</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Nom et prénom"
+        placeholder={t('contact.placeholderName')}
         placeholderTextColor="#aaa"
         value={name}
         onChangeText={setName}
       />
       <TextInput
         style={styles.input}
-        placeholder="Votre email"
+        placeholder={t('contact.placeholderEmail')}
         placeholderTextColor="#aaa"
         value={email}
         onChangeText={setEmail}
@@ -63,7 +62,7 @@ export default function ContactScreen() {
       />
       <TextInput
         style={[styles.input, styles.textarea]}
-        placeholder="Votre message"
+        placeholder={t('contact.placeholderMessage')}
         placeholderTextColor="#aaa"
         value={message}
         onChangeText={setMessage}
@@ -72,7 +71,7 @@ export default function ContactScreen() {
       />
 
       <TouchableOpacity style={styles.button} onPress={handleSend}>
-        <Text style={styles.buttonText}>Envoyer</Text>
+        <Text style={styles.buttonText}>{t('contact.send')}</Text>
       </TouchableOpacity>
     </View>
   );

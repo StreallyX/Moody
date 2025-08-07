@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Image,
@@ -12,19 +13,19 @@ import {
 import BackButton from '../../components/BackButton';
 import { registerUser } from '../../lib/auth';
 
-
 export default function SignupScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSignup = async () => {
     try {
       await registerUser(email, password);
-      Alert.alert('Succès', 'Compte créé !');
+      Alert.alert(t('signup.successTitle'), t('signup.successMessage'));
       router.replace('/');
     } catch (error: any) {
-      Alert.alert('Erreur', error.message);
+      Alert.alert(t('signup.errorTitle'), error.message);
     }
   };
 
@@ -37,14 +38,16 @@ export default function SignupScreen() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.slogan}>Le jeu qui chauffe l’ambiance 🔥</Text>
+        <Text style={styles.slogan}>{t('signup.slogan')}</Text>
       </View>
-       <BackButton />
+
+      <BackButton />
+
       {/* Formulaire */}
       <View style={styles.form}>
         <TextInput
           style={styles.input}
-          placeholder="Email"
+          placeholder={t('signup.emailPlaceholder')}
           placeholderTextColor="#aaa"
           onChangeText={setEmail}
           value={email}
@@ -52,7 +55,7 @@ export default function SignupScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Mot de passe"
+          placeholder={t('signup.passwordPlaceholder')}
           placeholderTextColor="#aaa"
           onChangeText={setPassword}
           value={password}
@@ -60,11 +63,11 @@ export default function SignupScreen() {
         />
 
         <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <Text style={styles.buttonText}>S'inscrire</Text>
+          <Text style={styles.buttonText}>{t('signup.signup')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push('/auth/login')}>
-          <Text style={styles.link}>Déjà un compte ?</Text>
+          <Text style={styles.link}>{t('signup.alreadyHaveAccount')}</Text>
         </TouchableOpacity>
       </View>
     </View>
