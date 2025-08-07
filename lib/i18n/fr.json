@@ -1,0 +1,14 @@
+{
+  "home": {
+    "slogan": "Le jeu qui chauffe l’ambiance 🔥",
+    "playerPlaceholder": "Nom du joueur",
+    "start": "Commencer",
+    "scrollHint": "Faites glisser →",
+    "language": "Langue",
+    "account": "Compte",
+    "contact": "Contact",
+    "rate": "Noter",
+    "connectedWith": "Connecté avec",
+    "selectLanguage": "Choisissez une langue"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "home": {
+    "slogan": "The game that heats up the party 🔥",
+    "playerPlaceholder": "Player name",
+    "start": "Start",
+    "scrollHint": "Swipe →",
+    "language": "Language",
+    "account": "Account",
+    "contact": "Contact",
+    "rate": "Rate",
+    "connectedWith": "Logged in as",
+    "selectLanguage": "Choose a language"
+  }
+}

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FlatList,
   Image,
@@ -11,21 +12,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import LanguageModal from '../components/LanguageModal'; // adapte le chemin si nécessaire
 import { getCurrentUserEmail, isAccountStillValidOnline, isUserLoggedIn } from '../lib/auth';
 import { loadPlayers, savePlayers } from '../lib/storage';
 
 export default function HomeScreen() {
   const router = useRouter();
-
-  /* ----------- État des joueurs ----------- */
+  const { t } = useTranslation();
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [players, setPlayers] = useState<string[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
-
-  /* ----------- État du Modal de connexion ----------- */
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginEmail, setLoginEmail] = useState<string | null>(null);
 
-  /* ----------- Initialisation ----------- */
   useEffect(() => {
     const init = async () => {
       const storedPlayers = await loadPlayers();
@@ -36,7 +35,6 @@ export default function HomeScreen() {
 
       const stillValid = await isAccountStillValidOnline();
       if (!stillValid) {
-        console.warn('Compte invalide ou supprimé, on déconnecte...');
         await AsyncStorage.clear();
         router.replace('/auth/login');
         return;
@@ -55,7 +53,6 @@ export default function HomeScreen() {
     init();
   }, []);
 
-    /* ----------- Gestion des joueurs ----------- */
   const removePlayer = (name: string) => {
     const updated = players.filter((p) => p !== name);
     setPlayers(updated);
@@ -72,17 +69,14 @@ export default function HomeScreen() {
     }
   };
 
-  /* ----------- Navigation ----------- */
   const startGame = () =>
     router.push({
       pathname: '/menu',
       params: { players: JSON.stringify(players) },
     });
 
-  /* ----------- Rendu ----------- */
   return (
     <View style={styles.container}>
-      {/* ---------- MODAL Connexion ---------- */}
       <Modal
         visible={showLoginModal}
         transparent
@@ -98,24 +92,22 @@ export default function HomeScreen() {
               <Text style={styles.modalCloseText}>✕</Text>
             </TouchableOpacity>
             <Text style={styles.modalText}>
-              Connecté avec{'\n'}
+              {t('home.connectedWith')}{'\n'}
               <Text style={styles.modalEmail}>{loginEmail}</Text>
             </Text>
           </View>
         </View>
       </Modal>
 
-      {/* Bloc logo */}
       <View style={styles.block1}>
         <Image
           source={require('../assets/images/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.slogan}>Le jeu qui chauffe l’ambiance 🔥</Text>
+        <Text style={styles.slogan}>{t('home.slogan')}</Text>
       </View>
 
-      {/* Bloc liste des joueurs */}
       <View style={{ position: 'relative', width: '100%' }}>
         <FlatList
           data={players}
@@ -129,21 +121,18 @@ export default function HomeScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
         />
-
         {players.length > 3 && (
-  <View style={styles.scrollHintContainer} pointerEvents="none">
-    <Text style={styles.scrollHintText}>Faites glisser →</Text>
-  </View>
-)}
+          <View style={styles.scrollHintContainer} pointerEvents="none">
+            <Text style={styles.scrollHintText}>{t('home.scrollHint')}</Text>
+          </View>
+        )}
       </View>
 
-
-      {/* Bloc ajout de joueur */}
       <View style={styles.block3}>
         <View style={styles.addPlayerContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Nom du joueur"
+            placeholder={t('home.playerPlaceholder')}
             placeholderTextColor="#aaa"
             value={newPlayerName}
             onChangeText={setNewPlayerName}
@@ -156,41 +145,45 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Bloc bouton Commencer + boutons horizontaux */}
       <View style={styles.block4}>
         <TouchableOpacity
           style={styles.startButton}
           disabled={players.length === 0}
           onPress={startGame}
         >
-          <Text style={styles.startText}>Commencer</Text>
+          <Text style={styles.startText}>{t('home.start')}</Text>
         </TouchableOpacity>
 
         <View style={styles.optionsRow}>
-          <TouchableOpacity style={styles.sideButton}>
-            <Text style={styles.sideText}>🌐{'\n'}Langue</Text>
+          <TouchableOpacity style={styles.sideButton} onPress={() => setLanguageModalVisible(true)}>
+            <Text style={styles.sideText}>🌐{'\n'}{t('home.language')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.sideButton}
             onPress={() => router.push('/auth/profile')}
           >
-            <Text style={styles.sideText}>👤{'\n'}Account</Text>
+            <Text style={styles.sideText}>👤{'\n'}{t('home.account')}</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.sideButton}
             onPress={() => router.push('/contact')}
           >
-            <Text style={styles.sideText}>✉️{'\n'}Contact</Text>
+            <Text style={styles.sideText}>✉️{'\n'}{t('home.contact')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.sideButton}>
-            <Text style={styles.sideText}>⭐{'\n'}Noter</Text>
+            <Text style={styles.sideText}>⭐{'\n'}{t('home.rate')}</Text>
           </TouchableOpacity>
         </View>
+        
       </View>
+      <LanguageModal
+        visible={languageModalVisible}
+        onClose={() => setLanguageModalVisible(false)}
+      />
     </View>
   );
 }
+
 
 /* -------------------- Styles -------------------- */
 const styles = StyleSheet.create({
