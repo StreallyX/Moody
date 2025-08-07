@@ -9,7 +9,9 @@ export interface GameState {
   heat: number;                  // 1 – 10
   rounds: number;                // nombre total de cartes déjà jouées
   mode: string;
+  history?: { id: string; type: string; targets?: string[] }[]; // 👈 Ajouté
 }
+
 
 export const saveGameState = async (state: GameState) => {
   try {

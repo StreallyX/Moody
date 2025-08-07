@@ -25,7 +25,7 @@ export default function GameHeader({
       </TouchableOpacity>
 
       <View style={styles.roundContainer}>
-        <Text style={styles.roundText}>Tour #{round + 1}</Text>
+        <Text style={styles.roundText}>Tour #{round}</Text>
       </View>
 
       <TouchableOpacity

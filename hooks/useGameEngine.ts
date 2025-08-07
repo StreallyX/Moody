@@ -56,10 +56,8 @@ export function useGameEngine(
     (opts: NextOpts = {}) => {
       if (!game) return;
 
-      const nextRound =
-        (game as any)?.current?.targets && opts.level !== -0
-          ? game.rounds + 1
-          : game.rounds;
+      const nextRound = game.rounds;
+
 
       const isMiniGameRound = nextRound > 0 && nextRound % 10 === 5;
       const isEventRound = nextRound > 0 && nextRound % 10 === 0;
@@ -199,10 +197,38 @@ export function useGameEngine(
       console.log(`🎯 Paramètres reçus : ${JSON.stringify(opts)}`);
 
       const newCurrent = { ...picked, targets, text: finalText };
-      (game as any).current = newCurrent;
+
+      // Mise à jour de l'historique
+      const updatedHistory = [
+        ...(game.history || []),
+        {
+          id: picked.id,
+          type: picked.type,
+          targets,
+        },
+      ];
+
+      // Mise à jour des stats si c'est un défi
+      const updatedStats = { ...game.stats };
+      if (picked.type === 'challenge') {
+        targets.forEach((p) => {
+          updatedStats[p] = (updatedStats[p] || 0) + 1;
+        });
+      }
+
+      const updatedGame = {
+        ...game,
+        current: newCurrent,
+        stats: updatedStats,
+        history: updatedHistory,
+        rounds: game.rounds + 1,
+        heat: Math.min(10, 1 + Math.floor((game.rounds + 1) / 3)),
+      };
+
       setCurrent(newCurrent);
-      setGame({ ...game });
-      saveGameState(game);
+      setGame(updatedGame);
+      saveGameState(updatedGame);
+
     },
     [game, setGame, setCurrent]
   );

@@ -179,6 +179,7 @@ export default function PlayGame() {
           heat={game.heat}
           rounds={game.rounds}
           stats={game.stats}
+          history={game.history || []}
         />
       </View>
 
