@@ -50,7 +50,7 @@ export default function FlashQuizCard({ data, onNext }: Props) {
               { color: isCorrect ? '#7CFC00' : '#ff4d4d' },
             ]}
           >
-            {isCorrect ? 'Bonne réponse ! 🎉' : 'Faux ! Bois une gorgée ! 🍻'}
+            {isCorrect ? 'Bonne réponse ! 🎉' : 'Faux ! 1 pénalité ! '}
           </Text>
           <Pressable style={styles.nextButton} onPress={() => onNext()}>
             <Text style={styles.nextButtonText}>Suivant</Text>
