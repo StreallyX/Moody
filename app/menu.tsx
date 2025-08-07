@@ -165,10 +165,13 @@ export default function MenuScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <TouchableOpacity style={styles.modalClose} onPress={() => setShowModal(false)}>
-              <Text style={{ fontSize: 20 }}>❌</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Créer un compte pour avoir accès</Text>
-            <Text style={styles.modalText}>Le mode Caliente est réservé aux joueurs connectés 🔥</Text>
+  <View style={styles.closeButtonCircle}>
+    <Text style={styles.closeButtonText}>✕</Text>
+  </View>
+</TouchableOpacity>
+
+            <Text style={styles.modalTitle}>Mode indisponible</Text>
+            <Text style={styles.modalText}>Le mode sélectionné est réservé aux joueurs connectés. Veuillez vous connecter pour y accéder 🔒</Text>
             <TouchableOpacity
               style={styles.modalButton}
               onPress={() => {
@@ -358,5 +361,23 @@ const styles = StyleSheet.create({
     right: 8,
     padding: 6,
     zIndex: 10,
+  },
+  closeButtonCircle: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: '#ffb347',
+  justifyContent: 'center',
+  alignItems: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.2,
+  shadowRadius: 3,
+  elevation: 4,
+  },
+  closeButtonText: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
