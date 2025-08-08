@@ -2,7 +2,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import challenges from '../../../app/data/data.json';
 import {
   ChallengeCard,
   EventCard,
@@ -25,6 +24,7 @@ import ReportModal from '../../../components/ReportModal';
 import SelectModal from '../../../components/SelectModal';
 import StatsModal from '../../../components/StatsModal';
 import { useGameEngine } from '../../../hooks/useGameEngine';
+import { useLocalizedData } from '../../../hooks/useLocalizedData';
 import {
   GameState,
   loadGameState,
@@ -44,6 +44,7 @@ export default function PlayGame() {
   const { t } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const challenges = useLocalizedData();
 
   const [game, setGame] = useState<GameState | null>(null);
   const [current, setCurrent] = useState<any | null>(null);
