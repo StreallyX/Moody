@@ -1,7 +1,7 @@
 // hooks/useLocalizedData.ts
 import { useTranslation } from 'react-i18next';
-import rawFr from '../app/data/data.json';
 import rawEn from '../app/data/dataen.json';
+import rawFr from '../app/data/datafr.json';
 
 type Challenge = {
   id: string;
@@ -29,8 +29,6 @@ type Challenge = {
 export function useLocalizedData(): Challenge[] {
   const { i18n } = useTranslation();
   const lang = i18n.language;
-
-  console.log("🌍 Langue actuelle:", lang); // 👈 Ajoute ça pour vérifier
 
   if (lang.startsWith('en')) return rawEn as Challenge[];
   return rawFr as Challenge[];
