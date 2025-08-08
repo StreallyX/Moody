@@ -1,9 +1,8 @@
 import { useCallback, useRef } from 'react';
-import rawChallenges from '../app/data/data.json';
+import { useLocalizedData } from '../hooks/useLocalizedData';
 import type { GameState } from '../lib/storage';
 import { saveGameState } from '../lib/storage';
 
-const challenges = rawChallenges as Challenge[];
 
 type Challenge = {
   id: string;
@@ -34,11 +33,13 @@ type NextOpts = { level?: number; target?: string };
 const RECENT_MEMORY = 50;
 // ... imports & types inchangés
 
+
 export function useGameEngine(
   game: GameState | null,
   setGame: (g: GameState) => void,
   setCurrent: (c: any) => void
 ) {
+  const challenges = useLocalizedData();
   const lastPicked = useRef<string[]>([]);
 
   const balancedRandom = useCallback(
