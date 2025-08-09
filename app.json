@@ -41,15 +41,15 @@
         }
       ],
       [
-        "expo-build-properties",
-        {
-          "android": {
-            "minSdkVersion": 24,
-            "targetSdkVersion": 34,
-            "compileSdkVersion": 34
-          }
+      "expo-build-properties",
+      {
+        "android": {
+          "minSdkVersion": 24,
+          "targetSdkVersion": 34,
+          "compileSdkVersion": 35
         }
-      ]
+      }
+    ]
     ],
 
     "experiments": {
