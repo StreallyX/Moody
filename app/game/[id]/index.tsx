@@ -36,7 +36,7 @@ export default function GameStartScreen() {
     caliente: require('../../../assets/images/game2.png'),
   };
 
-  const bgImage = backgrounds[id] ?? require('../../../assets/images/default.png');
+  const bgImage = backgrounds[id] ?? require('../../../assets/images/game1.png');
 
   return (
     <TouchableOpacity style={styles.container} onPress={handleStart}>

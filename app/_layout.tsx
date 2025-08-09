@@ -1,12 +1,10 @@
-import { Slot, usePathname, useRouter } from 'expo-router';
+import { Slot } from 'expo-router';
 import { useEffect, useState } from 'react';
 import LoadingScreen from '../components/LoadingScreen';
 import { monitorAuthState } from '../lib/auth';
 
 export default function Layout() {
   const [checking, setChecking] = useState(true);
-  const router = useRouter();
-  const pathname = usePathname(); // pour ne pas re-router en boucle
 
   useEffect(() => {
     monitorAuthState();
