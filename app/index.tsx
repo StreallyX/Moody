@@ -74,7 +74,7 @@ export default function HomeScreen() {
       pathname: '/menu',
       params: { players: JSON.stringify(players) },
     });
-
+    
   return (
     <View style={styles.container}>
       <Modal
@@ -112,14 +112,18 @@ export default function HomeScreen() {
         <FlatList
           data={players}
           keyExtractor={(item) => item}
-          contentContainerStyle={styles.playerList}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.playerList,
+            { flexGrow: 1, justifyContent: 'center' } // <-- centré tout le temps
+          ]}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.playerChip} onPress={() => removePlayer(item)}>
               <Text style={styles.playerText}>✕ {item}</Text>
             </TouchableOpacity>
           )}
-          horizontal
-          showsHorizontalScrollIndicator={false}
+          style={{ width: '100%' }} // <-- occupe toute la largeur
         />
         {players.length > 3 && (
           <View style={styles.scrollHintContainer} pointerEvents="none">
@@ -174,8 +178,8 @@ export default function HomeScreen() {
             <Text style={styles.sideText}>⭐{'\n'}{t('home.rate')}</Text>
           </TouchableOpacity>
         </View>
-        
       </View>
+
       <LanguageModal
         visible={languageModalVisible}
         onClose={() => setLanguageModalVisible(false)}
@@ -184,10 +188,8 @@ export default function HomeScreen() {
   );
 }
 
-
 /* -------------------- Styles -------------------- */
 const styles = StyleSheet.create({
-  /* --- container et blocs existants --- */
   container: {
     flex: 1,
     backgroundColor: '#1a0000',
@@ -202,7 +204,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingBottom: 20,
   },
-  /* --- éléments existants --- */
   logo: { width: 300, height: 140 },
   slogan: {
     marginTop: 10,
@@ -212,7 +213,10 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
   },
-  playerList: { paddingVertical: 10, alignItems: 'center' },
+  playerList: {
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
   playerChip: {
     backgroundColor: '#fff',
     borderRadius: 999,
@@ -298,15 +302,16 @@ const styles = StyleSheet.create({
   modalCloseText: { fontSize: 20, color: '#000' },
   modalText: { fontSize: 16, fontWeight: '600', textAlign: 'center', color: '#000' },
   modalEmail: { color: '#ff5722' },
+
   scrollHintContainer: {
-  position: 'absolute',
-  right: 10,
-  top: '42%',
-  backgroundColor: 'rgba(26,0,0,0.6)',
-  paddingHorizontal: 10,
-  paddingVertical: 4,
-  borderRadius: 12,
-  zIndex: 10,
+    position: 'absolute',
+    right: 10,
+    top: '42%',
+    backgroundColor: 'rgba(26,0,0,0.6)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 10,
   },
   scrollHintText: {
     color: '#ffb347',
@@ -314,5 +319,4 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontWeight: '600',
   },
-
 });
