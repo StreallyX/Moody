@@ -9,7 +9,13 @@
     "contact": "Contact",
     "rate": "Rate us",
     "connectedWith": "Connected with",
-    "selectLanguage": "Choose a language"
+    "selectLanguage": "Choose a language",
+
+    "noPlayersTitle": "At least 1 player is required",
+    "noPlayersDesc": "Add a player to start the game.",
+    "soloTitle": "Play solo?",
+    "soloDesc": "You’ve added only one player. Do you really want to play alone?",
+    "emptyHint": "Tip: add at least 1 player to start."
   },
   "contact": {
     "title": "Contact us",
@@ -127,7 +133,7 @@
     "spinChallenge": "Challenge (1 shot)",
     "spinPlayer": "Person (2 shots)",
     "rulesTitle": "Rules",
-    "rulesText": "1. Click “Challenge” to spin a number (1‑10).\n2. Click “Person” to choose who drinks.\n3. When both wheels are locked, press ➡️ GO to reveal the challenge!"
+    "rulesText": "1. Click “Challenge” to spin a number (1-10).\n2. Click “Person” to choose who drinks.\n3. When both wheels are locked, press ➡️ GO to reveal the challenge!"
   },
   "selfie": {
     "title": "Selfie Challenge",
@@ -193,5 +199,10 @@
     "selectedChallenge": "📝 Selected challenge:",
     "selectedTargets": "🎯 Targeted players:",
     "optionsReceived": "🎯 Options received:"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "continue": "Continue"
   }
 }

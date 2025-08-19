@@ -19,11 +19,17 @@ import { loadPlayers, savePlayers } from '../lib/storage';
 export default function HomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [players, setPlayers] = useState<string[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
+
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginEmail, setLoginEmail] = useState<string | null>(null);
+
+  // NEW: modals pour les messages “0 joueur” et “solo”
+  const [showNoPlayersModal, setShowNoPlayersModal] = useState(false);
+  const [showSoloConfirmModal, setShowSoloConfirmModal] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -74,9 +80,23 @@ export default function HomeScreen() {
       pathname: '/menu',
       params: { players: JSON.stringify(players) },
     });
-    
+
+  // NEW: logique au clic du bouton "Start"
+  const onPressStart = () => {
+    if (players.length === 0) {
+      setShowNoPlayersModal(true);
+      return;
+    }
+    if (players.length === 1) {
+      setShowSoloConfirmModal(true);
+      return;
+    }
+    startGame();
+  };
+
   return (
     <View style={styles.container}>
+      {/* --- Login modal existant --- */}
       <Modal
         visible={showLoginModal}
         transparent
@@ -99,6 +119,64 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
+      {/* --- NEW: modal "0 joueur" --- */}
+      <Modal
+        visible={showNoPlayersModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowNoPlayersModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <Text style={[styles.modalText, { marginBottom: 12 }]}>
+              {t('home.noPlayersTitle')}
+            </Text>
+            <Text style={[styles.modalText, { fontWeight: '400', color: '#333', marginBottom: 16 }]}>
+              {t('home.noPlayersDesc')}
+            </Text>
+            <TouchableOpacity style={styles.modalPrimaryBtn} onPress={() => setShowNoPlayersModal(false)}>
+              <Text style={styles.modalPrimaryText}>{t('common.ok')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* --- NEW: modal confirmation "solo" --- */}
+      <Modal
+        visible={showSoloConfirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSoloConfirmModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <Text style={[styles.modalText, { marginBottom: 12 }]}>
+              {t('home.soloTitle')}
+            </Text>
+            <Text style={[styles.modalText, { fontWeight: '400', color: '#333', marginBottom: 16 }]}>
+              {t('home.soloDesc')}
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                style={[styles.modalSecondaryBtn, { flex: 1 }]}
+                onPress={() => setShowSoloConfirmModal(false)}
+              >
+                <Text style={styles.modalSecondaryText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalPrimaryBtn, { flex: 1 }]}
+                onPress={() => {
+                  setShowSoloConfirmModal(false);
+                  startGame();
+                }}
+              >
+                <Text style={styles.modalPrimaryText}>{t('common.continue')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.block1}>
         <Image
           source={require('../assets/images/logo.png')}
@@ -116,14 +194,14 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={[
             styles.playerList,
-            { flexGrow: 1, justifyContent: 'center' } // <-- centré tout le temps
+            { flexGrow: 1, justifyContent: 'center' } // centré tout le temps
           ]}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.playerChip} onPress={() => removePlayer(item)}>
               <Text style={styles.playerText}>✕ {item}</Text>
             </TouchableOpacity>
           )}
-          style={{ width: '100%' }} // <-- occupe toute la largeur
+          style={{ width: '100%' }}
         />
         {players.length > 3 && (
           <View style={styles.scrollHintContainer} pointerEvents="none">
@@ -131,6 +209,11 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
+
+      {/* --- NEW: hint sous la liste si 0 joueur --- */}
+      {players.length === 0 && (
+        <Text style={styles.emptyHint}>{t('home.emptyHint')}</Text>
+      )}
 
       <View style={styles.block3}>
         <View style={styles.addPlayerContainer}>
@@ -151,9 +234,8 @@ export default function HomeScreen() {
 
       <View style={styles.block4}>
         <TouchableOpacity
-          style={styles.startButton}
-          disabled={players.length === 0}
-          onPress={startGame}
+          style={[styles.startButton, players.length === 0 && { opacity: 0.6 }]}
+          onPress={onPressStart}
         >
           <Text style={styles.startText}>{t('home.start')}</Text>
         </TouchableOpacity>
@@ -284,7 +366,7 @@ const styles = StyleSheet.create({
   },
   sideText: { color: '#ffb347', textAlign: 'center', fontSize: 11, fontWeight: '600' },
 
-  /* --- styles du Modal --- */
+  /* --- Modal styles (réutilisés) --- */
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -295,13 +377,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 24,
-    width: '80%',
+    width: '85%',
+    maxWidth: 420,
     alignItems: 'center',
   },
   modalClose: { position: 'absolute', top: 10, right: 10 },
   modalCloseText: { fontSize: 20, color: '#000' },
   modalText: { fontSize: 16, fontWeight: '600', textAlign: 'center', color: '#000' },
   modalEmail: { color: '#ff5722' },
+
+  modalPrimaryBtn: {
+    backgroundColor: '#ffb347',
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  modalPrimaryText: { color: '#000', fontWeight: '700' },
+  modalSecondaryBtn: {
+    borderColor: '#ffb347',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    minWidth: 120,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  modalSecondaryText: { color: '#000', fontWeight: '700' },
 
   scrollHintContainer: {
     position: 'absolute',
@@ -316,6 +420,15 @@ const styles = StyleSheet.create({
   scrollHintText: {
     color: '#ffb347',
     fontSize: 12,
+    fontStyle: 'italic',
+    fontWeight: '600',
+  },
+
+  // NEW: message d'aide si 0 joueur
+  emptyHint: {
+    marginTop: 6,
+    textAlign: 'center',
+    color: '#ffb347',
     fontStyle: 'italic',
     fontWeight: '600',
   },

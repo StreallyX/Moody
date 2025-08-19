@@ -9,19 +9,25 @@
     "contact": "Contact",
     "rate": "Noter",
     "connectedWith": "Connecté avec",
-    "selectLanguage": "Choisissez une langue"
+    "selectLanguage": "Choisissez une langue",
+
+    "noPlayersTitle": "Il faut au minimum 1 joueur",
+    "noPlayersDesc": "Ajoute un joueur pour commencer la partie.",
+    "soloTitle": "Jouer en solo ?",
+    "soloDesc": "Tu n’as ajouté qu’un seul joueur. Veux-tu vraiment jouer seul ?",
+    "emptyHint": "Astuce : ajoute au moins 1 joueur pour démarrer."
   },
   "contact": {
-  "title": "Contactez-nous",
-  "placeholderName": "Nom et prénom",
-  "placeholderEmail": "Votre email",
-  "placeholderMessage": "Votre message",
-  "send": "Envoyer",
-  "successTitle": "Succès",
-  "successMessage": "Votre message a été envoyé.",
-  "errorTitle": "Erreur",
-  "errorFields": "Veuillez remplir tous les champs.",
-  "errorSend": "Impossible d’envoyer le message."
+    "title": "Contactez-nous",
+    "placeholderName": "Nom et prénom",
+    "placeholderEmail": "Votre email",
+    "placeholderMessage": "Votre message",
+    "send": "Envoyer",
+    "successTitle": "Succès",
+    "successMessage": "Votre message a été envoyé.",
+    "errorTitle": "Erreur",
+    "errorFields": "Veuillez remplir tous les champs.",
+    "errorSend": "Impossible d’envoyer le message."
   },
   "menu": {
     "friends": "Amis",
@@ -37,10 +43,10 @@
     "modalText": "Le mode sélectionné est réservé aux joueurs connectés. Veuillez vous connecter pour y accéder 🔒"
   },
   "gamestart": {
-  "ready": "Prêt à jouer ?",
-  "tapToStart": "[Touchez pour commencer]"
+    "ready": "Prêt à jouer ?",
+    "tapToStart": "[Touchez pour commencer]"
   },
-   "login": {
+  "login": {
     "slogan": "Le jeu qui chauffe l’ambiance 🔥",
     "email": "Email",
     "password": "Mot de passe",
@@ -55,7 +61,7 @@
     "connectedWith": "Connecté avec :",
     "logout": "Se déconnecter"
   },
-    "signup": {
+  "signup": {
     "slogan": "Le jeu qui chauffe l’ambiance 🔥",
     "emailPlaceholder": "Email",
     "passwordPlaceholder": "Mot de passe",
@@ -69,7 +75,7 @@
     "title": "ÉVÉNEMENT",
     "continue": "Continuer"
   },
-   "explosion": {
+  "explosion": {
     "title": "Désamorce la bombe !",
     "instructions": "Un seul fil désamorce la bombe. Tu as 5 secondes !",
     "wire": "Fil {{number}}",
@@ -121,20 +127,20 @@
     "next": "Suivant"
   },
   "slot": {
-    "intro": "À {{player}} de jouer !",
+    "intro": "À {{player}} de jouer !",
     "challenge": "DEFI",
     "player": "JOUEUR",
     "spinChallenge": "Défi (1 shot)",
     "spinPlayer": "Personne (2 shots)",
     "rulesTitle": "Règles",
-    "rulesText": "1. Clique « Défi » pour faire tourner le chiffre (1 ‑ 10).\n2. Clique « Personne » pour désigner qui boira.\n3. Quand les deux rouleaux sont fixés, appuie sur ➡️ GO pour révéler le défi correspondant !"
+    "rulesText": "1. Clique « Défi » pour faire tourner le chiffre (1 - 10).\n2. Clique « Personne » pour désigner qui boira.\n3. Quand les deux rouleaux sont fixés, appuie sur ➡️ GO pour révéler le défi correspondant !"
   },
-   "selfie": {
+  "selfie": {
     "title": "Défi Selfie",
     "subtitle": "Jeu en construction… 🚧",
     "next": "Suivant"
   },
-   "wheel": {
+  "wheel": {
     "turn": "À {{player}} DE JOUER !",
     "spin": "TOURNE !",
     "safe": "SAFE — choisis qui boit !",
@@ -142,58 +148,61 @@
     "drink": "Bois {{count}} gorgée(s) !",
     "next": "Suivant"
   },
-  "back": "Back"
-  ,
+  "back": "Back",
   "challenge.level": "Défi – Niveau {{level}}/10",
-  "next": "Suivant"
-  ,
+  "next": "Suivant",
   "footer": {
-  "select": "Sélectionner",
-  "report": "Signaler"
-  }
-  ,"gameHeader": {
-  "round": "Tour #{{round}}"
+    "select": "Sélectionner",
+    "report": "Signaler"
+  },
+  "gameHeader": {
+    "round": "Tour #{{round}}"
   },
   "loading": {
-  "message": "Chargement..."
+    "message": "Chargement..."
   },
   "question": {
-  "level": "Question – Niveau {{level}}/10",
-  "next": "Suivant ➡"
+    "level": "Question – Niveau {{level}}/10",
+    "next": "Suivant ➡"
   },
   "report": {
-  "title": "🚨 Signaler une carte",
-  "card": "Carte : {{id}}",
-  "placeholder": "Pourquoi signaler cette carte ?",
-  "send": "Envoyer",
-  "sent": "Signalement envoyé ✅",
-  "error": "Erreur lors de l’envoi."
+    "title": "🚨 Signaler une carte",
+    "card": "Carte : {{id}}",
+    "placeholder": "Pourquoi signaler cette carte ?",
+    "send": "Envoyer",
+    "sent": "Signalement envoyé ✅",
+    "error": "Erreur lors de l’envoi."
   },
   "select": {
-  "title": "🎯 Choisir une carte",
-  "close": "Fermer"
+    "title": "🎯 Choisir une carte",
+    "close": "Fermer"
   },
   "stats": {
-  "title": "📊 Statistiques",
-  "heat": "🔥 Chaleur :",
-  "rounds": "🔁 Tours joués :",
-  "typeBreakdown": "📚 Répartition des types :",
-  "perPlayer": "👥 Défis par joueur :",
-  "lastRounds": "🕓 Derniers tours :",
-  "close": "Fermer"
+    "title": "📊 Statistiques",
+    "heat": "🔥 Chaleur :",
+    "rounds": "🔁 Tours joués :",
+    "typeBreakdown": "📚 Répartition des types :",
+    "perPlayer": "👥 Défis par joueur :",
+    "lastRounds": "🕓 Derniers tours :",
+    "close": "Fermer"
   },
   "log": {
-  "round": "▶️ Lancement du tour",
-  "miniGameRound": "🎰 Tour spécial : Mini-jeu",
-  "eventRound": "🎉 Tour spécial : Événement",
-  "normalRound": "🎲 Tour normal : Défi ou question",
-  "miniGameType": "🎯 Type de mini-jeu choisi aléatoirement :",
-  "noStrict": "⚠️ Aucun défi strict ; fallback plus large",
-  "noContent": "❌ Toujours rien à proposer.",
-  "noChallengeLeft": "Plus de défis adaptés 😢",
-  "notEnoughPlayers": "Pas assez de joueurs pour ce défi 😢",
-  "selectedChallenge": "📝 Défi sélectionné :",
-  "selectedTargets": "🎯 Joueurs ciblés :",
-  "optionsReceived": "🎯 Paramètres reçus :"
+    "round": "▶️ Lancement du tour",
+    "miniGameRound": "🎰 Tour spécial : Mini-jeu",
+    "eventRound": "🎉 Tour spécial : Événement",
+    "normalRound": "🎲 Tour normal : Défi ou question",
+    "miniGameType": "🎯 Type de mini-jeu choisi aléatoirement :",
+    "noStrict": "⚠️ Aucun défi strict ; fallback plus large",
+    "noContent": "❌ Toujours rien à proposer.",
+    "noChallengeLeft": "Plus de défis adaptés 😢",
+    "notEnoughPlayers": "Pas assez de joueurs pour ce défi 😢",
+    "selectedChallenge": "📝 Défi sélectionné :",
+    "selectedTargets": "🎯 Joueurs ciblés :",
+    "optionsReceived": "🎯 Paramètres reçus :"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Annuler",
+    "continue": "Continuer"
   }
 }
