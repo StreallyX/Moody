@@ -1,238 +1,213 @@
-import { useCallback, useRef } from 'react';
-import { useLocalizedData } from '../hooks/useLocalizedData';
-import type { GameState } from '../lib/storage';
-import { saveGameState } from '../lib/storage';
+// React Hook wrapper for GameEngine
 
+import { useState, useCallback, useRef, useEffect } from 'react';
+import {
+  GameEngine,
+  GameEngineCallbacks,
+  GameState,
+  GameConfig,
+  Player,
+  Challenge,
+  MiniGame,
+  GameEvent,
+  MiniGameResult,
+} from '../src/engine';
 
-type Challenge = {
-  id: string;
-  type:
-    | 'challenge'
-    | 'question'
-    | 'roulette'
-    | 'wheelshot'
-    | 'event'
-    | 'oracle'
-    | 'explosion'
-    | 'guessword'
-    | 'selfie'
-    | 'tapbattle'
-    | 'hotseat'
-    | 'flashquiz';
-  text: string;
-  level: number;
-  modes: string[];
-  minPlayers?: number;
-  maxPlayers?: number;
-  slots?: number;
-};
+export interface UseGameEngineReturn {
+  // State
+  state: GameState | null;
+  currentPlayer: Player | null;
+  isLoading: boolean;
+  error: string | null;
 
-type NextOpts = { level?: number; target?: string };
+  // Current action
+  currentChallenge: Challenge | null;
+  currentMiniGame: MiniGame | null;
+  currentEvent: GameEvent | null;
 
-// 👇 CONSTANTE : combien d’IDs on mémorise
-const RECENT_MEMORY = 50;
-// ... imports & types inchangés
+  // Actions
+  initializeGame: (config: GameConfig, players: Omit<Player, 'score' | 'drinks' | 'penalties' | 'jokers' | 'isActive'>[]) => Promise<void>;
+  getNextAction: () => Promise<void>;
+  completeChallenge: (completed: boolean) => void;
+  startMiniGame: () => Promise<void>;
+  endMiniGame: () => Promise<MiniGameResult | null>;
+  triggerEvent: () => void;
+  useJoker: () => boolean;
+  nextTurn: () => void;
+  pauseGame: () => void;
+  resumeGame: () => void;
+  endGame: () => void;
 
+  // Persistence
+  saveGame: () => string;
+  loadGame: (json: string) => boolean;
+}
 
-export function useGameEngine(
-  game: GameState | null,
-  setGame: (g: GameState) => void,
-  setCurrent: (c: any) => void
-) {
-  const challenges = useLocalizedData();
-  const lastPicked = useRef<string[]>([]);
+export function useGameEngine(): UseGameEngineReturn {
+  const engineRef = useRef<GameEngine | null>(null);
+  const [state, setState] = useState<GameState | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const balancedRandom = useCallback(
-    (n: number) => {
-      if (!game) return [];
-      const shuffled = [...game.players].sort(
-        (a, b) => (game.stats[a] - game.stats[b]) || Math.random() - 0.5
-      );
-      return shuffled.slice(0, n);
-    },
-    [game]
-  );
+  const [currentChallenge, setCurrentChallenge] = useState<Challenge | null>(null);
+  const [currentMiniGame, setCurrentMiniGame] = useState<MiniGame | null>(null);
+  const [currentEvent, setCurrentEvent] = useState<GameEvent | null>(null);
 
-  const nextChallenge = useCallback(
-    (opts: NextOpts = {}) => {
-      if (!game) return;
+  // Initialize engine with callbacks
+  useEffect(() => {
+    const engine = new GameEngine();
+    
+    const callbacks: GameEngineCallbacks = {
+      onStateChange: (newState) => setState({ ...newState }),
+      onChallenge: (challenge) => setCurrentChallenge(challenge),
+      onMiniGameStart: (miniGame) => setCurrentMiniGame(miniGame),
+      onMiniGameEnd: () => setCurrentMiniGame(null),
+      onEvent: (event) => setCurrentEvent(event),
+      onGameEnd: () => {
+        setCurrentChallenge(null);
+        setCurrentMiniGame(null);
+        setCurrentEvent(null);
+      },
+    };
+    
+    engine.setCallbacks(callbacks);
+    engineRef.current = engine;
 
-      const nextRound = game.rounds;
+    return () => {
+      engineRef.current = null;
+    };
+  }, []);
 
+  const initializeGame = useCallback(async (
+    config: GameConfig,
+    players: Omit<Player, 'score' | 'drinks' | 'penalties' | 'jokers' | 'isActive'>[]
+  ) => {
+    if (!engineRef.current) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await engineRef.current.initialize(config, players);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to initialize game');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-      const isMiniGameRound = nextRound > 0 && nextRound % 10 === 5;
-      const isEventRound = nextRound > 0 && nextRound % 10 === 0;
-
-      console.log(`▶️ Lancement du tour ${nextRound}`);
-      if (isMiniGameRound) {
-        console.log('🎰 Tour spécial : Mini-jeu');
-      } else if (isEventRound) {
-        console.log('🎉 Tour spécial : Événement');
-      } else {
-        console.log('🎲 Tour normal : Défi ou question');
+  const getNextAction = useCallback(async () => {
+    if (!engineRef.current) return;
+    setIsLoading(true);
+    try {
+      const action = await engineRef.current.getNextAction();
+      if (action) {
+        switch (action.type) {
+          case 'challenge':
+            setCurrentChallenge(action.data as Challenge);
+            setCurrentMiniGame(null);
+            setCurrentEvent(null);
+            break;
+          case 'miniGame':
+            setCurrentMiniGame(action.data as MiniGame);
+            setCurrentChallenge(null);
+            setCurrentEvent(null);
+            break;
+          case 'event':
+            setCurrentEvent(action.data as GameEvent);
+            setCurrentChallenge(null);
+            setCurrentMiniGame(null);
+            break;
+        }
       }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to get next action');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-      if ((game as any)?.current?.targets && opts.level !== -0) {
-        const stats = { ...game.stats };
-        (game as any).current.targets.forEach((p: string) => {
-          stats[p] = (stats[p] || 0) + 1;
-        });
-        game.stats = stats;
-        game.rounds = nextRound;
-        game.heat = Math.min(10, 1 + Math.floor(game.rounds / 3));
-      }
+  const completeChallenge = useCallback((completed: boolean) => {
+    if (!engineRef.current || !currentChallenge) return;
+    engineRef.current.completeChallenge(currentChallenge, completed);
+    setCurrentChallenge(null);
+  }, [currentChallenge]);
 
-      const baseFilter = (strictMode = true) =>
-        challenges.filter((c) => {
-          const modeOK =
-            strictMode
-              ? c.modes?.includes(game.mode)
-              : c.modes?.includes(game.mode) || c.modes?.includes('friends');
+  const startMiniGame = useCallback(async () => {
+    if (!engineRef.current || !currentMiniGame) return;
+    await engineRef.current.startMiniGame(currentMiniGame);
+  }, [currentMiniGame]);
 
-          if (!modeOK) return false;
-          if ((c.minPlayers ?? 1) > game.players.length) return false;
+  const endMiniGame = useCallback(async () => {
+    if (!engineRef.current) return null;
+    const result = await engineRef.current.endMiniGame();
+    setCurrentMiniGame(null);
+    return result;
+  }, []);
 
-          if (isMiniGameRound)
-            return [
-              'roulette',
-              'wheelshot',
-              'oracle',
-              'explosion',
-              'guessword',
-              'selfie',
-              'tapbattle',
-              'hotseat',
-              'flashquiz',
-            ].includes(c.type);
+  const triggerEvent = useCallback(() => {
+    if (!engineRef.current || !currentEvent) return;
+    engineRef.current.triggerEvent(currentEvent);
+    setCurrentEvent(null);
+  }, [currentEvent]);
 
-          if (isEventRound) return c.type === 'event';
-          if (c.type !== 'challenge' && c.type !== 'question') return false;
+  const useJoker = useCallback(() => {
+    if (!engineRef.current) return false;
+    const success = engineRef.current.useJoker();
+    if (success) {
+      setCurrentChallenge(null);
+    }
+    return success;
+  }, []);
 
-          if (
-            opts.level !== undefined &&
-            opts.level !== -0 &&
-            c.level !== opts.level
-          )
-            return false;
+  const nextTurn = useCallback(() => {
+    if (!engineRef.current) return;
+    engineRef.current.nextTurn();
+  }, []);
 
-          return true;
-        });
+  const pauseGame = useCallback(() => {
+    if (!engineRef.current) return;
+    engineRef.current.pause();
+  }, []);
 
-      let validChallenges = baseFilter(true);
+  const resumeGame = useCallback(() => {
+    if (!engineRef.current) return;
+    engineRef.current.resume();
+  }, []);
 
-      if (isMiniGameRound && validChallenges.length) {
-        const grouped: Record<string, Challenge[]> = {};
-        validChallenges.forEach((c) => {
-          (grouped[c.type] ??= []).push(c);
-        });
-        const types = Object.keys(grouped);
-        const chosenType = types[Math.floor(Math.random() * types.length)];
-        validChallenges = grouped[chosenType];
-        console.log(`🎯 Type de mini-jeu choisi aléatoirement : ${chosenType}`);
-      }
+  const endGame = useCallback(() => {
+    if (!engineRef.current) return;
+    engineRef.current.endGame();
+  }, []);
 
-      const fresh = validChallenges.filter(
-        (c) => !lastPicked.current.includes(c.id)
-      );
-      if (fresh.length) validChallenges = fresh;
+  const saveGame = useCallback(() => {
+    if (!engineRef.current) return '{}';
+    return engineRef.current.saveState();
+  }, []);
 
-      if (validChallenges.length === 0) {
-        console.warn('⚠️ Aucun défi strict ; fallback plus large');
-        validChallenges = baseFilter(false);
-      }
+  const loadGame = useCallback((json: string) => {
+    if (!engineRef.current) return false;
+    return engineRef.current.loadState(json);
+  }, []);
 
-      if (validChallenges.length === 0) {
-        console.warn('❌ Toujours rien à proposer.');
-        setCurrent({
-          type: 'info',
-          text: 'Plus de défis adaptés 😢',
-          targets: [],
-        });
-        return;
-      }
-
-      const weightedPool: Challenge[] = [];
-      validChallenges.forEach((c) => {
-        const weight = Math.max(1, 10 - Math.abs(c.level - game.heat));
-        for (let i = 0; i < weight; i++) weightedPool.push(c);
-      });
-
-      const picked =
-        weightedPool[Math.floor(Math.random() * weightedPool.length)];
-
-      const placeholders = [...new Set(picked.text.match(/%PLAYER\d*%/g) ?? [])];
-      const targets: string[] = [];
-
-      const availablePlayers = [...game.players];
-      if (opts.target) {
-        targets.push(opts.target);
-        availablePlayers.splice(availablePlayers.indexOf(opts.target), 1);
-      }
-      while (targets.length < placeholders.length && availablePlayers.length) {
-        const p = availablePlayers.splice(
-          Math.floor(Math.random() * availablePlayers.length),
-          1
-        )[0];
-        targets.push(p);
-      }
-      if (targets.length < placeholders.length) {
-        setCurrent({
-          type: 'info',
-          text: 'Pas assez de joueurs pour ce défi 😢',
-          targets: [],
-        });
-        return;
-      }
-
-      let finalText = picked.text;
-      placeholders.forEach((ph, i) => {
-        finalText = finalText.replaceAll(ph, targets[i]);
-      });
-
-      lastPicked.current.push(picked.id);
-      if (lastPicked.current.length > RECENT_MEMORY)
-        lastPicked.current.shift();
-
-      console.log(`📝 Défi sélectionné : ${finalText}`);
-      console.log(`🎯 Joueurs ciblés : ${targets.join(', ')}`);
-      console.log(`🎯 Paramètres reçus : ${JSON.stringify(opts)}`);
-
-      const newCurrent = { ...picked, targets, text: finalText };
-
-      // Mise à jour de l'historique
-      const updatedHistory = [
-        ...(game.history || []),
-        {
-          id: picked.id,
-          type: picked.type,
-          targets,
-        },
-      ];
-
-      // Mise à jour des stats si c'est un défi
-      const updatedStats = { ...game.stats };
-      if (picked.type === 'challenge') {
-        targets.forEach((p) => {
-          updatedStats[p] = (updatedStats[p] || 0) + 1;
-        });
-      }
-
-      const updatedGame = {
-        ...game,
-        current: newCurrent,
-        stats: updatedStats,
-        history: updatedHistory,
-        rounds: game.rounds + 1,
-        heat: Math.min(10, 1 + Math.floor((game.rounds + 1) / 3)),
-      };
-
-      setCurrent(newCurrent);
-      setGame(updatedGame);
-      saveGameState(updatedGame);
-
-    },
-    [game, setGame, setCurrent]
-  );
-
-  return { balancedRandom, nextChallenge };
+  return {
+    state,
+    currentPlayer: state ? state.players[state.currentPlayerIndex] : null,
+    isLoading,
+    error,
+    currentChallenge,
+    currentMiniGame,
+    currentEvent,
+    initializeGame,
+    getNextAction,
+    completeChallenge,
+    startMiniGame,
+    endMiniGame,
+    triggerEvent,
+    useJoker,
+    nextTurn,
+    pauseGame,
+    resumeGame,
+    endGame,
+    saveGame,
+    loadGame,
+  };
 }
