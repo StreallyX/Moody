@@ -67,12 +67,29 @@ export function useGameEngine(
 ): UseGameEngineReturn | { nextChallenge: (options?: NextChallengeOptions) => void } {
   // Legacy mode - when called with game state arguments
   if (game !== undefined && setGame !== undefined && setCurrent !== undefined) {
-    const nextChallenge = useCallback((options?: NextChallengeOptions) => {
+    const nextChallenge = useCallback((options: NextChallengeOptions = {}) => {
       // Legacy implementation - advance to next challenge
       if (!game) return;
-      // This is a simplified implementation - the actual logic would depend on game rules
-      console.log('nextChallenge called with options:', options);
-    }, [game]);
+      
+      // Update game state - increment rounds and update heat
+      const newRounds = game.rounds + 1;
+      const newHeat = Math.min(5, Math.floor(newRounds / 10) + 1);
+      
+      // Apply level from options if provided (e.g., from roulette)
+      const effectiveHeat = options.level ?? newHeat;
+      
+      const updatedGame = {
+        ...game,
+        rounds: newRounds,
+        heat: effectiveHeat,
+      };
+      
+      setGame(updatedGame);
+      
+      // Signal that we need a new challenge by clearing current
+      // The parent component's useEffect will handle fetching the next challenge
+      setCurrent(null);
+    }, [game, setGame, setCurrent]);
     
     return { nextChallenge };
   }
