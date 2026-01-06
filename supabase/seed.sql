@@ -201,3 +201,98 @@ INSERT INTO mini_game_config (mini_game_id, key, value) VALUES
 
 -- INSERT INTO affiliates (user_id, code, commission_rate) VALUES
 --   ('test-user-1111-1111-111111111111', 'MOODY-TEST', 20.00);
+
+
+
+-- ===========================================
+-- NEW FUN CHALLENGES - FRENCH PARTY CONTENT
+-- Added: 2026-01-06
+-- ===========================================
+
+-- SOFT MODE - Défis légers et drôles
+INSERT INTO challenges (id, type, level, min_players, is_premium) VALUES
+  ('c0000003-0003-0003-0003-000000000001', 'challenge', 2, 2, false),
+  ('c0000003-0003-0003-0003-000000000002', 'challenge', 2, 2, false),
+  ('c0000003-0003-0003-0003-000000000003', 'challenge', 3, 2, false),
+  ('c0000003-0003-0003-0003-000000000004', 'challenge', 3, 2, false),
+  ('c0000003-0003-0003-0003-000000000005', 'question', 2, 2, false),
+  ('c0000003-0003-0003-0003-000000000006', 'question', 3, 2, false),
+  ('c0000003-0003-0003-0003-000000000007', 'challenge', 3, 3, false),
+  ('c0000003-0003-0003-0003-000000000008', 'challenge', 2, 2, false),
+  ('c0000003-0003-0003-0003-000000000009', 'question', 2, 2, false),
+  ('c0000003-0003-0003-0003-000000000010', 'challenge', 3, 2, false);
+
+INSERT INTO challenge_translations (challenge_id, locale, text) VALUES
+  ('c0000003-0003-0003-0003-000000000001', 'fr', '{player1} doit faire son meilleur cri de Tarzan. Le groupe note sur 10!'),
+  ('c0000003-0003-0003-0003-000000000002', 'fr', '{player1} doit raconter une blague. Si personne ne rit, il boit double!'),
+  ('c0000003-0003-0003-0003-000000000003', 'fr', 'Tout le monde ferme les yeux. Le premier qui rit boit!'),
+  ('c0000003-0003-0003-0003-000000000004', 'fr', '{player1} doit faire deviner un film en mimant. 30 secondes max!'),
+  ('c0000003-0003-0003-0003-000000000005', 'fr', '{player1}, quel est ton emoji le plus utilisé et pourquoi?'),
+  ('c0000003-0003-0003-0003-000000000006', 'fr', '{player1}, si tu étais un animal, lequel serais-tu?'),
+  ('c0000003-0003-0003-0003-000000000007', 'fr', 'Pierre-feuille-ciseaux! Les perdants boivent!'),
+  ('c0000003-0003-0003-0003-000000000008', 'fr', '{player1} doit chanter le refrain de sa chanson préférée!'),
+  ('c0000003-0003-0003-0003-000000000009', 'fr', '{player1}, quelle est ta plus grande peur irrationnelle?'),
+  ('c0000003-0003-0003-0003-000000000010', 'fr', '{player1} et {player2}: bras de fer! Le perdant boit!');
+
+-- HARD MODE - Défis embarrassants mais drôles
+INSERT INTO challenges (id, type, level, min_players, is_premium) VALUES
+  ('c0000003-0003-0003-0003-000000000011', 'challenge', 6, 2, false),
+  ('c0000003-0003-0003-0003-000000000012', 'challenge', 7, 2, false),
+  ('c0000003-0003-0003-0003-000000000013', 'challenge', 6, 2, false),
+  ('c0000003-0003-0003-0003-000000000014', 'question', 7, 2, false),
+  ('c0000003-0003-0003-0003-000000000015', 'question', 6, 2, false),
+  ('c0000003-0003-0003-0003-000000000016', 'challenge', 7, 3, false),
+  ('c0000003-0003-0003-0003-000000000017', 'challenge', 6, 2, false),
+  ('c0000003-0003-0003-0003-000000000018', 'question', 7, 2, false),
+  ('c0000003-0003-0003-0003-000000000019', 'challenge', 8, 2, false),
+  ('c0000003-0003-0003-0003-000000000020', 'question', 8, 2, false);
+
+INSERT INTO challenge_translations (challenge_id, locale, text) VALUES
+  ('c0000003-0003-0003-0003-000000000011', 'fr', '{player1} doit lire à voix haute son dernier message envoyé!'),
+  ('c0000003-0003-0003-0003-000000000012', 'fr', '{player1} doit montrer sa dernière photo prise. Pas de triche!'),
+  ('c0000003-0003-0003-0003-000000000013', 'fr', '{player1} doit faire une déclaration d''amour ridicule à {player2}!'),
+  ('c0000003-0003-0003-0003-000000000014', 'fr', '{player1}, c''est quoi ton crush secret ici? Ou bois 3 gorgées!'),
+  ('c0000003-0003-0003-0003-000000000015', 'fr', '{player1}, quel est le mensonge le plus gros que tu as dit cette semaine?'),
+  ('c0000003-0003-0003-0003-000000000016', 'fr', 'Le groupe vote: qui ici a le plus de chances de finir en prison? Cette personne boit!'),
+  ('c0000003-0003-0003-0003-000000000017', 'fr', '{player1} doit imiter {player2} pendant 1 minute!'),
+  ('c0000003-0003-0003-0003-000000000018', 'fr', '{player1}, raconte ton moment le plus gênant de cette année!'),
+  ('c0000003-0003-0003-0003-000000000019', 'fr', '{player1} doit appeler un contact au hasard et dire "Je t''aime" puis raccrocher!'),
+  ('c0000003-0003-0003-0003-000000000020', 'fr', '{player1}, si tu devais embrasser quelqu''un ici, qui ce serait?');
+
+-- CALIENTE MODE - Questions qui créent des débats
+INSERT INTO challenges (id, type, level, min_players, is_premium) VALUES
+  ('c0000003-0003-0003-0003-000000000021', 'question', 5, 2, true),
+  ('c0000003-0003-0003-0003-000000000022', 'question', 6, 2, true),
+  ('c0000003-0003-0003-0003-000000000023', 'challenge', 6, 2, true),
+  ('c0000003-0003-0003-0003-000000000024', 'challenge', 7, 2, true),
+  ('c0000003-0003-0003-0003-000000000025', 'question', 7, 2, true),
+  ('c0000003-0003-0003-0003-000000000026', 'challenge', 8, 2, true),
+  ('c0000003-0003-0003-0003-000000000027', 'question', 8, 2, true),
+  ('c0000003-0003-0003-0003-000000000028', 'challenge', 7, 2, true),
+  ('c0000003-0003-0003-0003-000000000029', 'question', 6, 2, true),
+  ('c0000003-0003-0003-0003-000000000030', 'challenge', 8, 2, true);
+
+INSERT INTO challenge_translations (challenge_id, locale, text) VALUES
+  ('c0000003-0003-0003-0003-000000000021', 'fr', '{player1}, avec qui ici tu partirais en weekend romantique?'),
+  ('c0000003-0003-0003-0003-000000000022', 'fr', '{player1}, décris ton type idéal en regardant quelqu''un dans la pièce!'),
+  ('c0000003-0003-0003-0003-000000000023', 'fr', '{player1} doit faire un lap dance de 10 secondes à {player2}!'),
+  ('c0000003-0003-0003-0003-000000000024', 'fr', '{player1} et {player2}: regardez-vous dans les yeux 30 sec sans rire. Perdant boit!'),
+  ('c0000003-0003-0003-0003-000000000025', 'fr', '{player1}, quelle est la chose la plus folle que tu ferais pour 1000€?'),
+  ('c0000003-0003-0003-0003-000000000026', 'fr', '{player1} doit lécher le coude de {player2}!'),
+  ('c0000003-0003-0003-0003-000000000027', 'fr', '{player1}, raconte ton pire date de tous les temps!'),
+  ('c0000003-0003-0003-0003-000000000028', 'fr', '{player1} doit faire son meilleur gémissement. Le groupe note!'),
+  ('c0000003-0003-0003-0003-000000000029', 'fr', '{player1}, tu préfères: ne plus jamais embrasser ou ne plus jamais câliner?'),
+  ('c0000003-0003-0003-0003-000000000030', 'fr', '{player1} doit envoyer un emoji cœur à son dernier match Tinder!');
+
+-- Associate new challenges with modes
+INSERT INTO challenge_modes (challenge_id, mode_id)
+SELECT c.id, '11111111-1111-1111-1111-111111111111'
+FROM challenges c
+WHERE c.id LIKE 'c0000003-0003-0003-0003-0000000000%' 
+AND c.id <= 'c0000003-0003-0003-0003-000000000020';
+
+INSERT INTO challenge_modes (challenge_id, mode_id)
+SELECT c.id, '22222222-2222-2222-2222-222222222222'
+FROM challenges c
+WHERE c.id LIKE 'c0000003-0003-0003-0003-0000000000%'
+AND c.id > 'c0000003-0003-0003-0003-000000000020';
