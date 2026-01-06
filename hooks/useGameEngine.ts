@@ -86,9 +86,39 @@ export function useGameEngine(
       
       setGame(updatedGame);
       
-      // Signal that we need a new challenge by clearing current
-      // The parent component's useEffect will handle fetching the next challenge
-      setCurrent(null);
+      // Fetch a random challenge from localized data
+      // Import data based on language (default to English)
+      const lang = typeof window !== 'undefined' && window.navigator?.language?.startsWith('fr') ? 'fr' : 'en';
+      const challenges = lang === 'fr' 
+        ? require('../app/data/datafr.json') 
+        : require('../app/data/dataen.json');
+      
+      // Filter challenges by mode and heat level
+      const validChallenges = challenges.filter((c: { modes?: string[]; level?: number }) => {
+        const modeMatch = !c.modes || c.modes.includes(game.mode);
+        const levelMatch = c.level === undefined || c.level <= effectiveHeat;
+        return modeMatch && levelMatch;
+      });
+      
+      if (validChallenges.length > 0) {
+        // Pick a random challenge
+        const randomIndex = Math.floor(Math.random() * validChallenges.length);
+        const challenge = validChallenges[randomIndex];
+        
+        // Add targets (random players) for challenges that need them
+        const targets = game.players.length >= 2 
+          ? game.players.sort(() => Math.random() - 0.5).slice(0, 2)
+          : game.players;
+        
+        setCurrent({
+          ...challenge,
+          targets,
+        });
+      } else {
+        // Fallback: pick any challenge if no valid ones found
+        const randomIndex = Math.floor(Math.random() * challenges.length);
+        setCurrent(challenges[randomIndex]);
+      }
     }, [game, setGame, setCurrent]);
     
     return { nextChallenge };
