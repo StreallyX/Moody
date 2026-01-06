@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
+import BigNextButton from '../../../components/BigNextButton';
 import {
   ChallengeCard,
   EventCard,
@@ -105,6 +106,11 @@ export default function PlayGame() {
     return map[type] || '#000';
   };
 
+  // Card types that should show the BigNextButton
+  const simpleCardTypes = ['challenge', 'question', 'event'];
+  const showBigNextButton = simpleCardTypes.includes(current.type) && 
+    !current.id?.startsWith('event:special_');
+
   const renderCard = () => {
     const data = current;
     switch (data.type) {
@@ -149,6 +155,10 @@ export default function PlayGame() {
         <GameHeader round={game.rounds} type={current.type} onStatsPress={() => setShowStats(true)} />
 
         {renderCard()}
+
+        {showBigNextButton && (
+          <BigNextButton onPress={() => nextChallenge()} label={t('game.next')} />
+        )}
 
         <StatsModal
           visible={showStats}

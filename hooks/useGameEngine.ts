@@ -12,6 +12,7 @@ import {
   GameEvent,
   MiniGameResult,
 } from '../src/engine';
+import { GameState as StorageGameState, saveGameState } from '../lib/storage';
 
 export interface UseGameEngineReturn {
   // State
@@ -41,9 +42,17 @@ export interface UseGameEngineReturn {
   // Persistence
   saveGame: () => string;
   loadGame: (json: string) => boolean;
+  
+  // Legacy support
+  nextChallenge: (options?: { level?: number; target?: string }) => void;
 }
 
-export function useGameEngine(): UseGameEngineReturn {
+// Overloaded hook - supports both new and legacy patterns
+export function useGameEngine(
+  game?: StorageGameState | null,
+  setGame?: React.Dispatch<React.SetStateAction<StorageGameState | null>>,
+  setCurrent?: React.Dispatch<React.SetStateAction<any | null>>
+): UseGameEngineReturn & { nextChallenge: (options?: { level?: number; target?: string }) => void } {
   const engineRef = useRef<GameEngine | null>(null);
   const [state, setState] = useState<GameState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -188,6 +197,33 @@ export function useGameEngine(): UseGameEngineReturn {
     return engineRef.current.loadState(json);
   }, []);
 
+  // Legacy nextChallenge function for backward compatibility
+  const nextChallenge = useCallback((options?: { level?: number; target?: string }) => {
+    if (!game || !setGame || !setCurrent) return;
+    
+    // Simple implementation - advance to next challenge
+    const newRounds = game.rounds + 1;
+    const updatedGame = {
+      ...game,
+      rounds: newRounds,
+    };
+    
+    setGame(updatedGame);
+    saveGameState(updatedGame);
+    
+    // Generate a simple next challenge (placeholder logic)
+    const types = ['challenge', 'question', 'event'];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    
+    setCurrent({
+      id: `${randomType}:${Date.now()}`,
+      type: randomType,
+      text: 'Next challenge',
+      targets: game.players.slice(0, 2),
+      ...options,
+    });
+  }, [game, setGame, setCurrent]);
+
   return {
     state,
     currentPlayer: state ? state.players[state.currentPlayerIndex] : null,
@@ -209,5 +245,6 @@ export function useGameEngine(): UseGameEngineReturn {
     endGame,
     saveGame,
     loadGame,
+    nextChallenge,
   };
 }

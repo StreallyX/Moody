@@ -66,13 +66,9 @@ export function PurchaseProvider({ children, userId }: PurchaseProviderProps) {
 
   // Listen to customer info updates
   useEffect(() => {
-    const listener = Purchases.addCustomerInfoUpdateListener((info) => {
+    Purchases.addCustomerInfoUpdateListener((info: CustomerInfo) => {
       setCustomerInfo(info);
     });
-
-    return () => {
-      listener.remove();
-    };
   }, []);
 
   const initialize = async () => {
