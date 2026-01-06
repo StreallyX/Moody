@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import {
@@ -53,6 +53,7 @@ export default function PlayGame() {
   const [showReportModal, setShowReportModal] = useState(false);
 
   const { nextChallenge } = useGameEngine(game, setGame, setCurrent);
+  const isFetchingRef = useRef(false);
 
   useEffect(() => {
     const init = async () => {
@@ -80,10 +81,18 @@ export default function PlayGame() {
   }, []);
 
   useEffect(() => {
-    if (game && !current) {
+    if (game && !current && !isFetchingRef.current) {
+      isFetchingRef.current = true;
       nextChallenge();
     }
-  }, [game]);
+  }, [game, current, nextChallenge]);
+
+  // Reset fetching flag when current is set
+  useEffect(() => {
+    if (current) {
+      isFetchingRef.current = false;
+    }
+  }, [current]);
 
   if (!game || !current) return null;
 
