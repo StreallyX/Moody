@@ -8,13 +8,13 @@
     "scheme": "moody",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tonorga.moody",
-      "associatedDomains": ["applinks:moody-website-tawny.vercel.app"]
+      "associatedDomains": [
+        "applinks:moody-website-tawny.vercel.app"
+      ]
     },
-
     "android": {
       "package": "com.tonorga.moody",
       "versionCode": 2,
@@ -32,7 +32,10 @@
               "scheme": "moody"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         },
         {
           "action": "VIEW",
@@ -44,17 +47,18 @@
               "pathPrefix": "/auth"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
-
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/icon.png"
     },
-
     "plugins": [
       "expo-router",
       [
@@ -75,9 +79,9 @@
             "targetSdkVersion": 35
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
-
     "experiments": {
       "typedRoutes": true
     }
