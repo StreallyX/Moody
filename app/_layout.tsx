@@ -1,22 +1,19 @@
 import { Slot } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { AuthProvider } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import LoadingScreen from '../components/LoadingScreen';
-import { monitorAuthState } from '../lib/auth';
+
+function RootLayoutContent() {
+  const { loading } = useAuth();
+
+  if (loading) return <LoadingScreen />;
+  return <Slot />;
+}
 
 export default function Layout() {
-  const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    monitorAuthState();
-
-    const initApp = async () => {
-     
-      setChecking(false);
-    };
-
-    initApp();
-  }, []);
-
-  if (checking) return <LoadingScreen />;
-  return <Slot />;
+  return (
+    <AuthProvider>
+      <RootLayoutContent />
+    </AuthProvider>
+  );
 }

@@ -9,29 +9,57 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import BackButton from '../../components/BackButton';
-import { registerUser } from '../../lib/auth';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignupScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
+    if (!email || !password) {
+      Alert.alert(t('signup.errorTitle'), t('signup.fillAllFields'));
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert(t('signup.errorTitle'), t('signup.passwordMismatch'));
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert(t('signup.errorTitle'), t('signup.passwordTooShort'));
+      return;
+    }
+
+    setLoading(true);
     try {
-      await registerUser(email, password);
-      Alert.alert(t('signup.successTitle'), t('signup.successMessage'));
-      router.replace('/');
+      const { error } = await signUp(email, password);
+      if (error) {
+        Alert.alert(t('signup.errorTitle'), error.message);
+      } else {
+        Alert.alert(
+          t('signup.successTitle'),
+          t('signup.checkEmailMessage'),
+          [{ text: 'OK', onPress: () => router.replace('/auth/login') }]
+        );
+      }
     } catch (error: any) {
       Alert.alert(t('signup.errorTitle'), error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Logo + slogan */}
       <View style={styles.header}>
         <Image
           source={require('../../assets/images/logo.png')}
@@ -43,7 +71,6 @@ export default function SignupScreen() {
 
       <BackButton />
 
-      {/* Formulaire */}
       <View style={styles.form}>
         <TextInput
           style={styles.input}
@@ -52,6 +79,8 @@ export default function SignupScreen() {
           onChangeText={setEmail}
           value={email}
           autoCapitalize="none"
+          keyboardType="email-address"
+          editable={!loading}
         />
         <TextInput
           style={styles.input}
@@ -60,13 +89,34 @@ export default function SignupScreen() {
           onChangeText={setPassword}
           value={password}
           secureTextEntry
+          editable={!loading}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder={t('signup.confirmPasswordPlaceholder')}
+          placeholderTextColor="#aaa"
+          onChangeText={setConfirmPassword}
+          value={confirmPassword}
+          secureTextEntry
+          editable={!loading}
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <Text style={styles.buttonText}>{t('signup.signup')}</Text>
+        <TouchableOpacity 
+          style={[styles.button, loading && styles.buttonDisabled]} 
+          onPress={handleSignup}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <Text style={styles.buttonText}>{t('signup.signup')}</Text>
+          )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/auth/login')}>
+        <TouchableOpacity 
+          onPress={() => router.push('/auth/login')}
+          disabled={loading}
+        >
           <Text style={styles.link}>{t('signup.alreadyHaveAccount')}</Text>
         </TouchableOpacity>
       </View>
@@ -117,6 +167,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
     elevation: 3,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     color: '#000',
