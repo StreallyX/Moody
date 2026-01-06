@@ -24,6 +24,18 @@ npm install
 yarn install
 ```
 
+### Supabase Packages
+
+Install the required Supabase and Expo packages:
+
+```bash
+npm install @supabase/supabase-js expo-secure-store react-native-url-polyfill
+# or
+yarn add @supabase/supabase-js expo-secure-store react-native-url-polyfill
+```
+
+**Note:** `expo-secure-store` is used for secure token storage on device (replaces AsyncStorage for auth tokens).
+
 ## 3. Supabase Setup
 
 ### 3.1 Create a Supabase Project
@@ -68,15 +80,14 @@ supabase db seed
    cp .env.example .env
    ```
 
-2. Fill in your Supabase credentials:
+2. Fill in your Supabase credentials (Expo-style environment variables):
    ```env
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_ANON_KEY=your-anon-key
-   SUPABASE_SERVICE_KEY=your-service-key
+   EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   EXPO_PUBLIC_SUPABASE_KEY=your-anon-key
    APP_ENV=development
    ```
 
-   > **Note**: The `SUPABASE_SERVICE_KEY` should only be used server-side. Never expose it in the client app.
+   > **Note**: Expo requires the `EXPO_PUBLIC_` prefix for environment variables to be accessible in the client app. Never expose service keys in the client.
 
 ## 5. Running the App
 
