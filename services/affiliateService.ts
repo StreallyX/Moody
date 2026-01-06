@@ -6,6 +6,30 @@ import { validateCodeApplication, checkSelfReferral } from '@/utils/affiliateVal
 
 const COMMISSION_RATE = 0.10; // 10% default commission
 
+// Type definitions for database records
+interface ConversionRecord {
+  id: string;
+  affiliate_id: string;
+  user_id: string;
+  transaction_id: string;
+  purchase_amount: number;
+  commission_amount: number;
+  status: string;
+  created_at: string;
+}
+
+interface PayoutRecord {
+  id: string;
+  affiliate_id: string;
+  amount: number;
+  status: string;
+}
+
+interface ReferralRecord {
+  id: string;
+  created_at: string;
+}
+
 // Generate a unique affiliate code
 function generateCode(length = 8): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing chars
@@ -122,7 +146,7 @@ export async function trackConversion(
 
   if (!referral) return null;
 
-  const commissionRate = (referral.affiliates as any)?.commission_rate || COMMISSION_RATE;
+  const commissionRate = (referral.affiliates as { commission_rate?: number } | null)?.commission_rate || COMMISSION_RATE;
   const commissionAmount = purchaseAmount * commissionRate;
 
   const { data, error } = await supabase
@@ -166,24 +190,24 @@ export async function getAffiliateStats(affiliateId: string): Promise<AffiliateS
 
   const totalReferrals = referrals?.length || 0;
   const totalConversions = conversions?.length || 0;
-  const totalRevenue = conversions?.reduce((sum, c) => sum + c.purchase_amount, 0) || 0;
-  const totalEarnings = conversions?.reduce((sum, c) => sum + c.commission_amount, 0) || 0;
-  const paidEarnings = payouts
-    ?.filter(p => p.status === 'completed')
-    .reduce((sum, p) => sum + p.amount, 0) || 0;
-  const pendingEarnings = conversions
-    ?.filter(c => c.status === 'pending')
-    .reduce((sum, c) => sum + c.commission_amount, 0) || 0;
+  const totalRevenue = (conversions as ConversionRecord[] | null)?.reduce((sum: number, c: ConversionRecord) => sum + c.purchase_amount, 0) || 0;
+  const totalEarnings = (conversions as ConversionRecord[] | null)?.reduce((sum: number, c: ConversionRecord) => sum + c.commission_amount, 0) || 0;
+  const paidEarnings = (payouts as PayoutRecord[] | null)
+    ?.filter((p: PayoutRecord) => p.status === 'completed')
+    .reduce((sum: number, p: PayoutRecord) => sum + p.amount, 0) || 0;
+  const pendingEarnings = (conversions as ConversionRecord[] | null)
+    ?.filter((c: ConversionRecord) => c.status === 'pending')
+    .reduce((sum: number, c: ConversionRecord) => sum + c.commission_amount, 0) || 0;
 
-  const last30DaysReferrals = referrals?.filter(
-    r => new Date(r.created_at) >= thirtyDaysAgo
+  const last30DaysReferrals = (referrals as ReferralRecord[] | null)?.filter(
+    (r: ReferralRecord) => new Date(r.created_at) >= thirtyDaysAgo
   ).length || 0;
-  const last30DaysConversions = conversions?.filter(
-    c => new Date(c.created_at) >= thirtyDaysAgo
+  const last30DaysConversions = (conversions as ConversionRecord[] | null)?.filter(
+    (c: ConversionRecord) => new Date(c.created_at) >= thirtyDaysAgo
   ).length || 0;
-  const last30DaysEarnings = conversions
-    ?.filter(c => new Date(c.created_at) >= thirtyDaysAgo)
-    .reduce((sum, c) => sum + c.commission_amount, 0) || 0;
+  const last30DaysEarnings = (conversions as ConversionRecord[] | null)
+    ?.filter((c: ConversionRecord) => new Date(c.created_at) >= thirtyDaysAgo)
+    .reduce((sum: number, c: ConversionRecord) => sum + c.commission_amount, 0) || 0;
 
   return {
     totalReferrals,
@@ -210,13 +234,13 @@ export async function getAffiliateEarnings(affiliateId: string): Promise<Affilia
     .select('amount, status')
     .eq('affiliate_id', affiliateId);
 
-  const total = conversions?.reduce((sum, c) => sum + c.commission_amount, 0) || 0;
-  const pending = conversions
-    ?.filter(c => c.status === 'pending')
-    .reduce((sum, c) => sum + c.commission_amount, 0) || 0;
-  const paid = payouts
-    ?.filter(p => p.status === 'completed')
-    .reduce((sum, p) => sum + p.amount, 0) || 0;
+  const total = (conversions as ConversionRecord[] | null)?.reduce((sum: number, c: ConversionRecord) => sum + c.commission_amount, 0) || 0;
+  const pending = (conversions as ConversionRecord[] | null)
+    ?.filter((c: ConversionRecord) => c.status === 'pending')
+    .reduce((sum: number, c: ConversionRecord) => sum + c.commission_amount, 0) || 0;
+  const paid = (payouts as PayoutRecord[] | null)
+    ?.filter((p: PayoutRecord) => p.status === 'completed')
+    .reduce((sum: number, p: PayoutRecord) => sum + p.amount, 0) || 0;
   const available = total - pending - paid;
 
   return { total, pending, paid, available };
@@ -244,28 +268,28 @@ export async function requestPayout(affiliateId: string, amount: number): Promis
 }
 
 // Helper mappers
-function mapAffiliate(data: any): Affiliate {
+function mapAffiliate(data: Record<string, unknown>): Affiliate {
   return {
-    id: data.id,
-    userId: data.user_id,
-    code: data.code,
-    commissionRate: data.commission_rate,
-    isActive: data.is_active,
-    stripeConnectedAccountId: data.stripe_connected_account_id,
-    createdAt: new Date(data.created_at),
-    updatedAt: new Date(data.updated_at),
+    id: data.id as string,
+    userId: data.user_id as string,
+    code: data.code as string,
+    commissionRate: data.commission_rate as number,
+    isActive: data.is_active as boolean,
+    stripeConnectedAccountId: data.stripe_connected_account_id as string | undefined,
+    createdAt: new Date(data.created_at as string),
+    updatedAt: new Date(data.updated_at as string),
   };
 }
 
-function mapConversion(data: any): Conversion {
+function mapConversion(data: Record<string, unknown>): Conversion {
   return {
-    id: data.id,
-    affiliateId: data.affiliate_id,
-    userId: data.user_id,
-    transactionId: data.transaction_id,
-    purchaseAmount: data.purchase_amount,
-    commissionAmount: data.commission_amount,
-    status: data.status,
-    createdAt: new Date(data.created_at),
+    id: data.id as string,
+    affiliateId: data.affiliate_id as string,
+    userId: data.user_id as string,
+    transactionId: data.transaction_id as string,
+    purchaseAmount: data.purchase_amount as number,
+    commissionAmount: data.commission_amount as number,
+    status: data.status as 'pending' | 'confirmed' | 'reversed',
+    createdAt: new Date(data.created_at as string),
   };
 }

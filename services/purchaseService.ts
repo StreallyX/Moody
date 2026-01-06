@@ -5,6 +5,7 @@ import Purchases, {
   CustomerInfo,
   LOG_LEVEL,
   PurchasesOfferings,
+  PurchasesOffering,
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -104,8 +105,9 @@ export async function purchasePackage(
       success: true,
       customerInfo,
     };
-  } catch (error: any) {
-    if (error.userCancelled) {
+  } catch (error: unknown) {
+    const purchaseError = error as { userCancelled?: boolean; code?: string; message?: string };
+    if (purchaseError.userCancelled) {
       return {
         success: false,
         cancelled: true,
@@ -121,8 +123,8 @@ export async function purchasePackage(
     return {
       success: false,
       error: {
-        code: error.code || 'UNKNOWN',
-        message: error.message || 'Purchase failed. Please try again.',
+        code: purchaseError.code || 'UNKNOWN',
+        message: purchaseError.message || 'Purchase failed. Please try again.',
       },
     };
   }
@@ -144,13 +146,14 @@ export async function restorePurchases(): Promise<PurchaseResult> {
         message: 'No previous purchases found to restore.',
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const restoreError = error as { code?: string; message?: string };
     console.error('Restore failed:', error);
     return {
       success: false,
       error: {
-        code: error.code || 'RESTORE_FAILED',
-        message: error.message || 'Failed to restore purchases. Please try again.',
+        code: restoreError.code || 'RESTORE_FAILED',
+        message: restoreError.message || 'Failed to restore purchases. Please try again.',
       },
     };
   }
@@ -208,16 +211,17 @@ export async function getActiveEntitlements(): Promise<Record<string, Entitlemen
     const entitlements: Record<string, Entitlement> = {};
 
     for (const [id, ent] of Object.entries(customerInfo.entitlements.active)) {
+      const entInfo = ent as { identifier: string; isActive: boolean; willRenew: boolean; periodType: string; latestPurchaseDate: string | null; originalPurchaseDate: string | null; expirationDate: string | null; productIdentifier: string; isSandbox: boolean };
       entitlements[id] = {
-        identifier: ent.identifier,
-        isActive: ent.isActive,
-        willRenew: ent.willRenew,
-        periodType: ent.periodType,
-        latestPurchaseDate: ent.latestPurchaseDate ? new Date(ent.latestPurchaseDate) : null,
-        originalPurchaseDate: ent.originalPurchaseDate ? new Date(ent.originalPurchaseDate) : null,
-        expirationDate: ent.expirationDate ? new Date(ent.expirationDate) : null,
-        productIdentifier: ent.productIdentifier,
-        isSandbox: ent.isSandbox,
+        identifier: entInfo.identifier,
+        isActive: entInfo.isActive,
+        willRenew: entInfo.willRenew,
+        periodType: entInfo.periodType,
+        latestPurchaseDate: entInfo.latestPurchaseDate ? new Date(entInfo.latestPurchaseDate) : null,
+        originalPurchaseDate: entInfo.originalPurchaseDate ? new Date(entInfo.originalPurchaseDate) : null,
+        expirationDate: entInfo.expirationDate ? new Date(entInfo.expirationDate) : null,
+        productIdentifier: entInfo.productIdentifier,
+        isSandbox: entInfo.isSandbox,
       };
     }
 
@@ -229,14 +233,14 @@ export async function getActiveEntitlements(): Promise<Record<string, Entitlemen
 }
 
 // Helper: Map RevenueCat offering to our type
-function mapOffering(rcOffering: any): Offering {
+function mapOffering(rcOffering: PurchasesOffering): Offering {
   return {
     identifier: rcOffering.identifier,
     serverDescription: rcOffering.serverDescription,
     availablePackages: rcOffering.availablePackages.map(mapPackage),
-    monthly: rcOffering.monthly ? mapPackage(rcOffering.monthly) : undefined,
-    annual: rcOffering.annual ? mapPackage(rcOffering.annual) : undefined,
-    lifetime: rcOffering.lifetime ? mapPackage(rcOffering.lifetime) : undefined,
+    monthly: rcOffering.monthly ?? undefined ? mapPackage(rcOffering.monthly!) : undefined,
+    annual: rcOffering.annual ?? undefined ? mapPackage(rcOffering.annual!) : undefined,
+    lifetime: rcOffering.lifetime ?? undefined ? mapPackage(rcOffering.lifetime!) : undefined,
   };
 }
 
@@ -244,7 +248,7 @@ function mapOffering(rcOffering: any): Offering {
 function mapPackage(rcPackage: PurchasesPackage): Package {
   return {
     identifier: rcPackage.identifier,
-    packageType: rcPackage.packageType as any,
+    packageType: rcPackage.packageType as Package['packageType'],
     offeringIdentifier: rcPackage.offeringIdentifier,
     rcPackage, // Keep original for purchase
     product: {

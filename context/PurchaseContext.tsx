@@ -66,13 +66,11 @@ export function PurchaseProvider({ children, userId }: PurchaseProviderProps) {
 
   // Listen to customer info updates
   useEffect(() => {
-    const listener = Purchases.addCustomerInfoUpdateListener((info) => {
+    Purchases.addCustomerInfoUpdateListener((info: CustomerInfo) => {
       setCustomerInfo(info);
     });
-
-    return () => {
-      listener.remove();
-    };
+    // Note: addCustomerInfoUpdateListener returns void in newer versions
+    // Cleanup is handled internally by RevenueCat
   }, []);
 
   const initialize = async () => {

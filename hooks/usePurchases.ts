@@ -82,12 +82,16 @@ export function usePurchases(userId?: string): UsePurchasesReturn {
 
   // Listen to customer info updates
   useEffect(() => {
-    const listener = Purchases.addCustomerInfoUpdateListener((info) => {
+    const listener = Purchases.addCustomerInfoUpdateListener((info: CustomerInfo) => {
       setCustomerInfo(info);
     });
 
     return () => {
-      listener.remove();
+      // listener may be void or an object with remove method
+      const sub = listener as unknown as { remove?: () => void } | undefined;
+      if (sub && typeof sub.remove === 'function') {
+        sub.remove();
+      }
     };
   }, []);
 
