@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import RulesScreen from '../../../components/RulesScreen';
 import { loadPlayers } from '../../../lib/storage';
 
 export default function GameStartScreen() {
@@ -16,6 +17,7 @@ export default function GameStartScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [playerList, setPlayerList] = useState<string[]>([]);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     loadPlayers().then((loadedPlayers) => {
@@ -28,6 +30,10 @@ export default function GameStartScreen() {
   }, []);
 
   const handleStart = () => {
+    setShowRules(true);
+  };
+
+  const handleRulesComplete = () => {
     router.push(`/game/${id}/play`);
   };
 
@@ -53,6 +59,7 @@ export default function GameStartScreen() {
           <Text style={styles.tap}>{t('gamestart.tapToStart')}</Text>
         </View>
       </ImageBackground>
+      {showRules && <RulesScreen onComplete={handleRulesComplete} />}
     </TouchableOpacity>
   );
 }

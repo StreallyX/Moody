@@ -1,7 +1,7 @@
 // useReferral Hook - React hook for referred users
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { applyCode, validateCode } from '@/services/affiliateService';
 import type { ReferralApplication } from '@/types/affiliate';
 import { supabase } from '@/lib/supabase';
