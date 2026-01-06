@@ -14,34 +14,60 @@ import {
 import BackButton from '../../components/BackButton';
 import { useAuth } from '../../context/AuthContext';
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { signIn } = useAuth();
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert(t('login.errorTitle'), t('login.fillAllFields'));
+  const handleResetPassword = async () => {
+    if (!email) {
+      Alert.alert(t('forgotPassword.errorTitle'), t('forgotPassword.enterEmail'));
       return;
     }
 
     setLoading(true);
     try {
-      const { error } = await signIn(email, password);
+      const { error } = await resetPassword(email);
       if (error) {
-        Alert.alert(t('login.errorTitle'), error.message);
+        Alert.alert(t('forgotPassword.errorTitle'), error.message);
       } else {
-        router.replace('/');
+        setEmailSent(true);
       }
     } catch (error: any) {
-      Alert.alert(t('login.errorTitle'), error.message);
+      Alert.alert(t('forgotPassword.errorTitle'), error.message);
     } finally {
       setLoading(false);
     }
   };
+
+  if (emailSent) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+        <BackButton />
+
+        <View style={styles.successContainer}>
+          <Text style={styles.successTitle}>{t('forgotPassword.emailSentTitle')}</Text>
+          <Text style={styles.successMessage}>{t('forgotPassword.emailSentMessage')}</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.replace('/auth/login')}
+          >
+            <Text style={styles.buttonText}>{t('forgotPassword.backToLogin')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -51,14 +77,16 @@ export default function LoginScreen() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.slogan}>{t('login.slogan')}</Text>
+        <Text style={styles.slogan}>{t('forgotPassword.title')}</Text>
       </View>
       <BackButton />
 
       <View style={styles.form}>
+        <Text style={styles.description}>{t('forgotPassword.description')}</Text>
+        
         <TextInput
           style={styles.input}
-          placeholder={t('login.email')}
+          placeholder={t('forgotPassword.emailPlaceholder')}
           placeholderTextColor="#aaa"
           onChangeText={setEmail}
           value={email}
@@ -66,41 +94,24 @@ export default function LoginScreen() {
           keyboardType="email-address"
           editable={!loading}
         />
-        <TextInput
-          style={styles.input}
-          placeholder={t('login.password')}
-          placeholderTextColor="#aaa"
-          onChangeText={setPassword}
-          value={password}
-          secureTextEntry
-          editable={!loading}
-        />
 
-        <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]} 
-          onPress={handleLogin}
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleResetPassword}
           disabled={loading}
         >
           {loading ? (
             <ActivityIndicator color="#000" />
           ) : (
-            <Text style={styles.buttonText}>{t('login.submit')}</Text>
+            <Text style={styles.buttonText}>{t('forgotPassword.submit')}</Text>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          onPress={() => router.push('/auth/signup')} 
-          style={{ marginBottom: 30 }}
-          disabled={loading}
-        >
-          <Text style={styles.link}>{t('login.noAccount')}</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
-          onPress={() => router.push('/auth/forgot-password')}
+          onPress={() => router.back()}
           disabled={loading}
         >
-          <Text style={styles.link}>{t('login.forgotPassword')}</Text>
+          <Text style={styles.link}>{t('forgotPassword.backToLogin')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -125,13 +136,19 @@ const styles = StyleSheet.create({
   slogan: {
     marginTop: 10,
     color: '#ffb347',
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
-    fontStyle: 'italic',
     textAlign: 'center',
   },
   form: {
     width: '80%',
+  },
+  description: {
+    color: '#ccc',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
   },
   input: {
     height: 42,
@@ -164,5 +181,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     fontWeight: '600',
+  },
+  successContainer: {
+    width: '80%',
+    alignItems: 'center',
+  },
+  successTitle: {
+    color: '#ffb347',
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  successMessage: {
+    color: '#ccc',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 22,
   },
 });
