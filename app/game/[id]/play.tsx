@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import {
@@ -37,10 +37,13 @@ type CardData = {
   type: string;
   text?: string;
   targets?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
+
 export default function PlayGame() {
+  console.log('🔄 [PlayGame] render');
+
   const { t } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -53,19 +56,33 @@ export default function PlayGame() {
   const [showReportModal, setShowReportModal] = useState(false);
 
   const { nextChallenge } = useGameEngine(game, setGame, setCurrent);
+  const isFetchingRef = useRef(false);
 
+  // =========================
+  // INIT GAME
+  // =========================
   useEffect(() => {
+    console.log('🚀 [init] start');
+
     const init = async () => {
       const saved = await loadGameState();
+      console.log('📦 [init] saved game:', saved);
+
       if (saved && saved.players.length > 0) {
+        console.log('✅ [init] using saved game');
         setGame(saved);
         return;
       }
+
       const players = await loadPlayers();
+      console.log('👥 [init] loaded players:', players);
+
       if (!players || players.length === 0) {
+        console.warn('❌ [init] no players → redirect');
         router.replace('/');
         return;
       }
+
       const freshGame: GameState = {
         players,
         stats: Object.fromEntries(players.map((p) => [p, 0])),
@@ -73,19 +90,58 @@ export default function PlayGame() {
         rounds: 0,
         mode: id || 'friends',
       };
+
+      console.log('🆕 [init] fresh game:', freshGame);
+
       await saveGameState(freshGame);
       setGame(freshGame);
     };
+
     init();
   }, []);
 
+  // =========================
+  // AUTO NEXT CHALLENGE
+  // =========================
   useEffect(() => {
-    if (game && !current) {
+    console.log('👀 [effect] game/current changed', {
+      hasGame: !!game,
+      hasCurrent: !!current,
+      isFetching: isFetchingRef.current,
+    });
+
+    if (game && !current && !isFetchingRef.current) {
+      console.log('➡️ [effect] calling nextChallenge()');
+      isFetchingRef.current = true;
       nextChallenge();
     }
-  }, [game]);
+  }, [game, current, nextChallenge]);
 
-  if (!game || !current) return null;
+  // =========================
+  // RESET FETCH FLAG
+  // =========================
+  useEffect(() => {
+    if (current) {
+      console.log('✅ [effect] current set → reset fetching flag', current);
+      isFetchingRef.current = false;
+    }
+  }, [current]);
+
+  // =========================
+  // GUARD
+  // =========================
+  if (!game || !current) {
+    console.log('⏳ [render] waiting…', { game, current });
+    return null;
+  }
+
+  // =========================
+  // RENDER
+  // =========================
+  console.log('🎴 [render] showing card', {
+    type: current.type,
+    id: current.id,
+  });
 
   const getBackgroundColor = (type: string) => {
     const map: Record<string, string> = {
@@ -107,6 +163,8 @@ export default function PlayGame() {
 
   const renderCard = () => {
     const data = current;
+    console.log('🧩 [renderCard]', data.type);
+
     switch (data.type) {
       case 'challenge': return <ChallengeCard data={data} onNext={nextChallenge} />;
       case 'question': return <QuestionCard data={data} onNext={nextChallenge} />;
@@ -120,7 +178,10 @@ export default function PlayGame() {
         return (
           <RouletteCard
             players={game.players}
-            onNext={({ level, target }) => nextChallenge({ level, target })}
+            onNext={(opts) => {
+              console.log('🎰 [roulette] next', opts);
+              nextChallenge(opts);
+            }}
           />
         );
       case 'wheelshot': return <WheelShotCard players={game.players} onNext={nextChallenge} />;
@@ -144,47 +205,55 @@ export default function PlayGame() {
   };
 
   return (
-    <>
-      <View style={[styles.container, { backgroundColor: getBackgroundColor(current.type) }]}>
-        <GameHeader round={game.rounds} type={current.type} onStatsPress={() => setShowStats(true)} />
+    <View style={[styles.container, { backgroundColor: getBackgroundColor(current.type) }]}>
+      <GameHeader
+        round={game.rounds}
+        type={current.type}
+        onStatsPress={() => {
+          console.log('📊 [ui] open stats');
+          setShowStats(true);
+        }}
+      />
 
-        {renderCard()}
+      {renderCard()}
 
-        <StatsModal
-          visible={showStats}
-          onClose={() => setShowStats(false)}
-          heat={game.heat}
-          rounds={game.rounds}
-          stats={game.stats}
-          history={game.history || []}
-        />
+      <StatsModal
+        visible={showStats}
+        onClose={() => setShowStats(false)}
+        heat={game.heat}
+        rounds={game.rounds}
+        stats={game.stats}
+        history={game.history || []}
+      />
 
-        <SelectModal
-          visible={showSelectModal}
-          onClose={() => setShowSelectModal(false)}
-          items={challenges}
-          onSelect={(item: CardData) => {
-            setCurrent({
-              ...item,
-              targets: game.players.slice(0, 2),
-              text: item.text,
-            });
-            setShowSelectModal(false);
-          }}
-        />
+      <SelectModal
+        visible={showSelectModal}
+        onClose={() => setShowSelectModal(false)}
+        items={challenges}
+        onSelect={(item: CardData) => {
+  console.log('🧠 [select] manual select', item);
 
-        <ReportModal
-          visible={showReportModal}
-          onClose={() => setShowReportModal(false)}
-          cardId={current.id}
-        />
+  setCurrent({
+    ...item,
+    targets: game.players.slice(0, 2),
+  });
 
-        <FooterBar
-          onSelectPress={() => setShowSelectModal(true)}
-          onReportPress={() => setShowReportModal(true)}
-        />
-      </View>
-    </>
+  setShowSelectModal(false);
+}}
+
+      />
+
+      <ReportModal
+        visible={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        cardId={current.id}
+      />
+
+      <FooterBar
+        onSelectPress={() => setShowSelectModal(true)}
+        onReportPress={() => setShowReportModal(true)}
+      />
+    </View>
   );
 }
 
