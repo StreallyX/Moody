@@ -1,9 +1,8 @@
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import BackButton from '../components/BackButton';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 
 export default function ContactScreen() {
   const { t } = useTranslation();
@@ -18,19 +17,23 @@ export default function ContactScreen() {
     }
 
     try {
-      await addDoc(collection(db, 'contacts'), {
-        name,
-        email,
-        message,
-        createdAt: serverTimestamp(),
-      });
+      const { error } = await supabase
+        .from('contacts')
+        .insert({
+          name,
+          email,
+          message,
+          created_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
 
       Alert.alert(t('contact.successTitle'), t('contact.successMessage'));
       setName('');
       setEmail('');
       setMessage('');
     } catch (error) {
-      console.error('Erreur Firestore:', error);
+      console.error('Erreur Supabase:', error);
       Alert.alert(t('contact.errorTitle'), t('contact.errorSend'));
     }
   };

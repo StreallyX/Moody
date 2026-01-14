@@ -1,6 +1,6 @@
 // React Hook wrapper for GameEngine
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, Dispatch, SetStateAction } from 'react';
 import {
   GameEngine,
   GameEngineCallbacks,
@@ -12,6 +12,13 @@ import {
   GameEvent,
   MiniGameResult,
 } from '../src/engine';
+import { GameState as StorageGameState } from '../lib/storage';
+
+// Legacy interface for play.tsx compatibility
+interface NextChallengeOptions {
+  level?: number;
+  target?: string;
+}
 
 export interface UseGameEngineReturn {
   // State
@@ -41,9 +48,57 @@ export interface UseGameEngineReturn {
   // Persistence
   saveGame: () => string;
   loadGame: (json: string) => boolean;
+  
+  // Legacy support
+  nextChallenge: (options?: NextChallengeOptions) => void;
 }
 
-export function useGameEngine(): UseGameEngineReturn {
+// Overloaded function signatures
+export function useGameEngine(): UseGameEngineReturn;
+export function useGameEngine(
+  game: StorageGameState | null,
+  setGame: Dispatch<SetStateAction<StorageGameState | null>>,
+  setCurrent: Dispatch<SetStateAction<unknown>>
+): { nextChallenge: (options?: NextChallengeOptions) => void };
+export function useGameEngine(
+  game?: StorageGameState | null,
+  setGame?: Dispatch<SetStateAction<StorageGameState | null>>,
+  setCurrent?: Dispatch<SetStateAction<unknown>>
+): UseGameEngineReturn | { nextChallenge: (options?: NextChallengeOptions) => void } {
+  // Legacy mode - when called with game state arguments
+  if (game !== undefined && setGame !== undefined && setCurrent !== undefined) {
+    const nextChallenge = useCallback((options: NextChallengeOptions = {}) => {
+      // Legacy implementation - advance to next challenge
+      if (!game) return;
+      
+      // Update game state - increment rounds and update heat
+      const newRounds = game.rounds + 1;
+      const newHeat = Math.min(5, Math.floor(newRounds / 10) + 1);
+      
+      // Apply level from options if provided (e.g., from roulette)
+      const effectiveHeat = options.level ?? newHeat;
+      
+      const updatedGame = {
+        ...game,
+        rounds: newRounds,
+        heat: effectiveHeat,
+      };
+      
+      setGame(updatedGame);
+      
+      // Signal that we need a new challenge by clearing current
+      // The parent component's useEffect will handle fetching the next challenge
+      setCurrent(null);
+    }, [game, setGame, setCurrent]);
+    
+    return { nextChallenge };
+  }
+  
+  // Modern mode - full engine wrapper
+  return useGameEngineInternal();
+}
+
+function useGameEngineInternal(): UseGameEngineReturn {
   const engineRef = useRef<GameEngine | null>(null);
   const [state, setState] = useState<GameState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -188,6 +243,10 @@ export function useGameEngine(): UseGameEngineReturn {
     return engineRef.current.loadState(json);
   }, []);
 
+  const nextChallenge = useCallback((_options?: NextChallengeOptions) => {
+    getNextAction();
+  }, [getNextAction]);
+
   return {
     state,
     currentPlayer: state ? state.players[state.currentPlayerIndex] : null,
@@ -209,5 +268,6 @@ export function useGameEngine(): UseGameEngineReturn {
     endGame,
     saveGame,
     loadGame,
+    nextChallenge,
   };
 }
