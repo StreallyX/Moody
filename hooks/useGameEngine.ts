@@ -8,11 +8,14 @@ import {
   GameConfig,
   Player,
   Challenge,
-  MiniGame,
   GameEvent,
-  MiniGameResult,
 } from '../src/engine';
 import { GameState as StorageGameState } from '../lib/storage';
+
+// Import new JSON data files
+import friendlyData from '../app/data/friendly.json';
+import spicyData from '../app/data/spicy.json';
+import couplesData from '../app/data/couples.json';
 
 // Legacy interface for play.tsx compatibility
 interface NextChallengeOptions {
@@ -29,15 +32,12 @@ export interface UseGameEngineReturn {
 
   // Current action
   currentChallenge: Challenge | null;
-  currentMiniGame: MiniGame | null;
   currentEvent: GameEvent | null;
 
   // Actions
   initializeGame: (config: GameConfig, players: Omit<Player, 'score' | 'drinks' | 'penalties' | 'jokers' | 'isActive'>[]) => Promise<void>;
   getNextAction: () => Promise<void>;
   completeChallenge: (completed: boolean) => void;
-  startMiniGame: () => Promise<void>;
-  endMiniGame: () => Promise<MiniGameResult | null>;
   triggerEvent: () => void;
   useJoker: () => boolean;
   nextTurn: () => void;
@@ -48,7 +48,7 @@ export interface UseGameEngineReturn {
   // Persistence
   saveGame: () => string;
   loadGame: (json: string) => boolean;
-  
+
   // Legacy support
   nextChallenge: (options?: NextChallengeOptions) => void;
 }
@@ -70,57 +70,70 @@ export function useGameEngine(
     const nextChallenge = useCallback((options: NextChallengeOptions = {}) => {
       // Legacy implementation - advance to next challenge
       if (!game) return;
-      
+
       // Update game state - increment rounds and update heat
       const newRounds = game.rounds + 1;
-      const newHeat = Math.min(5, Math.floor(newRounds / 10) + 1);
-      
-      // Apply level from options if provided (e.g., from roulette)
+      // Heat increases every 10 rounds (1-10: heat 1, 11-20: heat 2, etc.)
+      const newHeat = Math.min(5, Math.floor((newRounds - 1) / 10) + 1);
+
+      // Apply level from options if provided
       const effectiveHeat = options.level ?? newHeat;
-      
+
       const updatedGame = {
         ...game,
         rounds: newRounds,
         heat: effectiveHeat,
       };
-      
+
       setGame(updatedGame);
-      
-      // Fetch a random challenge from localized data
-      // Import data based on language (default to English)
-      const lang = typeof window !== 'undefined' && window.navigator?.language?.startsWith('fr') ? 'fr' : 'en';
-      const challenges = lang === 'fr' 
-        ? require('../app/data/datafr.json') 
-        : require('../app/data/dataen.json');
-      
-      // Filter challenges by mode and heat level
-      const validChallenges = challenges.filter((c: { modes?: string[]; level?: number }) => {
-        const modeMatch = !c.modes || c.modes.includes(game.mode);
-        const levelMatch = c.level === undefined || c.level <= effectiveHeat;
-        return modeMatch && levelMatch;
-      });
-      
-      if (validChallenges.length > 0) {
-        // Pick a random challenge
-        const randomIndex = Math.floor(Math.random() * validChallenges.length);
-        const challenge = validChallenges[randomIndex];
-        
-        // Add targets (random players) for challenges that need them
-        const targets = game.players.length >= 2 
-          ? game.players.sort(() => Math.random() - 0.5).slice(0, 2)
-          : game.players;
-        
-        setCurrent({
-          ...challenge,
-          targets,
-        });
-      } else {
-        // Fallback: pick any challenge if no valid ones found
+
+      // Get data based on game mode
+      type HeatData = Record<string, Array<{ type: string; text: string; variant?: string }>>;
+      let modeData: HeatData;
+
+      switch (game.mode) {
+        case 'spicy':
+        case 'hard':
+        case 'caliente':
+          modeData = spicyData as HeatData;
+          break;
+        case 'couples':
+          modeData = couplesData as HeatData;
+          break;
+        case 'friends':
+        case 'soft':
+        default:
+          modeData = friendlyData as HeatData;
+          break;
+      }
+
+      // Get challenges for current heat level
+      const heatKey = String(effectiveHeat);
+      const challenges = modeData[heatKey] || modeData['1'] || [];
+
+      if (challenges.length > 0) {
+        // Pick a random challenge from current heat level
         const randomIndex = Math.floor(Math.random() * challenges.length);
-        setCurrent(challenges[randomIndex]);
+        const challenge = challenges[randomIndex];
+
+        // Shuffle players for random selection
+        const shuffledPlayers = [...game.players].sort(() => Math.random() - 0.5);
+        const selectedPlayer = shuffledPlayers[0];
+
+        // Replace %PLAYER% placeholder with actual player name
+        const processedText = challenge.text.replace(/%PLAYER%/g, selectedPlayer);
+
+        setCurrent({
+          id: `${game.mode}_${effectiveHeat}_${randomIndex}`,
+          type: challenge.type,
+          text: processedText,
+          variant: challenge.variant,
+          heat: effectiveHeat,
+          targets: shuffledPlayers.slice(0, 2),
+        });
       }
     }, [game, setGame, setCurrent]);
-    
+
     return { nextChallenge };
   }
   
@@ -135,26 +148,22 @@ function useGameEngineInternal(): UseGameEngineReturn {
   const [error, setError] = useState<string | null>(null);
 
   const [currentChallenge, setCurrentChallenge] = useState<Challenge | null>(null);
-  const [currentMiniGame, setCurrentMiniGame] = useState<MiniGame | null>(null);
   const [currentEvent, setCurrentEvent] = useState<GameEvent | null>(null);
 
   // Initialize engine with callbacks
   useEffect(() => {
     const engine = new GameEngine();
-    
+
     const callbacks: GameEngineCallbacks = {
       onStateChange: (newState) => setState({ ...newState }),
       onChallenge: (challenge) => setCurrentChallenge(challenge),
-      onMiniGameStart: (miniGame) => setCurrentMiniGame(miniGame),
-      onMiniGameEnd: () => setCurrentMiniGame(null),
       onEvent: (event) => setCurrentEvent(event),
       onGameEnd: () => {
         setCurrentChallenge(null);
-        setCurrentMiniGame(null);
         setCurrentEvent(null);
       },
     };
-    
+
     engine.setCallbacks(callbacks);
     engineRef.current = engine;
 
@@ -188,18 +197,11 @@ function useGameEngineInternal(): UseGameEngineReturn {
         switch (action.type) {
           case 'challenge':
             setCurrentChallenge(action.data as Challenge);
-            setCurrentMiniGame(null);
-            setCurrentEvent(null);
-            break;
-          case 'miniGame':
-            setCurrentMiniGame(action.data as MiniGame);
-            setCurrentChallenge(null);
             setCurrentEvent(null);
             break;
           case 'event':
             setCurrentEvent(action.data as GameEvent);
             setCurrentChallenge(null);
-            setCurrentMiniGame(null);
             break;
         }
       }
@@ -215,18 +217,6 @@ function useGameEngineInternal(): UseGameEngineReturn {
     engineRef.current.completeChallenge(currentChallenge, completed);
     setCurrentChallenge(null);
   }, [currentChallenge]);
-
-  const startMiniGame = useCallback(async () => {
-    if (!engineRef.current || !currentMiniGame) return;
-    await engineRef.current.startMiniGame(currentMiniGame);
-  }, [currentMiniGame]);
-
-  const endMiniGame = useCallback(async () => {
-    if (!engineRef.current) return null;
-    const result = await engineRef.current.endMiniGame();
-    setCurrentMiniGame(null);
-    return result;
-  }, []);
 
   const triggerEvent = useCallback(() => {
     if (!engineRef.current || !currentEvent) return;
@@ -283,13 +273,10 @@ function useGameEngineInternal(): UseGameEngineReturn {
     isLoading,
     error,
     currentChallenge,
-    currentMiniGame,
     currentEvent,
     initializeGame,
     getNextAction,
     completeChallenge,
-    startMiniGame,
-    endMiniGame,
     triggerEvent,
     useJoker,
     nextTurn,

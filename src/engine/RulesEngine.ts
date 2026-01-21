@@ -7,7 +7,6 @@ export interface ModeRules {
   penaltyDrinks: number;
   skipPenalty: number;
   jokerCount: number;
-  miniGameFrequency: number; // every N rounds
   eventChance: number; // 0-1
   maxDifficulty: number;
 }
@@ -18,7 +17,6 @@ const MODE_RULES: Record<GameMode, ModeRules> = {
     penaltyDrinks: 1,
     skipPenalty: 1,
     jokerCount: 2,
-    miniGameFrequency: 5,
     eventChance: 0.1,
     maxDifficulty: 3,
   },
@@ -27,7 +25,6 @@ const MODE_RULES: Record<GameMode, ModeRules> = {
     penaltyDrinks: 2,
     skipPenalty: 2,
     jokerCount: 1,
-    miniGameFrequency: 3,
     eventChance: 0.2,
     maxDifficulty: 7,
   },
@@ -36,7 +33,6 @@ const MODE_RULES: Record<GameMode, ModeRules> = {
     penaltyDrinks: 3,
     skipPenalty: 3,
     jokerCount: 0,
-    miniGameFrequency: 2,
     eventChance: 0.3,
     maxDifficulty: 10,
   },
@@ -71,12 +67,6 @@ export class RulesEngine {
     return this.rules.jokerCount;
   }
 
-  // Check if mini-game should trigger
-  shouldTriggerMiniGame(currentRound: number): boolean {
-    if (!this.config.enableMiniGames) return false;
-    return currentRound > 0 && currentRound % this.rules.miniGameFrequency === 0;
-  }
-
   // Check if random event should trigger
   shouldTriggerEvent(currentRound: number): boolean {
     if (!this.config.enableRandomEvents) return false;
@@ -90,12 +80,12 @@ export class RulesEngine {
   filterChallenges(challenges: Challenge[], playerCount: number): Challenge[] {
     return challenges.filter((c) => {
       // Mode check
-      if (!c.mode.includes(this.config.mode)) return false;
+      if (c.mode && !c.mode.includes(this.config.mode)) return false;
       // Player count check
-      if (c.minPlayers > playerCount) return false;
+      if (c.minPlayers && c.minPlayers > playerCount) return false;
       if (c.maxPlayers && c.maxPlayers < playerCount) return false;
       // Difficulty check
-      if (c.difficulty > this.rules.maxDifficulty) return false;
+      if (c.difficulty && c.difficulty > this.rules.maxDifficulty) return false;
       return true;
     });
   }
@@ -103,7 +93,7 @@ export class RulesEngine {
   // Calculate score for completing challenge
   calculateScore(challenge: Challenge, completed: boolean): number {
     if (!completed) return 0;
-    const baseScore = challenge.difficulty * 10;
+    const baseScore = (challenge.difficulty || 1) * 10;
     const modeMultiplier = this.config.mode === 'caliente' ? 1.5 : this.config.mode === 'hard' ? 1.2 : 1;
     return Math.round(baseScore * modeMultiplier);
   }

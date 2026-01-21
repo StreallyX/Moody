@@ -18,31 +18,22 @@ export interface GameConfig {
   playerCount: number;
   maxRounds: number;
   alcoholLevel: number; // 0-100
-  enableMiniGames: boolean;
   enableRandomEvents: boolean;
   eventFrequency: number; // every N rounds
 }
 
 export interface Challenge {
   id: string;
-  type: 'dare' | 'truth' | 'drink' | 'action';
-  content: string;
-  mode: GameMode[];
-  minPlayers: number;
+  type: 'truth' | 'dare' | 'group';
+  text: string;
+  heat?: number; // 1-5
+  mode?: GameMode[];
+  variant?: 'vote' | 'condition' | 'action' | 'everyone_except' | 'together' | 'competition';
+  // Optional legacy properties for ContentManager/RulesEngine compatibility
+  minPlayers?: number;
   maxPlayers?: number;
-  tags: string[];
-  difficulty: number;
-}
-
-export interface MiniGame {
-  id: string;
-  type: string;
-  name: string;
-  description: string;
-  minPlayers: number;
-  maxPlayers?: number;
-  duration: number; // seconds
-  config: Record<string, unknown>;
+  difficulty?: number;
+  tags?: string[];
 }
 
 export interface GameEvent {
@@ -63,7 +54,6 @@ export interface RoundResult {
   roundNumber: number;
   playerId: string;
   challengeId?: string;
-  miniGameId?: string;
   eventId?: string;
   completed: boolean;
   scoreChange: number;
@@ -86,19 +76,10 @@ export interface GameState {
   lastUpdatedAt: number;
 }
 
-export interface MiniGameResult {
-  winnerId?: string;
-  loserId?: string;
-  scores: Record<string, number>;
-  drinks: Record<string, number>;
-}
-
 export type GameAction =
   | { type: 'START_GAME'; config: GameConfig; players: Omit<Player, 'score' | 'drinks' | 'penalties' | 'jokers' | 'isActive'>[] }
   | { type: 'NEXT_TURN' }
   | { type: 'COMPLETE_CHALLENGE'; result: Partial<RoundResult> }
-  | { type: 'START_MINI_GAME'; miniGame: MiniGame }
-  | { type: 'END_MINI_GAME'; result: MiniGameResult }
   | { type: 'TRIGGER_EVENT'; event: GameEvent }
   | { type: 'USE_JOKER'; playerId: string }
   | { type: 'PAUSE_GAME' }

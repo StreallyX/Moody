@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git -C \"C:\\\\DEV\\\\Moody\" log --oneline -10)"
+      "Bash(git -C \"C:\\\\DEV\\\\Moody\" log --oneline -10)",
+      "Bash(npm run lint)",
+      "Bash(npx expo install --fix)",
+      "Bash(npx expo install:*)",
+      "Bash(npx expo doctor)",
+      "Bash(npx expo-doctor)",
+      "Bash(npm start)",
+      "Bash(npx expo start --port 8082)",
+      "Bash(npx expo start --clear)",
+      "Bash(npx expo start:*)",
+      "Bash(npm install:*)",
+      "Bash(timeout /t 15 /nobreak)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(dir \"C:\\\\DEV\\\\Moody\\\\hooks\")",
+      "Bash(dir \"C:\\\\DEV\\\\Moody\\\\components\")",
+      "Skill(superpowers:brainstorming)"
     ]
   }
 }

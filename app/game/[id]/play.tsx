@@ -1,195 +1,143 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
-import {
-  ChallengeCard,
-  EventCard,
-  EventSpecial1,
-  EventSpecial2,
-  ExplosionCard,
-  FlashQuizCard,
-  GuessWordCard,
-  HotSeatCard,
-  OracleCard,
-  QuestionCard,
-  ReflexGame,
-  RouletteCard,
-  SelfieCard,
-  WheelShotCard,
-} from '../../../components/cards/index';
-import FooterBar from '../../../components/FooterBar';
-import GameHeader from '../../../components/GameHeader';
-import ReportModal from '../../../components/ReportModal';
-import SelectModal from '../../../components/SelectModal';
-import StatsModal from '../../../components/StatsModal';
-import { useGameEngine } from '../../../hooks/useGameEngine';
-import { useLocalizedData } from '../../../hooks/useLocalizedData';
-import {
-  GameState,
-  loadGameState,
-  loadPlayers,
-  saveGameState,
-} from '../../../lib/storage';
+import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
-type CardData = {
-  id: string;
-  type: string;
-  text?: string;
-  targets?: string[];
-  [key: string]: any;
-};
+import HeatProgress from '../../../components/game/HeatProgress';
+import GameCard from '../../../components/game/GameCard';
+import LevelUpOverlay from '../../../components/game/LevelUpOverlay';
+import { useGame } from '../../../hooks/useGame';
+import { loadPlayers } from '../../../lib/storage';
+import { colors, spacing } from '../../../theme';
 
 export default function PlayGame() {
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const challenges = useLocalizedData();
 
-  const [game, setGame] = useState<GameState | null>(null);
-  const [current, setCurrent] = useState<any | null>(null);
-  const [showStats, setShowStats] = useState(false);
-  const [showSelectModal, setShowSelectModal] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
+  const [players, setPlayers] = useState<string[]>([]);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpLevel, setLevelUpLevel] = useState(1);
+  const [prevLevel, setPrevLevel] = useState(1);
 
-  const { nextChallenge } = useGameEngine(game, setGame, setCurrent);
+  const language = (i18n.language?.startsWith('fr') ? 'fr' : 'en') as 'fr' | 'en';
+  const mode = id || 'friendly';
 
+  // Load players on mount
   useEffect(() => {
     const init = async () => {
-      const saved = await loadGameState();
-      if (saved && saved.players.length > 0) {
-        setGame(saved);
-        return;
-      }
-      const players = await loadPlayers();
-      if (!players || players.length === 0) {
+      const savedPlayers = await loadPlayers();
+      if (!savedPlayers || savedPlayers.length === 0) {
         router.replace('/');
         return;
       }
-      const freshGame: GameState = {
-        players,
-        stats: Object.fromEntries(players.map((p) => [p, 0])),
-        heat: 1,
-        rounds: 0,
-        mode: id || 'friends',
-      };
-      await saveGameState(freshGame);
-      setGame(freshGame);
+      setPlayers(savedPlayers);
+      setIsInitializing(false);
     };
     init();
   }, []);
 
+  // Game hook
+  const {
+    currentChallenge,
+    currentPlayer,
+    secondPlayer,
+    thirdPlayer,
+    leastDrunkPlayer,
+    currentRound,
+    currentLevel,
+    isLoading,
+    nextCard,
+  } = useGame({ players, mode });
+
+  // Handle level change
   useEffect(() => {
-    if (game && !current) {
-      nextChallenge();
+    if (currentLevel > prevLevel && currentLevel > 1) {
+      setLevelUpLevel(currentLevel);
+      setShowLevelUp(true);
+      setPrevLevel(currentLevel);
     }
-  }, [game]);
+  }, [currentLevel, prevLevel]);
 
-  if (!game || !current) return null;
+  // Game is now infinite, no completion handling needed
 
-  const getBackgroundColor = (type: string) => {
-    const map: Record<string, string> = {
-      challenge: '#1a0000',
-      question: '#001f2f',
-      event: '#1e0038',
-      roulette: '#1a0022',
-      wheelshot: '#4a004f',
-      hotseat: '#400000',
-      flashquiz: '#002f1a',
-      guessword: '#1a1a4d',
-      explosion: '#4d0000',
-      oracle: '#330033',
-      selfie: '#00334d',
-      tapbattle: '#3d3d00',
-    };
-    return map[type] || '#000';
-  };
-
-  const renderCard = () => {
-    const data = current;
-    switch (data.type) {
-      case 'challenge': return <ChallengeCard data={data} onNext={nextChallenge} />;
-      case 'question': return <QuestionCard data={data} onNext={nextChallenge} />;
-      case 'event':
-        if (data.id?.startsWith('event:special_')) {
-          if (data.id === 'event:special_1') return <EventSpecial1 onNext={nextChallenge} />;
-          if (data.id === 'event:special_2') return <EventSpecial2 onNext={nextChallenge} />;
-        }
-        return <EventCard text={data.text} onNext={nextChallenge} />;
-      case 'roulette':
-        return (
-          <RouletteCard
-            players={game.players}
-            onNext={({ level, target }) => nextChallenge({ level, target })}
-          />
-        );
-      case 'wheelshot': return <WheelShotCard players={game.players} onNext={nextChallenge} />;
-      case 'flashquiz': return <FlashQuizCard data={data} onNext={nextChallenge} />;
-      case 'hotseat': return <HotSeatCard data={{ ...data, players: game.players }} onNext={nextChallenge} />;
-      case 'tapbattle': return <ReflexGame players={game.players} onNext={nextChallenge} />;
-      case 'selfie': return <SelfieCard data={data} onNext={nextChallenge} />;
-      case 'guessword':
-        return (
-          <GuessWordCard
-            data={data}
-            onNext={nextChallenge}
-            players={game.players}
-            selectedPlayers={data.targets || game.players.slice(0, 2)}
-          />
-        );
-      case 'explosion': return <ExplosionCard data={data} onNext={nextChallenge} />;
-      case 'oracle': return <OracleCard data={data} players={game.players} onNext={nextChallenge} />;
-      default: return <ChallengeCard data={data} onNext={nextChallenge} />;
-    }
-  };
+  // Loading state
+  if (isInitializing || isLoading || !currentChallenge) {
+    return (
+      <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
+        <ActivityIndicator size="large" color={colors.primary.main} />
+        <Text style={styles.loadingText}>
+          {language === 'fr' ? 'Chargement...' : 'Loading...'}
+        </Text>
+      </View>
+    );
+  }
 
   return (
-    <>
-      <View style={[styles.container, { backgroundColor: getBackgroundColor(current.type) }]}>
-        <GameHeader round={game.rounds} type={current.type} onStatsPress={() => setShowStats(true)} />
+    <Animated.View
+      entering={FadeIn.duration(300)}
+      style={[styles.container, { paddingTop: insets.top }]}
+    >
+      {/* Progress bar */}
+      <HeatProgress
+        currentHeat={currentLevel}
+        currentRound={currentRound}
+        language={language}
+        cardType={currentChallenge.type}
+        onLevelChange={(newLevel) => {
+          if (newLevel > 1) {
+            setLevelUpLevel(newLevel);
+            setShowLevelUp(true);
+          }
+        }}
+      />
 
-        {renderCard()}
-
-        <StatsModal
-          visible={showStats}
-          onClose={() => setShowStats(false)}
-          heat={game.heat}
-          rounds={game.rounds}
-          stats={game.stats}
-          history={game.history || []}
-        />
-
-        <SelectModal
-          visible={showSelectModal}
-          onClose={() => setShowSelectModal(false)}
-          items={challenges}
-          onSelect={(item: CardData) => {
-            setCurrent({
-              ...item,
-              targets: game.players.slice(0, 2),
-              text: item.text,
-            });
-            setShowSelectModal(false);
-          }}
-        />
-
-        <ReportModal
-          visible={showReportModal}
-          onClose={() => setShowReportModal(false)}
-          cardId={current.id}
-        />
-
-        <FooterBar
-          onSelectPress={() => setShowSelectModal(true)}
-          onReportPress={() => setShowReportModal(true)}
+      {/* Game card */}
+      <View style={styles.cardContainer}>
+        <GameCard
+          key={currentChallenge.id}
+          challenge={currentChallenge}
+          playerName={currentPlayer}
+          secondPlayer={secondPlayer}
+          thirdPlayer={thirdPlayer}
+          leastDrunkPlayer={leastDrunkPlayer}
+          language={language}
+          onNext={nextCard}
         />
       </View>
-    </>
+
+      {/* Level up overlay */}
+      <LevelUpOverlay
+        visible={showLevelUp}
+        level={levelUpLevel}
+        language={language}
+        onComplete={() => setShowLevelUp(false)}
+      />
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: colors.background.primary,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: colors.background.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing[4],
+  },
+  loadingText: {
+    color: colors.text.secondary,
+    fontSize: 16,
+  },
+  cardContainer: {
     flex: 1,
   },
 });

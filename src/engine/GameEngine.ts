@@ -5,22 +5,17 @@ import {
   GameConfig,
   Player,
   Challenge,
-  MiniGame,
   GameEvent,
   RoundResult,
-  MiniGameResult,
 } from './types';
 import { GameStateManager } from './GameStateManager';
 import { RulesEngine } from './RulesEngine';
 import { ContentManager } from './ContentManager';
-import { MiniGameManager } from './MiniGameManager';
 import { EventSystem } from './EventSystem';
 
 export interface GameEngineCallbacks {
   onStateChange?: (state: GameState) => void;
   onChallenge?: (challenge: Challenge) => void;
-  onMiniGameStart?: (miniGame: MiniGame) => void;
-  onMiniGameEnd?: (result: MiniGameResult) => void;
   onEvent?: (event: GameEvent, affectedPlayers: Player[]) => void;
   onGameEnd?: (finalState: GameState) => void;
 }
@@ -29,14 +24,12 @@ export class GameEngine {
   private stateManager: GameStateManager;
   private rulesEngine: RulesEngine | null = null;
   private contentManager: ContentManager;
-  private miniGameManager: MiniGameManager;
   private eventSystem: EventSystem;
   private callbacks: GameEngineCallbacks = {};
 
   constructor() {
     this.stateManager = new GameStateManager();
     this.contentManager = new ContentManager();
-    this.miniGameManager = new MiniGameManager();
     this.eventSystem = new EventSystem();
   }
 
@@ -50,16 +43,13 @@ export class GameEngine {
   ): Promise<GameState> {
     // Initialize state
     const state = this.stateManager.initialize(config, players);
-    
+
     // Initialize rules engine with config
     this.rulesEngine = new RulesEngine(config);
-    
+
     // Load content
     await this.contentManager.loadChallenges();
-    
-    // Register default mini-games
-    this.registerDefaultMiniGames();
-    
+
     this.notifyStateChange();
     return state;
   }
@@ -73,7 +63,7 @@ export class GameEngine {
   }
 
   // Main game loop - get next action for current turn
-  async getNextAction(): Promise<{ type: 'challenge' | 'miniGame' | 'event'; data: Challenge | MiniGame | GameEvent } | null> {
+  async getNextAction(): Promise<{ type: 'challenge' | 'event'; data: Challenge | GameEvent } | null> {
     const state = this.stateManager.getState();
     if (!state || state.isPaused || state.isFinished || !this.rulesEngine) return null;
 
@@ -83,15 +73,7 @@ export class GameEngine {
       return { type: 'event', data: event };
     }
 
-    // Check for mini-game
-    if (this.rulesEngine.shouldTriggerMiniGame(state.currentRound)) {
-      const miniGame = this.miniGameManager.getRandomMiniGame(state.players.length);
-      if (miniGame) {
-        return { type: 'miniGame', data: miniGame };
-      }
-    }
-
-    // Default: get challenge
+    // Get challenge
     const challenge = this.contentManager.getRandomChallenge({
       mode: state.config.mode,
       playerCount: state.players.length,
@@ -137,32 +119,6 @@ export class GameEngine {
     this.stateManager.addRoundResult(result);
 
     this.notifyStateChange();
-  }
-
-  // Handle mini-game
-  async startMiniGame(miniGame: MiniGame): Promise<void> {
-    const state = this.stateManager.getState();
-    if (!state) return;
-
-    await this.miniGameManager.startMiniGame(miniGame, state.players);
-    this.callbacks.onMiniGameStart?.(miniGame);
-  }
-
-  async endMiniGame(): Promise<MiniGameResult | null> {
-    const result = await this.miniGameManager.endMiniGame();
-    if (!result) return null;
-
-    // Apply results to game state
-    for (const [playerId, score] of Object.entries(result.scores)) {
-      this.stateManager.updatePlayerScore(playerId, score);
-    }
-    for (const [playerId, drinks] of Object.entries(result.drinks)) {
-      this.stateManager.addDrinks(playerId, drinks);
-    }
-
-    this.callbacks.onMiniGameEnd?.(result);
-    this.notifyStateChange();
-    return result;
   }
 
   // Handle event
@@ -238,10 +194,6 @@ export class GameEngine {
   }
 
   // Getters for managers (for advanced usage)
-  getMiniGameManager(): MiniGameManager {
-    return this.miniGameManager;
-  }
-
   getContentManager(): ContentManager {
     return this.contentManager;
   }
@@ -255,10 +207,5 @@ export class GameEngine {
     if (state) {
       this.callbacks.onStateChange?.(state);
     }
-  }
-
-  private registerDefaultMiniGames(): void {
-    // Import and register mini-games dynamically
-    // TODO: Register ReflexGame, VoteGame, BluffGame
   }
 }

@@ -5,16 +5,25 @@ import { useTranslation } from 'react-i18next';
 import {
   FlatList,
   Image,
-  Modal,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import LanguageModal from '../components/LanguageModal'; // adapte le chemin si nécessaire
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withDelay,
+} from 'react-native-reanimated';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import LanguageModal from '../components/LanguageModal';
+import { AnimatedButton, PlayerChip, Modal } from '../components/ui';
 import { getCurrentUserEmail, isAccountStillValidOnline, isUserLoggedIn } from '../lib/auth';
 import { loadPlayers, savePlayers } from '../lib/storage';
+import { colors, spacing, borderRadius, textStyles, springs, shadows } from '../theme';
+import { haptics } from '../utils/haptics';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -23,15 +32,23 @@ export default function HomeScreen() {
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [players, setPlayers] = useState<string[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
-
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginEmail, setLoginEmail] = useState<string | null>(null);
-
-  // NEW: modals pour les messages “0 joueur” et “solo”
   const [showNoPlayersModal, setShowNoPlayersModal] = useState(false);
   const [showSoloConfirmModal, setShowSoloConfirmModal] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState<'start' | 'middle' | 'end'>('start');
+
+  // Animation values
+  const logoOpacity = useSharedValue(0);
+  const logoScale = useSharedValue(0.8);
+  const contentOpacity = useSharedValue(0);
 
   useEffect(() => {
+    // Entry animations
+    logoOpacity.value = withDelay(100, withSpring(1, springs.gentle));
+    logoScale.value = withDelay(100, withSpring(1, springs.bouncy));
+    contentOpacity.value = withDelay(300, withSpring(1, springs.gentle));
+
     const init = async () => {
       const storedPlayers = await loadPlayers();
       setPlayers(storedPlayers);
@@ -59,6 +76,15 @@ export default function HomeScreen() {
     init();
   }, []);
 
+  const logoAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: logoOpacity.value,
+    transform: [{ scale: logoScale.value }],
+  }));
+
+  const contentAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+  }));
+
   const removePlayer = (name: string) => {
     const updated = players.filter((p) => p !== name);
     setPlayers(updated);
@@ -68,6 +94,7 @@ export default function HomeScreen() {
   const addPlayer = () => {
     const trimmed = newPlayerName.trim().toUpperCase();
     if (trimmed && !players.includes(trimmed)) {
+      haptics.success();
       const updated = [...players, trimmed];
       setPlayers(updated);
       savePlayers(updated);
@@ -75,13 +102,14 @@ export default function HomeScreen() {
     }
   };
 
-  const startGame = () =>
+  const startGame = () => {
+    haptics.heavy();
     router.push({
       pathname: '/menu',
       params: { players: JSON.stringify(players) },
     });
+  };
 
-  // NEW: logique au clic du bouton "Start"
   const onPressStart = () => {
     if (players.length === 0) {
       setShowNoPlayersModal(true);
@@ -96,168 +124,171 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* --- Login modal existant --- */}
+      {/* Login Success Modal */}
       <Modal
         visible={showLoginModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowLoginModal(false)}
+        onClose={() => setShowLoginModal(false)}
+        title={t('home.connectedWith')}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity
-              style={styles.modalClose}
-              onPress={() => setShowLoginModal(false)}
-            >
-              <Text style={styles.modalCloseText}>✕</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalText}>
-              {t('home.connectedWith')}{'\n'}
-              <Text style={styles.modalEmail}>{loginEmail}</Text>
-            </Text>
-          </View>
-        </View>
+        <Text style={styles.modalEmail}>{loginEmail}</Text>
       </Modal>
 
-      {/* --- NEW: modal "0 joueur" --- */}
+      {/* No Players Modal */}
       <Modal
         visible={showNoPlayersModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowNoPlayersModal(false)}
+        onClose={() => setShowNoPlayersModal(false)}
+        title={t('home.noPlayersTitle')}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            <Text style={[styles.modalText, { marginBottom: 12 }]}>
-              {t('home.noPlayersTitle')}
-            </Text>
-            <Text style={[styles.modalText, { fontWeight: '400', color: '#333', marginBottom: 16 }]}>
-              {t('home.noPlayersDesc')}
-            </Text>
-            <TouchableOpacity style={styles.modalPrimaryBtn} onPress={() => setShowNoPlayersModal(false)}>
-              <Text style={styles.modalPrimaryText}>{t('common.ok')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <Text style={styles.modalText}>{t('home.noPlayersDesc')}</Text>
+        <AnimatedButton
+          label={t('common.ok')}
+          onPress={() => setShowNoPlayersModal(false)}
+          size="md"
+          style={{ marginTop: spacing[4] }}
+        />
       </Modal>
 
-      {/* --- NEW: modal confirmation "solo" --- */}
+      {/* Solo Confirm Modal */}
       <Modal
         visible={showSoloConfirmModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowSoloConfirmModal(false)}
+        onClose={() => setShowSoloConfirmModal(false)}
+        title={t('home.soloTitle')}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            <Text style={[styles.modalText, { marginBottom: 12 }]}>
-              {t('home.soloTitle')}
-            </Text>
-            <Text style={[styles.modalText, { fontWeight: '400', color: '#333', marginBottom: 16 }]}>
-              {t('home.soloDesc')}
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <TouchableOpacity
-                style={[styles.modalSecondaryBtn, { flex: 1 }]}
-                onPress={() => setShowSoloConfirmModal(false)}
-              >
-                <Text style={styles.modalSecondaryText}>{t('common.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalPrimaryBtn, { flex: 1 }]}
-                onPress={() => {
-                  setShowSoloConfirmModal(false);
-                  startGame();
-                }}
-              >
-                <Text style={styles.modalPrimaryText}>{t('common.continue')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+        <Text style={styles.modalText}>{t('home.soloDesc')}</Text>
+        <View style={styles.modalButtons}>
+          <AnimatedButton
+            label={t('common.cancel')}
+            variant="ghost"
+            onPress={() => setShowSoloConfirmModal(false)}
+            size="md"
+            style={{ flex: 1 }}
+          />
+          <AnimatedButton
+            label={t('common.continue')}
+            onPress={() => {
+              setShowSoloConfirmModal(false);
+              startGame();
+            }}
+            size="md"
+            style={{ flex: 1 }}
+          />
         </View>
       </Modal>
 
-      <View style={styles.block1}>
+      {/* Logo Section */}
+      <Animated.View style={[styles.block1, logoAnimatedStyle]}>
         <Image
           source={require('../assets/images/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
         <Text style={styles.slogan}>{t('home.slogan')}</Text>
-      </View>
+      </Animated.View>
 
-      <View style={{ position: 'relative', width: '100%' }}>
-        <FlatList
-          data={players}
-          keyExtractor={(item) => item}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.playerList,
-            { flexGrow: 1, justifyContent: 'center' } // centré tout le temps
-          ]}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.playerChip} onPress={() => removePlayer(item)}>
-              <Text style={styles.playerText}>✕ {item}</Text>
-            </TouchableOpacity>
+      {/* Players List */}
+      <Animated.View style={[styles.playersSection, contentAnimatedStyle]}>
+        <View style={{ position: 'relative', width: '100%' }}>
+          <FlatList
+            data={players}
+            keyExtractor={(item) => item}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.playerList,
+              { flexGrow: 1, justifyContent: 'center' }
+            ]}
+            renderItem={({ item }) => (
+              <PlayerChip
+                name={item}
+                onRemove={() => removePlayer(item)}
+              />
+            )}
+            style={{ width: '100%' }}
+            onScroll={(e) => {
+              const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+              const maxScroll = contentSize.width - layoutMeasurement.width;
+              if (maxScroll <= 0) {
+                setScrollPosition('start');
+              } else if (contentOffset.x <= 5) {
+                setScrollPosition('start');
+              } else if (contentOffset.x >= maxScroll - 5) {
+                setScrollPosition('end');
+              } else {
+                setScrollPosition('middle');
+              }
+            }}
+            scrollEventThrottle={16}
+          />
+          {players.length > 3 && scrollPosition !== 'middle' && (
+            <View
+              style={[
+                styles.scrollHintContainer,
+                scrollPosition === 'end' && styles.scrollHintLeft
+              ]}
+              pointerEvents="none"
+            >
+              <Text style={styles.scrollHintText}>
+                {scrollPosition === 'end' ? '← Swipe' : 'Swipe →'}
+              </Text>
+            </View>
           )}
-          style={{ width: '100%' }}
-        />
-        {players.length > 3 && (
-          <View style={styles.scrollHintContainer} pointerEvents="none">
-            <Text style={styles.scrollHintText}>{t('home.scrollHint')}</Text>
-          </View>
+        </View>
+
+        {players.length === 0 && (
+          <Text style={styles.emptyHint}>{t('home.emptyHint')}</Text>
         )}
-      </View>
+      </Animated.View>
 
-      {/* --- NEW: hint sous la liste si 0 joueur --- */}
-      {players.length === 0 && (
-        <Text style={styles.emptyHint}>{t('home.emptyHint')}</Text>
-      )}
-
-      <View style={styles.block3}>
+      {/* Add Player Input */}
+      <Animated.View style={[styles.block3, contentAnimatedStyle]}>
         <View style={styles.addPlayerContainer}>
           <TextInput
             style={styles.input}
             placeholder={t('home.playerPlaceholder')}
-            placeholderTextColor="#aaa"
+            placeholderTextColor={colors.text.tertiary}
             value={newPlayerName}
             onChangeText={setNewPlayerName}
             onSubmitEditing={addPlayer}
             returnKeyType="done"
           />
           <TouchableOpacity style={styles.plusButton} onPress={addPlayer}>
-            <Text style={styles.plusText}>＋</Text>
+            <Text style={styles.plusText}>+</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
 
+      {/* Bottom Section */}
       <View style={styles.block4}>
-        <TouchableOpacity
-          style={[styles.startButton, players.length === 0 && { opacity: 0.6 }]}
+        <AnimatedButton
+          label={t('home.start')}
           onPress={onPressStart}
-        >
-          <Text style={styles.startText}>{t('home.start')}</Text>
-        </TouchableOpacity>
+          size="xl"
+          disabled={players.length === 0}
+          style={styles.startButton}
+        />
 
         <View style={styles.optionsRow}>
           <TouchableOpacity style={styles.sideButton} onPress={() => setLanguageModalVisible(true)}>
-            <Text style={styles.sideText}>🌐{'\n'}{t('home.language')}</Text>
+            <Icon name="globe" size={22} color={colors.text.secondary} />
+            <Text style={styles.sideText}>{t('home.language')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.sideButton}
             onPress={() => router.push('/auth/profile')}
           >
-            <Text style={styles.sideText}>👤{'\n'}{t('home.account')}</Text>
+            <Icon name="user" size={22} color={colors.text.secondary} />
+            <Text style={styles.sideText}>{t('home.account')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.sideButton}
             onPress={() => router.push('/contact')}
           >
-            <Text style={styles.sideText}>✉️{'\n'}{t('home.contact')}</Text>
+            <Icon name="envelope" size={22} color={colors.text.secondary} />
+            <Text style={styles.sideText}>{t('home.contact')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.sideButton}>
-            <Text style={styles.sideText}>⭐{'\n'}{t('home.rate')}</Text>
+            <Icon name="star" size={22} color={colors.text.secondary} />
+            <Text style={styles.sideText}>{t('home.rate')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -270,166 +301,147 @@ export default function HomeScreen() {
   );
 }
 
-/* -------------------- Styles -------------------- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a0000',
+    backgroundColor: colors.background.primary,
     paddingTop: 40,
   },
-  block1: { flex: 2, justifyContent: 'center', alignItems: 'center' },
-  block2: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  block3: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  block1: {
+    flex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playersSection: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  block3: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   block4: {
     flex: 4,
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingBottom: 20,
+    paddingBottom: spacing[5],
   },
-  logo: { width: 300, height: 140 },
+  logo: {
+    width: 300,
+    height: 140,
+  },
   slogan: {
-    marginTop: 10,
-    color: '#ffb347',
-    fontSize: 14,
-    fontWeight: '600',
+    marginTop: spacing[3],
+    color: colors.text.secondary,
+    ...textStyles.bodyMedium,
+    fontWeight: '500',
     fontStyle: 'italic',
     textAlign: 'center',
   },
   playerList: {
-    paddingVertical: 10,
+    paddingVertical: spacing[3],
     alignItems: 'center',
   },
-  playerChip: {
-    backgroundColor: '#fff',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginHorizontal: 6,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+  addPlayerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  playerText: { fontWeight: '600', color: '#000', fontSize: 14 },
-  addPlayerContainer: { flexDirection: 'row', alignItems: 'center' },
   input: {
-    height: 42,
+    height: 48,
     width: 200,
-    backgroundColor: '#fff',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    color: '#000',
-    marginRight: 10,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing[4],
+    color: colors.text.primary,
+    marginRight: spacing[3],
     fontSize: 14,
+    borderWidth: 1,
+    borderColor: colors.ui.border,
   },
   plusButton: {
-    backgroundColor: '#ffb347',
-    width: 42,
-    height: 42,
-    borderRadius: 999,
+    backgroundColor: colors.primary.main,
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 3,
+    borderBottomWidth: 4,
+    borderBottomColor: colors.primary.dark,
+    ...shadows.md,
   },
-  plusText: { fontSize: 26, color: '#000', fontWeight: '600' },
+  plusText: {
+    fontSize: 28,
+    color: colors.text.primary,
+    fontWeight: '600',
+    marginTop: -2,
+  },
   startButton: {
-    backgroundColor: '#ffb347',
-    borderRadius: 999,
-    width: 220,
-    height: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
+    width: 260,
   },
-  startText: { fontSize: 18, fontWeight: 'bold', color: '#000' },
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     width: '90%',
-    gap: 12,
+    gap: spacing[3],
   },
   sideButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 999,
-    backgroundColor: '#2c0000',
+    width: 70,
+    height: 70,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.background.secondary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderColor: '#ffb347',
-    borderWidth: 1,
   },
-  sideText: { color: '#ffb347', textAlign: 'center', fontSize: 11, fontWeight: '600' },
-
-  /* --- Modal styles (réutilisés) --- */
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  sideText: {
+    color: colors.text.secondary,
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: 4,
   },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 24,
-    width: '85%',
-    maxWidth: 420,
-    alignItems: 'center',
-  },
-  modalClose: { position: 'absolute', top: 10, right: 10 },
-  modalCloseText: { fontSize: 20, color: '#000' },
-  modalText: { fontSize: 16, fontWeight: '600', textAlign: 'center', color: '#000' },
-  modalEmail: { color: '#ff5722' },
-
-  modalPrimaryBtn: {
-    backgroundColor: '#ffb347',
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    minWidth: 120,
-    alignItems: 'center',
-  },
-  modalPrimaryText: { color: '#000', fontWeight: '700' },
-  modalSecondaryBtn: {
-    borderColor: '#ffb347',
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    minWidth: 120,
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  modalSecondaryText: { color: '#000', fontWeight: '700' },
-
   scrollHintContainer: {
     position: 'absolute',
     right: 10,
     top: '42%',
-    backgroundColor: 'rgba(26,0,0,0.6)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: colors.background.overlay,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+    borderRadius: borderRadius.lg,
     zIndex: 10,
   },
+  scrollHintLeft: {
+    right: undefined,
+    left: 10,
+  },
   scrollHintText: {
-    color: '#ffb347',
+    color: colors.text.secondary,
     fontSize: 12,
     fontStyle: 'italic',
-    fontWeight: '600',
+    fontWeight: '500',
   },
-
-  // NEW: message d'aide si 0 joueur
   emptyHint: {
-    marginTop: 6,
+    marginTop: spacing[2],
     textAlign: 'center',
-    color: '#ffb347',
+    color: colors.text.tertiary,
     fontStyle: 'italic',
-    fontWeight: '600',
+    fontWeight: '500',
+  },
+  modalEmail: {
+    color: colors.primary.main,
+    textAlign: 'center',
+    ...textStyles.h3,
+  },
+  modalText: {
+    color: colors.text.secondary,
+    textAlign: 'center',
+    ...textStyles.bodyMedium,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: spacing[3],
+    marginTop: spacing[4],
   },
 });

@@ -36,24 +36,36 @@
     "couple": "Couple",
     "back": "Retour",
     "players": "joueurs",
+    "chooseMode": "Choisis ton mode",
     "resumeQuestion": "Reprendre la partie ?",
-    "underConstruction": "🚧 En construction",
-    "unlockHint": "Clique ici pour débloquer 🔓",
-    "modalTitle": "Mode indisponible",
-    "modalText": "Le mode sélectionné est réservé aux joueurs connectés. Veuillez vous connecter pour y accéder 🔒"
+    "freeMode": "Gratuit",
+    "unlocked": "Débloqué",
+    "accountRequired": "Connexion requise",
+    "purchased": "Acheté",
+    "purchaseRequired": "Achat requis",
+    "loginRequired": "Connexion requise",
+    "loginRequiredDesc": "Ce mode est réservé aux joueurs connectés. Connecte-toi pour y accéder !",
+    "goToLogin": "Se connecter",
+    "purchaseTitle": "Débloquer ce mode",
+    "purchaseDesc": "Ce mode premium nécessite un achat unique pour être débloqué.",
+    "purchase": "Acheter",
+    "purchaseComingSoon": "Les achats arrivent bientôt ! Reste connecté."
   },
   "gamestart": {
     "ready": "Prêt à jouer ?",
     "tapToStart": "[Touchez pour commencer]"
   },
   "login": {
-    "slogan": "Le jeu qui chauffe l’ambiance 🔥",
+    "slogan": "Le jeu qui chauffe l'ambiance 🔥",
     "email": "Email",
     "password": "Mot de passe",
     "submit": "Se connecter",
     "noAccount": "Pas encore inscrit ?",
     "forgotPassword": "Mot de passe oublié ?",
-    "errorTitle": "Erreur"
+    "errorTitle": "Erreur",
+    "fillAllFields": "Remplis tous les champs.",
+    "successTitle": "Connecté !",
+    "connected": "Tu es maintenant connecté. Profite de tous les modes !"
   },
   "profile": {
     "slogan": "Le jeu qui chauffe l’ambiance 🔥",
@@ -62,14 +74,19 @@
     "logout": "Se déconnecter"
   },
   "signup": {
-    "slogan": "Le jeu qui chauffe l’ambiance 🔥",
+    "slogan": "Le jeu qui chauffe l'ambiance 🔥",
     "emailPlaceholder": "Email",
     "passwordPlaceholder": "Mot de passe",
+    "confirmPasswordPlaceholder": "Confirmer le mot de passe",
     "signup": "S'inscrire",
     "alreadyHaveAccount": "Déjà un compte ?",
     "successTitle": "Succès",
     "successMessage": "Compte créé !",
-    "errorTitle": "Erreur"
+    "checkEmailMessage": "Un email de confirmation a été envoyé. Vérifie ta boîte mail !",
+    "errorTitle": "Erreur",
+    "fillAllFields": "Remplis tous les champs.",
+    "passwordMismatch": "Les mots de passe ne correspondent pas.",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères."
   },
   "event": {
     "title": "ÉVÉNEMENT",
@@ -204,5 +221,13 @@
     "ok": "OK",
     "cancel": "Annuler",
     "continue": "Continuer"
+  },
+  "auth": {
+    "verifying": "Vérification en cours...",
+    "success": "Succès !",
+    "error": "Erreur",
+    "emailConfirmed": "Ton email a été confirmé ! Bienvenue sur Moody !",
+    "alreadyConfirmed": "Ton compte est déjà confirmé.",
+    "confirmationError": "La confirmation a échoué. Réessaie."
   }
 }
