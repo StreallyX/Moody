@@ -81,8 +81,13 @@ export const getCurrentUserEmail = async (): Promise<string | null> => {
 
 // Vérifie si le compte utilisateur est encore valide en ligne
 export async function isAccountStillValidOnline(): Promise<boolean> {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session !== null;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session !== null;
+  } catch {
+    // Network error - assume valid when offline to allow app to work
+    return true;
+  }
 }
 
 // ========== Système de clé locale pour accès offline ==========

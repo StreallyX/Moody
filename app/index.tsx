@@ -50,26 +50,31 @@ export default function HomeScreen() {
     contentOpacity.value = withDelay(300, withSpring(1, springs.gentle));
 
     const init = async () => {
-      const storedPlayers = await loadPlayers();
-      setPlayers(storedPlayers);
+      try {
+        const storedPlayers = await loadPlayers();
+        setPlayers(storedPlayers);
 
-      const loggedIn = await isUserLoggedIn();
-      if (!loggedIn) return;
+        const loggedIn = await isUserLoggedIn();
+        if (!loggedIn) return;
 
-      const stillValid = await isAccountStillValidOnline();
-      if (!stillValid) {
-        await AsyncStorage.clear();
-        router.replace('/auth/login');
-        return;
-      }
+        const stillValid = await isAccountStillValidOnline();
+        if (!stillValid) {
+          await AsyncStorage.clear();
+          router.replace('/auth/login');
+          return;
+        }
 
-      const email = await getCurrentUserEmail();
-      const shouldShow = await AsyncStorage.getItem('showLoginModal');
+        const email = await getCurrentUserEmail();
+        const shouldShow = await AsyncStorage.getItem('showLoginModal');
 
-      if (shouldShow === 'true') {
-        setLoginEmail(email);
-        setShowLoginModal(true);
-        await AsyncStorage.removeItem('showLoginModal');
+        if (shouldShow === 'true') {
+          setLoginEmail(email);
+          setShowLoginModal(true);
+          await AsyncStorage.removeItem('showLoginModal');
+        }
+      } catch (error) {
+        // Network error - continue in offline mode
+        console.log('Init error (offline mode):', error);
       }
     };
 

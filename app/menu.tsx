@@ -75,57 +75,63 @@ export default function MenuScreen() {
 
   useEffect(() => {
     const init = async () => {
-      // Load players
-      const loadedPlayers = await loadPlayers();
-      if (!loadedPlayers || loadedPlayers.length === 0) {
-        router.replace('/');
-        return;
-      }
-      setPlayerList(loadedPlayers);
+      try {
+        // Load players
+        const loadedPlayers = await loadPlayers();
+        if (!loadedPlayers || loadedPlayers.length === 0) {
+          router.replace('/');
+          return;
+        }
+        setPlayerList(loadedPlayers);
 
-      // Check saved game
-      const game = await loadGameState();
-      if (
-        game &&
-        game.players.length > 0 &&
-        arraysEqual(game.players, loadedPlayers)
-      ) {
-        setHasSavedGame(true);
-        setLastMode(game.mode ?? 'friends');
-      } else {
-        await clearGameState();
-        setHasSavedGame(false);
-      }
+        // Check saved game
+        const game = await loadGameState();
+        if (
+          game &&
+          game.players.length > 0 &&
+          arraysEqual(game.players, loadedPlayers)
+        ) {
+          setHasSavedGame(true);
+          setLastMode(game.mode ?? 'friends');
+        } else {
+          await clearGameState();
+          setHasSavedGame(false);
+        }
 
-      // Check mode access
-      const accessStatus: Record<string, boolean> = {};
-      const purchaseStatus: Record<string, boolean> = {};
+        // Check mode access
+        const accessStatus: Record<string, boolean> = {};
+        const purchaseStatus: Record<string, boolean> = {};
 
-      for (const mode of GAME_MODES) {
-        if (mode.requirement === 'free') {
-          accessStatus[mode.id] = true;
-        } else if (mode.requirement === 'account') {
-          // If logged in, grant access
-          if (isLoggedIn) {
-            await grantModeAccess(mode.id);
+        for (const mode of GAME_MODES) {
+          if (mode.requirement === 'free') {
             accessStatus[mode.id] = true;
-          } else {
-            accessStatus[mode.id] = await hasModeAccess(mode.id);
-          }
-        } else if (mode.requirement === 'purchase') {
-          const purchased = await hasModePurchased(mode.id);
-          purchaseStatus[mode.id] = purchased;
-          if (purchased && isLoggedIn) {
-            await grantModeAccess(mode.id);
-            accessStatus[mode.id] = true;
-          } else {
-            accessStatus[mode.id] = purchased && await hasModeAccess(mode.id);
+          } else if (mode.requirement === 'account') {
+            // If logged in, grant access
+            if (isLoggedIn) {
+              await grantModeAccess(mode.id);
+              accessStatus[mode.id] = true;
+            } else {
+              accessStatus[mode.id] = await hasModeAccess(mode.id);
+            }
+          } else if (mode.requirement === 'purchase') {
+            const purchased = await hasModePurchased(mode.id);
+            purchaseStatus[mode.id] = purchased;
+            if (purchased && isLoggedIn) {
+              await grantModeAccess(mode.id);
+              accessStatus[mode.id] = true;
+            } else {
+              accessStatus[mode.id] = purchased && await hasModeAccess(mode.id);
+            }
           }
         }
-      }
 
-      setModeAccess(accessStatus);
-      setPurchasedModes(purchaseStatus);
+        setModeAccess(accessStatus);
+        setPurchasedModes(purchaseStatus);
+      } catch (error) {
+        // Error loading - continue with default access (free mode only)
+        console.log('Menu init error:', error);
+        setModeAccess({ friends: true });
+      }
     };
 
     init();

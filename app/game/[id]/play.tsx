@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Text, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
@@ -11,6 +11,13 @@ import LevelUpOverlay from '../../../components/game/LevelUpOverlay';
 import { useGame } from '../../../hooks/useGame';
 import { loadPlayers } from '../../../lib/storage';
 import { colors, spacing } from '../../../theme';
+
+// Card type background colors (matching GameCard and HeatProgress)
+const CARD_BG_COLORS: Record<string, string> = {
+  truth: '#1A1428',
+  dare: '#1A0D10',
+  group: '#1A1408',
+};
 
 export default function PlayGame() {
   const { i18n } = useTranslation();
@@ -65,10 +72,14 @@ export default function PlayGame() {
 
   // Game is now infinite, no completion handling needed
 
+  // Get background color based on card type
+  const cardBgColor = currentChallenge ? (CARD_BG_COLORS[currentChallenge.type] || colors.background.primary) : colors.background.primary;
+
   // Loading state
   if (isInitializing || isLoading || !currentChallenge) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="light-content" backgroundColor={colors.background.primary} />
         <ActivityIndicator size="large" color={colors.primary.main} />
         <Text style={styles.loadingText}>
           {language === 'fr' ? 'Chargement...' : 'Loading...'}
@@ -80,8 +91,9 @@ export default function PlayGame() {
   return (
     <Animated.View
       entering={FadeIn.duration(300)}
-      style={[styles.container, { paddingTop: insets.top }]}
+      style={[styles.container, { paddingTop: insets.top, backgroundColor: cardBgColor }]}
     >
+      <StatusBar barStyle="light-content" backgroundColor={cardBgColor} />
       {/* Progress bar */}
       <HeatProgress
         currentHeat={currentLevel}
@@ -124,7 +136,6 @@ export default function PlayGame() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
   },
   loadingContainer: {
     flex: 1,

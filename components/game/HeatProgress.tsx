@@ -119,7 +119,9 @@ export default function HeatProgress({
   const levelTextOpacity = useSharedValue(1);
 
   // Calculate progress within current level (0-1)
-  const progressInLevel = ((currentRound - 1) % CARDS_PER_LEVEL) / CARDS_PER_LEVEL;
+  // After reaching max level (50 cards), keep progress at 100%
+  const isMaxedOut = currentRound > TOTAL_CARDS;
+  const progressInLevel = isMaxedOut ? 1 : ((currentRound - 1) % CARDS_PER_LEVEL) / CARDS_PER_LEVEL;
 
   useEffect(() => {
     // Check if level changed
@@ -163,8 +165,8 @@ export default function HeatProgress({
             key={index}
             index={index}
             isActive={index < currentHeat}
-            isCurrent={index === currentHeat - 1}
-            progress={index === currentHeat - 1 ? progressInLevel : 1}
+            isCurrent={index === currentHeat - 1 && !isMaxedOut}
+            progress={isMaxedOut || index < currentHeat - 1 ? 1 : (index === currentHeat - 1 ? progressInLevel : 0)}
             isNew={index === currentHeat - 1 && currentHeat !== prevHeatRef.current}
           />
         ))}
@@ -176,7 +178,7 @@ export default function HeatProgress({
           {levelName}
         </Animated.Text>
         <Text style={styles.roundCounter}>
-          {currentRound} / {TOTAL_CARDS}
+          {currentRound <= TOTAL_CARDS ? `${currentRound} / ${TOTAL_CARDS}` : `${currentRound}`}
         </Text>
       </View>
     </View>
