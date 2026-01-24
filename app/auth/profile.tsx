@@ -105,11 +105,14 @@ const styles = StyleSheet.create({
   },
   slogan: {
     marginTop: spacing[3],
-    color: colors.text.secondary,
+    color: '#F5F5F5',
     ...textStyles.bodyMedium,
-    fontWeight: '500',
+    fontWeight: '600',
     fontStyle: 'italic',
     textAlign: 'center',
+    textShadowColor: 'rgba(224, 32, 32, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
   },
   content: {
     width: '85%',
@@ -123,6 +126,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing[5],
+    // Red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
   },
   avatarText: {
     fontSize: 36,
@@ -147,8 +156,14 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottomWidth: 4,
+    borderBottomWidth: 5,
     borderBottomColor: colors.primary.dark,
+    // Red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
   },
   buttonText: {
     color: colors.text.primary,

@@ -126,6 +126,8 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: layout.modal.maxWidth,
     position: 'relative',
+    borderWidth: 1,
+    borderColor: colors.ui.border,
     ...shadows.xl,
   },
   closeButton: {
@@ -136,13 +138,18 @@ const styles = StyleSheet.create({
     padding: spacing[1],
   },
   closeButtonInner: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: colors.primary.main,
     justifyContent: 'center',
     alignItems: 'center',
-    ...shadows.sm,
+    // Red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 4,
   },
   closeButtonText: {
     color: colors.text.primary,

@@ -10,24 +10,24 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { colors, borderRadius, spacing, shadows } from '../../theme';
 
-// Card type configurations
+// Card type configurations - using theme-consistent colors
 const CARD_CONFIG = {
   truth: {
     label: { fr: 'VERITE', en: 'TRUTH' },
-    color: '#8B5CF6', // Purple
-    backgroundColor: '#1A1428',
+    color: colors.modes.soft.primary, // Purple
+    backgroundColor: '#120812',
     icon: '?',
   },
   dare: {
     label: { fr: 'DEFI', en: 'DARE' },
-    color: '#EF4444', // Red
-    backgroundColor: '#1A0D10',
+    color: colors.primary.main, // Red
+    backgroundColor: '#120608',
     icon: '!',
   },
   group: {
     label: { fr: 'GROUPE', en: 'GROUP' },
-    color: '#F59E0B', // Amber
-    backgroundColor: '#1A1408',
+    color: colors.modes.caliente.primary, // Orange
+    backgroundColor: '#120A06',
     icon: '*',
   },
 };
@@ -126,7 +126,15 @@ export default function GameCard({
       {/* Next button */}
       <AnimatedPressable
         onPress={handlePress}
-        style={[styles.button, buttonStyle, { backgroundColor: config.color }]}
+        style={[
+          styles.button,
+          buttonStyle,
+          {
+            backgroundColor: config.color,
+            shadowColor: config.color,
+            borderBottomColor: config.color + '80',
+          }
+        ]}
       >
         <Text style={styles.buttonText}>
           {language === 'fr' ? 'Suivant' : 'Next'}
@@ -192,7 +200,12 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     alignItems: 'center',
     marginBottom: spacing[2],
-    ...shadows.md,
+    borderBottomWidth: 5,
+    // Glow effect - shadowColor set dynamically
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 8,
   },
   buttonText: {
     fontSize: 18,

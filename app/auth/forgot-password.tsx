@@ -169,13 +169,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing[4],
   },
   input: {
-    height: 52,
+    height: 54,
     backgroundColor: colors.background.tertiary,
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing[5],
     color: colors.text.primary,
     fontSize: 16,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.ui.border,
   },
   button: {
@@ -186,8 +186,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: spacing[2],
     marginBottom: spacing[6],
-    borderBottomWidth: 4,
+    borderBottomWidth: 5,
     borderBottomColor: colors.primary.dark,
+    // Red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
   },
   buttonDisabled: {
     opacity: 0.6,

@@ -40,10 +40,11 @@ export const colors = {
 
   // Semantic colors
   semantic: {
-    success: '#10B981',   // Emerald
+    success: '#10B981',   // Emerald - confirmations
     warning: '#F59E0B',   // Amber
     error: '#FF3A3A',     // Bright red
     info: '#06B6D4',      // Cyan
+    gold: '#FBBF24',      // Gold/Jaune - pour Friends mode
   },
 
   // Game mode colors

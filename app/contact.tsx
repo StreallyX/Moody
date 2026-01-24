@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[4],
     color: colors.text.primary,
     fontSize: 16,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.ui.border,
   },
   textarea: {
@@ -153,8 +153,14 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[4],
     borderRadius: borderRadius.xl,
     marginTop: spacing[2],
-    borderBottomWidth: 4,
+    borderBottomWidth: 5,
     borderBottomColor: colors.primary.dark,
+    // Red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
   },
   buttonText: {
     color: colors.text.primary,

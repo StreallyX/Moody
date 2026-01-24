@@ -12,26 +12,27 @@ import Animated, {
   FadeInDown,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { loadPlayers } from '../../../lib/storage';
 import { colors, spacing, borderRadius, textStyles } from '../../../theme';
 import { haptics } from '../../../utils/haptics';
 
-// Mode configurations
+// Mode configurations - using theme colors
 const MODE_CONFIG: Record<string, { icon: string; color: string; bgColor: string }> = {
   friends: {
     icon: 'beer',
-    color: '#34C759',
-    bgColor: '#0D1A10',
+    color: colors.semantic.gold,
+    bgColor: '#1A1406',
   },
   caliente: {
-    icon: 'fire',
-    color: '#FF6B35',
-    bgColor: '#1A1008',
+    icon: 'flame',
+    color: colors.modes.caliente.primary,
+    bgColor: colors.modes.caliente.background,
   },
   couples: {
     icon: 'heart',
-    color: '#FF2D55',
-    bgColor: '#1A0D14',
+    color: colors.secondary.main,
+    bgColor: '#1A0810',
   },
 };
 
@@ -67,9 +68,24 @@ export default function GameStartScreen() {
       {/* Mode Icon */}
       <Animated.View
         entering={FadeIn.duration(400)}
-        style={[styles.iconContainer, { backgroundColor: `${config.color}15` }]}
+        style={[
+          styles.iconContainer,
+          {
+            backgroundColor: `${config.color}20`,
+            shadowColor: config.color,
+          }
+        ]}
       >
-        <Icon name={config.icon} size={52} color={config.color} />
+        {config.icon === 'flame' ? (
+          <MaterialCommunityIcons name="fire" size={52} color={config.color} />
+        ) : (
+          <Icon
+            name={config.icon}
+            size={48}
+            color={config.color}
+            style={config.icon === 'beer' ? { marginLeft: -8, marginTop: 3 } : undefined}
+          />
+        )}
       </Animated.View>
 
       {/* Title */}

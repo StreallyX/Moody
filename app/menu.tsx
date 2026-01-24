@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AnimatedButton, Card, Modal } from '../components/ui';
 import {
   clearGameState,
@@ -38,21 +39,21 @@ const GAME_MODES: GameMode[] = [
   {
     id: 'friends',
     icon: 'beer',
-    color: '#10B981',
-    bgColor: '#0A1208',
+    color: colors.semantic.gold,
+    bgColor: '#1A1406',
     requirement: 'free',
   },
   {
     id: 'caliente',
-    icon: 'fire',
-    color: '#FF6B35',
+    icon: 'flame',
+    color: '#FF6B35',  // Orange
     bgColor: '#1A0A06',
     requirement: 'account',
   },
   {
     id: 'couples',
     icon: 'heart',
-    color: '#FF4D6A',
+    color: '#FF4D6A',  // Rose
     bgColor: '#1A0810',
     requirement: 'purchase',
   },
@@ -229,14 +230,23 @@ export default function MenuScreen() {
         <TouchableOpacity
           style={[
             styles.modeCard,
-            { backgroundColor: mode.bgColor, borderColor: mode.color },
+            { backgroundColor: mode.bgColor, borderColor: mode.color, shadowColor: mode.color },
             isLocked && styles.modeCardLocked,
           ]}
           activeOpacity={0.8}
           onPress={() => handleModePress(mode)}
         >
           <View style={[styles.modeIconContainer, { backgroundColor: `${mode.color}20` }]}>
-            <Icon name={mode.icon} size={28} color={mode.color} />
+            {mode.icon === 'flame' ? (
+              <MaterialCommunityIcons name="fire" size={32} color={mode.color} />
+            ) : (
+              <Icon
+                name={mode.icon}
+                size={28}
+                color={mode.color}
+                style={mode.icon === 'beer' ? { marginLeft: -5, marginTop: 2 } : undefined}
+              />
+            )}
           </View>
 
           <View style={styles.modeContent}>
@@ -404,9 +414,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[2],
     paddingVertical: spacing[2],
-    paddingHorizontal: spacing[3],
+    paddingHorizontal: spacing[4],
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.tertiary,
+    borderWidth: 1,
+    borderColor: colors.ui.border,
   },
   backText: {
     color: colors.text.primary,
@@ -414,12 +426,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   playersChip: {
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.tertiary,
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
     borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.ui.border,
+    borderWidth: 2,
+    borderColor: colors.primary.main,
+    // Glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   playersContent: {
     flexDirection: 'row',
@@ -438,6 +456,10 @@ const styles = StyleSheet.create({
   title: {
     ...textStyles.h1,
     color: colors.text.primary,
+    // Red glow
+    textShadowColor: 'rgba(224, 32, 32, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
   resumeContainer: {
     paddingHorizontal: spacing[5],
@@ -455,12 +477,18 @@ const styles = StyleSheet.create({
     gap: spacing[6],
   },
   resumeButton: {
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
     borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.md,
+    borderBottomWidth: 4,
+    borderBottomColor: 'rgba(0,0,0,0.3)',
+    // Glow
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 6,
   },
   modesContainer: {
     paddingHorizontal: spacing[5],
@@ -473,16 +501,20 @@ const styles = StyleSheet.create({
     padding: spacing[4],
     borderRadius: borderRadius['2xl'],
     borderWidth: 2,
-    ...shadows.lg,
+    // Glow effect based on card color
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modeCardLocked: {
     opacity: 0.7,
     borderStyle: 'dashed',
   },
   modeIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: borderRadius.xl,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing[4],

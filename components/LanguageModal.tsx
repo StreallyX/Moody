@@ -120,6 +120,8 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     alignItems: 'center',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: colors.ui.border,
     ...shadows.xl,
   },
   close: {
@@ -136,13 +138,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.main,
     justifyContent: 'center',
     alignItems: 'center',
-    ...shadows.sm,
+    // Red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 4,
   },
   title: {
     ...textStyles.h2,
-    color: colors.secondary.main,
+    color: colors.text.primary,
     marginBottom: spacing[6],
     marginTop: spacing[2],
+    // Red glow
+    textShadowColor: 'rgba(224, 32, 32, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   optionsContainer: {
     width: '100%',
@@ -155,10 +166,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     padding: spacing[4],
     gap: spacing[3],
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.ui.border,
-    borderBottomWidth: 3,
-    borderBottomColor: colors.ui.border,
+    borderBottomWidth: 4,
+    borderBottomColor: colors.ui.divider,
   },
   langBadge: {
     width: 40,

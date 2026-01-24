@@ -5,6 +5,8 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withSequence,
+  withTiming,
+  withRepeat,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { colors, borderRadius, spacing } from '../../theme';
@@ -16,16 +18,16 @@ export const TOTAL_CARDS = CARDS_PER_LEVEL * MAX_HEAT_LEVEL;
 
 // Level colors - gradient from cool to hot
 const LEVEL_COLORS = [
-  '#3B82F6', // Level 1 - Blue (cool)
-  '#8B5CF6', // Level 2 - Purple
-  '#F59E0B', // Level 3 - Amber
-  '#EF4444', // Level 4 - Red
-  '#DC2626', // Level 5 - Deep red (hot)
+  '#3B82F6', // Level 1 - Blue
+  colors.modes.soft.primary, // Level 2 - Purple
+  colors.modes.caliente.primary, // Level 3 - Orange
+  colors.primary.main, // Level 4 - Red
+  colors.primary.light, // Level 5 - Bright red
 ];
 
-// Level names for each language
+// Level names
 const LEVEL_NAMES = {
-  fr: ['', 'Brise-glace', 'On se rechauffe', 'Ca chauffe', "C'est chaud", 'NO LIMIT'],
+  fr: ['', 'Brise-glace', 'On se réchauffe', 'Ça chauffe', "C'est chaud", 'NO LIMIT'],
   en: ['', 'Ice Breaker', 'Warming Up', 'Getting Hot', 'On Fire', 'NO LIMIT'],
 };
 
@@ -34,21 +36,13 @@ interface HeatProgressProps {
   currentRound: number;
   language?: 'fr' | 'en';
   cardType?: 'truth' | 'dare' | 'group';
-  onLevelChange?: (newLevel: number) => void;
 }
 
-// Card type colors (matching GameCard)
-const CARD_TYPE_COLORS = {
-  truth: '#8B5CF6', // Purple
-  dare: '#EF4444', // Red
-  group: '#F59E0B', // Amber
-};
-
-// Card type background colors (matching GameCard)
+// Card type background colors
 const CARD_TYPE_BG_COLORS = {
-  truth: '#1A1428',
-  dare: '#1A0D10',
-  group: '#1A1408',
+  truth: '#120812',
+  dare: '#120608',
+  group: '#120A06',
 };
 
 function LevelSegment({
@@ -56,31 +50,41 @@ function LevelSegment({
   isActive,
   isCurrent,
   progress,
-  isNew,
+  justCompleted,
 }: {
   index: number;
   isActive: boolean;
   isCurrent: boolean;
   progress: number;
-  isNew: boolean;
+  justCompleted: boolean;
 }) {
   const fillWidth = useSharedValue(isActive ? (isCurrent ? progress : 1) : 0);
+  const glowOpacity = useSharedValue(0);
   const scale = useSharedValue(1);
 
   useEffect(() => {
-    if (isNew && isActive) {
-      // New level animation - pulse effect
-      scale.value = withSequence(
-        withSpring(1.1, { damping: 8, stiffness: 200 }),
-        withSpring(1, { damping: 10, stiffness: 150 })
-      );
-    }
-
     fillWidth.value = withSpring(isActive ? (isCurrent ? progress : 1) : 0, {
       damping: 15,
       stiffness: 100,
     });
-  }, [isActive, isCurrent, progress, isNew]);
+
+    if (justCompleted) {
+      // Pulse scale
+      scale.value = withSequence(
+        withSpring(1.1, { damping: 8, stiffness: 200 }),
+        withSpring(1, { damping: 10, stiffness: 150 })
+      );
+      // Glow pulse (3 times)
+      glowOpacity.value = withSequence(
+        withTiming(1, { duration: 150 }),
+        withTiming(0.3, { duration: 150 }),
+        withTiming(1, { duration: 150 }),
+        withTiming(0.3, { duration: 150 }),
+        withTiming(1, { duration: 150 }),
+        withTiming(0, { duration: 300 })
+      );
+    }
+  }, [isActive, isCurrent, progress, justCompleted]);
 
   const containerStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -90,14 +94,31 @@ function LevelSegment({
     width: `${fillWidth.value * 100}%`,
   }));
 
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+  }));
+
+  const color = LEVEL_COLORS[index];
+
   return (
     <Animated.View style={[styles.segmentContainer, containerStyle]}>
-      <View style={[styles.segment, isActive && styles.segmentActive]}>
+      <View style={styles.segment}>
         <Animated.View
           style={[
             styles.segmentFill,
             fillStyle,
-            { backgroundColor: LEVEL_COLORS[index] },
+            { backgroundColor: color },
+          ]}
+        />
+        {/* Glow overlay */}
+        <Animated.View
+          style={[
+            styles.segmentGlow,
+            glowStyle,
+            {
+              backgroundColor: color,
+              shadowColor: color,
+            },
           ]}
         />
       </View>
@@ -110,48 +131,25 @@ export default function HeatProgress({
   currentRound,
   language = 'fr',
   cardType = 'truth',
-  onLevelChange,
 }: HeatProgressProps) {
-  const accentColor = CARD_TYPE_COLORS[cardType] || CARD_TYPE_COLORS.truth;
   const bgColor = CARD_TYPE_BG_COLORS[cardType] || CARD_TYPE_BG_COLORS.truth;
   const prevHeatRef = useRef(currentHeat);
-  const levelTextScale = useSharedValue(1);
-  const levelTextOpacity = useSharedValue(1);
+  const justLeveledUp = useRef(false);
 
   // Calculate progress within current level (0-1)
-  // After reaching max level (50 cards), keep progress at 100%
   const isMaxedOut = currentRound > TOTAL_CARDS;
   const progressInLevel = isMaxedOut ? 1 : ((currentRound - 1) % CARDS_PER_LEVEL) / CARDS_PER_LEVEL;
 
   useEffect(() => {
-    // Check if level changed
-    if (currentHeat !== prevHeatRef.current && currentHeat > prevHeatRef.current) {
-      // Haptic feedback
+    if (currentHeat > prevHeatRef.current) {
+      // Level up!
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      // Animate level text
-      levelTextScale.value = withSequence(
-        withSpring(1.15, { damping: 8, stiffness: 200 }),
-        withSpring(1, { damping: 10, stiffness: 150 })
-      );
-      levelTextOpacity.value = withSequence(
-        withSpring(0.6, { damping: 15 }),
-        withSpring(1, { damping: 15 })
-      );
-
-      // Callback
-      if (onLevelChange) {
-        onLevelChange(currentHeat);
-      }
-
+      justLeveledUp.current = true;
       prevHeatRef.current = currentHeat;
+    } else {
+      justLeveledUp.current = false;
     }
-  }, [currentHeat, currentRound]);
-
-  const levelTextStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: levelTextScale.value }],
-    opacity: levelTextOpacity.value,
-  }));
+  }, [currentHeat]);
 
   const levelName = LEVEL_NAMES[language][currentHeat] || '';
   const currentColor = LEVEL_COLORS[currentHeat - 1] || LEVEL_COLORS[0];
@@ -167,16 +165,16 @@ export default function HeatProgress({
             isActive={index < currentHeat}
             isCurrent={index === currentHeat - 1 && !isMaxedOut}
             progress={isMaxedOut || index < currentHeat - 1 ? 1 : (index === currentHeat - 1 ? progressInLevel : 0)}
-            isNew={index === currentHeat - 1 && currentHeat !== prevHeatRef.current}
+            justCompleted={justLeveledUp.current && index === currentHeat - 2}
           />
         ))}
       </View>
 
       {/* Level name and counter */}
       <View style={styles.infoRow}>
-        <Animated.Text style={[styles.levelName, levelTextStyle, { color: accentColor }]}>
+        <Text style={[styles.levelName, { color: currentColor }]}>
           {levelName}
-        </Animated.Text>
+        </Text>
         <Text style={styles.roundCounter}>
           {currentRound <= TOTAL_CARDS ? `${currentRound} / ${TOTAL_CARDS}` : `${currentRound}`}
         </Text>
@@ -203,13 +201,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.tertiary,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
-  },
-  segmentActive: {
-    backgroundColor: colors.background.tertiary,
+    position: 'relative',
   },
   segmentFill: {
     height: '100%',
     borderRadius: borderRadius.full,
+  },
+  segmentGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: borderRadius.full,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 8,
   },
   infoRow: {
     flexDirection: 'row',

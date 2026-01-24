@@ -7,16 +7,15 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 
 import HeatProgress from '../../../components/game/HeatProgress';
 import GameCard from '../../../components/game/GameCard';
-import LevelUpOverlay from '../../../components/game/LevelUpOverlay';
 import { useGame } from '../../../hooks/useGame';
 import { loadPlayers } from '../../../lib/storage';
 import { colors, spacing } from '../../../theme';
 
-// Card type background colors (matching GameCard and HeatProgress)
+// Card type background colors - using theme-consistent colors
 const CARD_BG_COLORS: Record<string, string> = {
-  truth: '#1A1428',
-  dare: '#1A0D10',
-  group: '#1A1408',
+  truth: '#120812',   // Purple tint
+  dare: '#120608',    // Red tint
+  group: '#120A06',   // Orange tint
 };
 
 export default function PlayGame() {
@@ -27,9 +26,6 @@ export default function PlayGame() {
 
   const [players, setPlayers] = useState<string[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [showLevelUp, setShowLevelUp] = useState(false);
-  const [levelUpLevel, setLevelUpLevel] = useState(1);
-  const [prevLevel, setPrevLevel] = useState(1);
 
   const language = (i18n.language?.startsWith('fr') ? 'fr' : 'en') as 'fr' | 'en';
   const mode = id || 'friendly';
@@ -61,15 +57,6 @@ export default function PlayGame() {
     nextCard,
   } = useGame({ players, mode });
 
-  // Handle level change
-  useEffect(() => {
-    if (currentLevel > prevLevel && currentLevel > 1) {
-      setLevelUpLevel(currentLevel);
-      setShowLevelUp(true);
-      setPrevLevel(currentLevel);
-    }
-  }, [currentLevel, prevLevel]);
-
   // Game is now infinite, no completion handling needed
 
   // Get background color based on card type
@@ -100,12 +87,6 @@ export default function PlayGame() {
         currentRound={currentRound}
         language={language}
         cardType={currentChallenge.type}
-        onLevelChange={(newLevel) => {
-          if (newLevel > 1) {
-            setLevelUpLevel(newLevel);
-            setShowLevelUp(true);
-          }
-        }}
       />
 
       {/* Game card */}
@@ -121,14 +102,6 @@ export default function PlayGame() {
           onNext={nextCard}
         />
       </View>
-
-      {/* Level up overlay */}
-      <LevelUpOverlay
-        visible={showLevelUp}
-        level={levelUpLevel}
-        language={language}
-        onComplete={() => setShowLevelUp(false)}
-      />
     </Animated.View>
   );
 }
