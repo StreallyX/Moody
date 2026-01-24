@@ -1,8 +1,8 @@
 {
   "home": {
-    "slogan": "Le jeu qui chauffe l’ambiance 🔥",
-    "playerPlaceholder": "Nom du joueur",
-    "start": "Commencer",
+    "slogan": "Joue. Taquine. Fais monter la température. 🔥",
+    "playerPlaceholder": "Qui joue ce soir ?",
+    "start": "C'EST PARTI",
     "scrollHint": "Faites glisser →",
     "language": "Langue",
     "account": "Compte",
@@ -14,8 +14,9 @@
     "noPlayersTitle": "Il faut au minimum 1 joueur",
     "noPlayersDesc": "Ajoute un joueur pour commencer la partie.",
     "soloTitle": "Jouer en solo ?",
-    "soloDesc": "Tu n’as ajouté qu’un seul joueur. Veux-tu vraiment jouer seul ?",
-    "emptyHint": "Astuce : ajoute au moins 1 joueur pour démarrer."
+    "soloDesc": "Tu n'as ajouté qu'un seul joueur. Veux-tu vraiment jouer seul ?",
+    "emptyHint": "Astuce : ajoute au moins 1 joueur pour démarrer.",
+    "playerExists": "Ce joueur est déjà dans la liste !"
   },
   "contact": {
     "title": "Contactez-nous",

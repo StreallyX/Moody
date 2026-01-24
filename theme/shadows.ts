@@ -50,22 +50,32 @@ export const shadows = {
 } as const;
 
 // Duolingo-style 3D button effect
-// Uses a thick bottom border to create depth
+// Uses a thick bottom border to create depth + red glow
+// GLOSSY on MAT background
 export const button3D = {
-  // Primary red button (main CTA)
+  // Primary red button (main CTA) - GLOSSY & HOT
   primary: {
     default: {
       backgroundColor: colors.primary.main,
-      borderBottomWidth: 4,
+      borderBottomWidth: 5,
       borderBottomColor: colors.primary.dark,
-      ...shadows.md,
+      // Strong red glow - glossy effect
+      shadowColor: colors.primary.main,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.55,
+      shadowRadius: 16,
+      elevation: 10,
     } as ViewStyle,
     pressed: {
-      backgroundColor: colors.primary.main,
+      backgroundColor: colors.primary.light,
       borderBottomWidth: 2,
       borderBottomColor: colors.primary.dark,
-      transform: [{ translateY: 2 }],
-      ...shadows.sm,
+      transform: [{ translateY: 3 }],
+      shadowColor: colors.primary.light,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.6,
+      shadowRadius: 12,
+      elevation: 6,
     } as ViewStyle,
   },
 
@@ -140,20 +150,20 @@ export const button3D = {
   // Disabled state
   disabled: {
     backgroundColor: colors.ui.disabled,
-    borderBottomWidth: 2,
-    borderBottomColor: '#3D2222',
-    opacity: 0.6,
+    borderBottomWidth: 3,
+    borderBottomColor: '#2A2225',
+    opacity: 0.5,
   } as ViewStyle,
 } as const;
 
-// Card shadows
+// Card shadows - Premium & dramatic
 export const cardShadows = {
   // Standard card
   default: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
     elevation: 6,
   } as ViewStyle,
 
@@ -161,27 +171,36 @@ export const cardShadows = {
   elevated: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
     elevation: 12,
   } as ViewStyle,
 
-  // Glow effect for special cards
+  // Devil glow - soft red aura
   glow: {
     shadowColor: colors.primary.main,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 10,
+  } as ViewStyle,
+
+  // Hot pink glow - playful & teasing
+  pinkGlow: {
+    shadowColor: colors.secondary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 10,
   } as ViewStyle,
 
-  // Red glow for premium elements
-  redGlow: {
-    shadowColor: colors.secondary.main,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
+  // Subtle inner depth
+  inset: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
   } as ViewStyle,
 } as const;
 

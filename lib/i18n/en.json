@@ -1,8 +1,8 @@
 {
   "home": {
-    "slogan": "The game that heats up the mood 🔥",
-    "playerPlaceholder": "Player name",
-    "start": "Start",
+    "slogan": "Play. Tease. Heat things up. 🔥",
+    "playerPlaceholder": "Who's playing tonight?",
+    "start": "LET'S PLAY",
     "scrollHint": "Swipe →",
     "language": "Language",
     "account": "Account",
@@ -14,8 +14,9 @@
     "noPlayersTitle": "At least 1 player is required",
     "noPlayersDesc": "Add a player to start the game.",
     "soloTitle": "Play solo?",
-    "soloDesc": "You’ve added only one player. Do you really want to play alone?",
-    "emptyHint": "Tip: add at least 1 player to start."
+    "soloDesc": "You've added only one player. Do you really want to play alone?",
+    "emptyHint": "Tip: add at least 1 player to start.",
+    "playerExists": "This player is already in the list!"
   },
   "contact": {
     "title": "Contact us",

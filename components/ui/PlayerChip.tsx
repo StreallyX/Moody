@@ -1,18 +1,20 @@
 /**
- * PlayerChip - Pill-shaped player name chip
+ * PlayerChip - Premium pill-shaped player name chip
  * Features:
- * - Red border accent
+ * - Hot red border accent with glow
+ * - Press animation with scale + glow pulse
  * - Remove animation (scale + slide out)
  * - Haptic feedback on remove
  */
 
 import React from 'react';
-import { StyleSheet, Text, Pressable, ViewStyle } from 'react-native';
+import { StyleSheet, Text, Pressable, ViewStyle, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
+  withSequence,
   runOnJS,
 } from 'react-native-reanimated';
 import { colors, borderRadius, spacing, textStyles, springs, timings } from '../../theme';
@@ -40,7 +42,7 @@ export default function PlayerChip({
   const translateX = useSharedValue(0);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95, springs.snappy);
+    scale.value = withSpring(1.03, springs.snappy);
   };
 
   const handlePressOut = () => {
@@ -81,7 +83,11 @@ export default function PlayerChip({
         style,
       ]}
     >
-      {removable && <Text style={styles.removeIcon}>✕</Text>}
+      {removable && (
+        <View style={styles.removeIconContainer}>
+          <Text style={styles.removeIcon}>✕</Text>
+        </View>
+      )}
       <Text style={[styles.name, highlighted && styles.highlightedText]}>
         {name}
       </Text>
@@ -95,27 +101,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.background.secondary,
     borderRadius: borderRadius.full,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    borderWidth: 1,
-    borderColor: colors.secondary.main,
-    marginHorizontal: spacing[1],
+    paddingLeft: spacing[2],
+    paddingRight: spacing[4],
+    paddingVertical: spacing[2] + 2,
+    borderWidth: 2,
+    borderColor: colors.primary.main,
+    marginHorizontal: spacing[2],
     gap: spacing[2],
+    // Red glow - glossy effect
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 5,
   },
   highlighted: {
-    backgroundColor: colors.secondary.main,
-    borderColor: colors.secondary.dark,
+    backgroundColor: colors.primary.dark,
+    borderColor: colors.primary.light,
+  },
+  removeIconContainer: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(224, 32, 32, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   removeIcon: {
     fontSize: 12,
-    color: colors.text.secondary,
-    fontWeight: '600',
+    color: colors.primary.light,
+    fontWeight: '700',
   },
   name: {
     ...textStyles.playerName,
     color: colors.text.primary,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   highlightedText: {
-    color: colors.text.inverse,
+    color: colors.text.primary,
   },
 });

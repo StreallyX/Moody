@@ -38,22 +38,22 @@ const GAME_MODES: GameMode[] = [
   {
     id: 'friends',
     icon: 'beer',
-    color: '#34C759',
-    bgColor: '#0D1A10',
+    color: '#10B981',
+    bgColor: '#0A1208',
     requirement: 'free',
   },
   {
     id: 'caliente',
     icon: 'fire',
     color: '#FF6B35',
-    bgColor: '#1A1008',
+    bgColor: '#1A0A06',
     requirement: 'account',
   },
   {
     id: 'couples',
     icon: 'heart',
-    color: '#FF2D55',
-    bgColor: '#1A0D14',
+    color: '#FF4D6A',
+    bgColor: '#1A0810',
     requirement: 'purchase',
   },
 ];

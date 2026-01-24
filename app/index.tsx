@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   FlatList,
@@ -10,12 +10,17 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Pressable,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withDelay,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import LanguageModal from '../components/LanguageModal';
@@ -37,10 +42,15 @@ export default function HomeScreen() {
   const [showNoPlayersModal, setShowNoPlayersModal] = useState(false);
   const [showSoloConfirmModal, setShowSoloConfirmModal] = useState(false);
   const [scrollPosition, setScrollPosition] = useState<'start' | 'middle' | 'end'>('start');
+  const [inputFocused, setInputFocused] = useState(false);
+  const [inputError, setInputError] = useState<string | null>(null);
+  const inputRef = useRef<TextInput>(null);
+  const inputShake = useSharedValue(0);
 
   // Animation values
   const logoOpacity = useSharedValue(0);
   const logoScale = useSharedValue(0.8);
+  const logoGlow = useSharedValue(0.3);
   const contentOpacity = useSharedValue(0);
 
   useEffect(() => {
@@ -48,6 +58,19 @@ export default function HomeScreen() {
     logoOpacity.value = withDelay(100, withSpring(1, springs.gentle));
     logoScale.value = withDelay(100, withSpring(1, springs.bouncy));
     contentOpacity.value = withDelay(300, withSpring(1, springs.gentle));
+
+    // Subtle breathing glow animation
+    logoGlow.value = withDelay(
+      800,
+      withRepeat(
+        withSequence(
+          withTiming(0.6, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.3, { duration: 2000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1, // infinite
+        false
+      )
+    );
 
     const init = async () => {
       try {
@@ -86,8 +109,16 @@ export default function HomeScreen() {
     transform: [{ scale: logoScale.value }],
   }));
 
+  const logoGlowStyle = useAnimatedStyle(() => ({
+    shadowOpacity: logoGlow.value,
+  }));
+
   const contentAnimatedStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,
+  }));
+
+  const inputShakeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: inputShake.value }],
   }));
 
   const removePlayer = (name: string) => {
@@ -98,13 +129,33 @@ export default function HomeScreen() {
 
   const addPlayer = () => {
     const trimmed = newPlayerName.trim().toUpperCase();
-    if (trimmed && !players.includes(trimmed)) {
-      haptics.success();
-      const updated = [...players, trimmed];
-      setPlayers(updated);
-      savePlayers(updated);
-      setNewPlayerName('');
+
+    // Clear previous error
+    setInputError(null);
+
+    if (!trimmed) return;
+
+    if (players.includes(trimmed)) {
+      // Player already exists - shake + error message
+      haptics.warning();
+      setInputError(t('home.playerExists'));
+      inputShake.value = withSequence(
+        withTiming(-10, { duration: 50 }),
+        withTiming(10, { duration: 50 }),
+        withTiming(-10, { duration: 50 }),
+        withTiming(10, { duration: 50 }),
+        withTiming(0, { duration: 50 })
+      );
+      // Clear error after 2.5s
+      setTimeout(() => setInputError(null), 2500);
+      return;
     }
+
+    haptics.success();
+    const updated = [...players, trimmed];
+    setPlayers(updated);
+    savePlayers(updated);
+    setNewPlayerName('');
   };
 
   const startGame = () => {
@@ -182,11 +233,13 @@ export default function HomeScreen() {
 
       {/* Logo Section */}
       <Animated.View style={[styles.block1, logoAnimatedStyle]}>
-        <Image
-          source={require('../assets/images/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <Animated.View style={[styles.logoContainer, logoGlowStyle]}>
+          <Image
+            source={require('../assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </Animated.View>
         <Text style={styles.slogan}>{t('home.slogan')}</Text>
       </Animated.View>
 
@@ -247,19 +300,45 @@ export default function HomeScreen() {
       {/* Add Player Input */}
       <Animated.View style={[styles.block3, contentAnimatedStyle]}>
         <View style={styles.addPlayerContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder={t('home.playerPlaceholder')}
-            placeholderTextColor={colors.text.tertiary}
-            value={newPlayerName}
-            onChangeText={setNewPlayerName}
-            onSubmitEditing={addPlayer}
-            returnKeyType="done"
-          />
+          <Animated.View style={inputShakeStyle}>
+            <Pressable
+              style={[
+                styles.inputWrapper,
+                inputFocused && styles.inputWrapperFocused,
+                inputError && styles.inputWrapperError,
+              ]}
+              onPress={() => inputRef.current?.focus()}
+            >
+              <Icon
+                name="user-plus"
+                size={16}
+                color={inputError ? colors.semantic.error : inputFocused ? colors.primary.main : colors.text.tertiary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                ref={inputRef}
+                style={styles.input}
+                placeholder={t('home.playerPlaceholder')}
+                placeholderTextColor={colors.text.secondary}
+                value={newPlayerName}
+                onChangeText={(text) => {
+                  setNewPlayerName(text);
+                  if (inputError) setInputError(null);
+                }}
+                onSubmitEditing={addPlayer}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+                returnKeyType="done"
+              />
+            </Pressable>
+          </Animated.View>
           <TouchableOpacity style={styles.plusButton} onPress={addPlayer}>
             <Text style={styles.plusText}>+</Text>
           </TouchableOpacity>
         </View>
+        {inputError && (
+          <Text style={styles.inputErrorText}>{inputError}</Text>
+        )}
       </Animated.View>
 
       {/* Bottom Section */}
@@ -273,28 +352,50 @@ export default function HomeScreen() {
         />
 
         <View style={styles.optionsRow}>
-          <TouchableOpacity style={styles.sideButton} onPress={() => setLanguageModalVisible(true)}>
-            <Icon name="globe" size={22} color={colors.text.secondary} />
-            <Text style={styles.sideText}>{t('home.language')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.sideButton}
+          <Pressable
+            style={({ pressed }) => [styles.sideButton, pressed && styles.sideButtonPressed]}
+            onPress={() => setLanguageModalVisible(true)}
+          >
+            {({ pressed }) => (
+              <>
+                <Icon name="globe" size={22} color={pressed ? colors.text.primary : colors.text.secondary} />
+                <Text style={styles.sideText}>{t('home.language')}</Text>
+              </>
+            )}
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.sideButton, pressed && styles.sideButtonPressed]}
             onPress={() => router.push('/auth/profile')}
           >
-            <Icon name="user" size={22} color={colors.text.secondary} />
-            <Text style={styles.sideText}>{t('home.account')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.sideButton}
+            {({ pressed }) => (
+              <>
+                <Icon name="user" size={22} color={pressed ? colors.text.primary : colors.text.secondary} />
+                <Text style={styles.sideText}>{t('home.account')}</Text>
+              </>
+            )}
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.sideButton, pressed && styles.sideButtonPressed]}
             onPress={() => router.push('/contact')}
           >
-            <Icon name="envelope" size={22} color={colors.text.secondary} />
-            <Text style={styles.sideText}>{t('home.contact')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.sideButton}>
-            <Icon name="star" size={22} color={colors.text.secondary} />
-            <Text style={styles.sideText}>{t('home.rate')}</Text>
-          </TouchableOpacity>
+            {({ pressed }) => (
+              <>
+                <Icon name="envelope" size={22} color={pressed ? colors.text.primary : colors.text.secondary} />
+                <Text style={styles.sideText}>{t('home.contact')}</Text>
+              </>
+            )}
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.sideButton, pressed && styles.sideButtonPressed]}
+            onPress={() => {}}
+          >
+            {({ pressed }) => (
+              <>
+                <Icon name="star" size={22} color={pressed ? colors.text.primary : colors.text.secondary} />
+                <Text style={styles.sideText}>{t('home.rate')}</Text>
+              </>
+            )}
+          </Pressable>
         </View>
       </View>
 
@@ -333,17 +434,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingBottom: spacing[5],
   },
+  logoContainer: {
+    // Breathing red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 30,
+    elevation: 10,
+  },
   logo: {
     width: 300,
     height: 140,
   },
   slogan: {
     marginTop: spacing[3],
-    color: colors.text.secondary,
+    color: '#F5F5F5',
     ...textStyles.bodyMedium,
-    fontWeight: '500',
+    fontWeight: '600',
     fontStyle: 'italic',
     textAlign: 'center',
+    // Red glow plus visible
+    textShadowColor: 'rgba(224, 32, 32, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
   },
   playerList: {
     paddingVertical: spacing[3],
@@ -353,37 +465,75 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  input: {
-    height: 48,
-    width: 200,
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 54,
+    width: 225,
     backgroundColor: colors.background.tertiary,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing[4],
-    color: colors.text.primary,
     marginRight: spacing[3],
-    fontSize: 14,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.ui.border,
+  },
+  inputWrapperFocused: {
+    borderColor: colors.primary.main,
+    // Red glow on focus
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  inputWrapperError: {
+    borderColor: colors.semantic.error,
+    shadowColor: colors.semantic.error,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  inputIcon: {
+    marginRight: spacing[2],
+  },
+  input: {
+    flex: 1,
+    height: '100%',
+    color: colors.text.primary,
+    fontSize: 15,
+    fontWeight: '500',
   },
   plusButton: {
     backgroundColor: colors.primary.main,
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     borderBottomWidth: 4,
     borderBottomColor: colors.primary.dark,
-    ...shadows.md,
+    // Hot glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 6,
   },
   plusText: {
-    fontSize: 28,
+    fontSize: 30,
     color: colors.text.primary,
-    fontWeight: '600',
+    fontWeight: '700',
     marginTop: -2,
   },
   startButton: {
-    width: 260,
+    width: 280,
+    // Strong red glow - glossy on mat
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12,
   },
   optionsRow: {
     flexDirection: 'row',
@@ -393,19 +543,33 @@ const styles = StyleSheet.create({
     gap: spacing[3],
   },
   sideButton: {
-    width: 70,
-    height: 70,
+    width: 72,
+    height: 72,
     borderRadius: borderRadius.xl,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.ui.border,
+    // Subtle depth
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sideButtonPressed: {
+    backgroundColor: colors.background.secondary,
+    borderColor: colors.primary.dark,
+    transform: [{ scale: 0.95 }],
   },
   sideText: {
-    color: colors.text.secondary,
+    color: colors.text.tertiary,
     textAlign: 'center',
     fontSize: 10,
-    fontWeight: '500',
-    marginTop: 4,
+    fontWeight: '600',
+    marginTop: 5,
+    letterSpacing: 0.3,
   },
   scrollHintContainer: {
     position: 'absolute',
@@ -432,6 +596,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.text.tertiary,
     fontStyle: 'italic',
+    fontWeight: '500',
+  },
+  inputErrorText: {
+    marginTop: spacing[2],
+    textAlign: 'center',
+    color: colors.semantic.error,
+    fontSize: 13,
     fontWeight: '500',
   },
   modalEmail: {
