@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -32,6 +31,14 @@ const CARD_CONFIG = {
   },
 };
 
+// Player name colors
+const PLAYER_COLORS = {
+  PLAYER: colors.semantic.gold, // Gold for main player
+  PLAYER2: '#06B6D4', // Cyan for second player
+  PLAYER3: '#10B981', // Green for third player
+  LOSER: colors.secondary.main, // Pink for loser
+};
+
 interface Challenge {
   id: string;
   type: 'truth' | 'dare' | 'group';
@@ -50,6 +57,60 @@ interface GameCardProps {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+// Render text with styled player names
+function renderStyledText(
+  text: string,
+  playerName: string,
+  secondPlayer: string,
+  thirdPlayer: string,
+  leastDrunkPlayer: string
+) {
+  // Define replacements with their colors
+  const replacements = [
+    { placeholder: '%PLAYER%', name: playerName, color: PLAYER_COLORS.PLAYER },
+    { placeholder: '%PLAYER2%', name: secondPlayer, color: PLAYER_COLORS.PLAYER2 },
+    { placeholder: '%PLAYER3%', name: thirdPlayer, color: PLAYER_COLORS.PLAYER3 },
+    { placeholder: '%LOSER%', name: leastDrunkPlayer, color: PLAYER_COLORS.LOSER },
+  ];
+
+  // Build regex pattern for all placeholders
+  const pattern = /%PLAYER%|%PLAYER2%|%PLAYER3%|%LOSER%/g;
+
+  // Split text by placeholders
+  const parts: { text: string; isPlayer: boolean; color?: string }[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = pattern.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push({ text: text.slice(lastIndex, match.index), isPlayer: false });
+    }
+
+    // Find the replacement for this placeholder
+    const replacement = replacements.find(r => r.placeholder === match[0]);
+    if (replacement && replacement.name) {
+      parts.push({ text: replacement.name, isPlayer: true, color: replacement.color });
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push({ text: text.slice(lastIndex), isPlayer: false });
+  }
+
+  return parts.map((part, index) => (
+    <Text
+      key={index}
+      style={part.isPlayer ? { fontWeight: '800', color: part.color } : undefined}
+    >
+      {part.text}
+    </Text>
+  ));
+}
+
 export default function GameCard({
   challenge,
   playerName,
@@ -61,23 +122,8 @@ export default function GameCard({
 }: GameCardProps) {
   const insets = useSafeAreaInsets();
   const buttonScale = useSharedValue(1);
-  const cardOpacity = useSharedValue(0);
-  const cardTranslateY = useSharedValue(20);
 
   const config = CARD_CONFIG[challenge.type] || CARD_CONFIG.truth;
-
-  // Replace player placeholders with actual player names
-  const displayText = challenge.text
-    .replace(/%PLAYER%/g, playerName)
-    .replace(/%PLAYER2%/g, secondPlayer)
-    .replace(/%PLAYER3%/g, thirdPlayer)
-    .replace(/%LOSER%/g, leastDrunkPlayer);
-
-  useEffect(() => {
-    // Card entrance animation
-    cardOpacity.value = withSpring(1, { damping: 15 });
-    cardTranslateY.value = withSpring(0, { damping: 15, stiffness: 100 });
-  }, [challenge.id]);
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -92,18 +138,13 @@ export default function GameCard({
     setTimeout(onNext, 100);
   };
 
-  const cardStyle = useAnimatedStyle(() => ({
-    opacity: cardOpacity.value,
-    transform: [{ translateY: cardTranslateY.value }],
-  }));
-
   const buttonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],
   }));
 
   return (
     <View style={[styles.container, { backgroundColor: config.backgroundColor, paddingBottom: insets.bottom + spacing[2] }]}>
-      <Animated.View style={[styles.card, cardStyle]}>
+      <View style={styles.card}>
         {/* Type badge */}
         <View style={[styles.badge, { borderColor: config.color }]}>
           <Text style={[styles.badgeIcon, { color: config.color }]}>{config.icon}</Text>
@@ -112,16 +153,18 @@ export default function GameCard({
           </Text>
         </View>
 
-        {/* Challenge text */}
-        <Text style={styles.challengeText}>{displayText}</Text>
+        {/* Challenge text with styled player names */}
+        <Text style={styles.challengeText}>
+          {renderStyledText(challenge.text, playerName, secondPlayer, thirdPlayer, leastDrunkPlayer)}
+        </Text>
 
         {/* Player highlight - only show for truth/dare, not group */}
         {playerName && challenge.type !== 'group' && (
-          <View style={[styles.playerTag, { backgroundColor: config.color + '20' }]}>
-            <Text style={[styles.playerName, { color: config.color }]}>{playerName}</Text>
+          <View style={[styles.playerTag, { backgroundColor: PLAYER_COLORS.PLAYER + '20' }]}>
+            <Text style={[styles.playerTagName, { color: PLAYER_COLORS.PLAYER }]}>{playerName}</Text>
           </View>
         )}
-      </Animated.View>
+      </View>
 
       {/* Next button */}
       <AnimatedPressable
@@ -189,7 +232,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     borderRadius: borderRadius.lg,
   },
-  playerName: {
+  playerTagName: {
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 1,
