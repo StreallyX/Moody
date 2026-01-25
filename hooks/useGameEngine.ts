@@ -1,238 +1,290 @@
-import { useCallback, useRef } from 'react';
-import { useLocalizedData } from '../hooks/useLocalizedData';
-import type { GameState } from '../lib/storage';
-import { saveGameState } from '../lib/storage';
+// React Hook wrapper for GameEngine
 
+import { useState, useCallback, useRef, useEffect, Dispatch, SetStateAction } from 'react';
+import {
+  GameEngine,
+  GameEngineCallbacks,
+  GameState,
+  GameConfig,
+  Player,
+  Challenge,
+  GameEvent,
+} from '../src/engine';
+import { GameState as StorageGameState } from '../lib/storage';
 
-type Challenge = {
-  id: string;
-  type:
-    | 'challenge'
-    | 'question'
-    | 'roulette'
-    | 'wheelshot'
-    | 'event'
-    | 'oracle'
-    | 'explosion'
-    | 'guessword'
-    | 'selfie'
-    | 'tapbattle'
-    | 'hotseat'
-    | 'flashquiz';
-  text: string;
-  level: number;
-  modes: string[];
-  minPlayers?: number;
-  maxPlayers?: number;
-  slots?: number;
-};
+// Import new JSON data files
+import friendlyData from '../app/data/friendly.json';
+import spicyData from '../app/data/spicy.json';
+import couplesData from '../app/data/couples.json';
 
-type NextOpts = { level?: number; target?: string };
+// Legacy interface for play.tsx compatibility
+interface NextChallengeOptions {
+  level?: number;
+  target?: string;
+}
 
-// 👇 CONSTANTE : combien d’IDs on mémorise
-const RECENT_MEMORY = 50;
-// ... imports & types inchangés
+export interface UseGameEngineReturn {
+  // State
+  state: GameState | null;
+  currentPlayer: Player | null;
+  isLoading: boolean;
+  error: string | null;
 
+  // Current action
+  currentChallenge: Challenge | null;
+  currentEvent: GameEvent | null;
 
+  // Actions
+  initializeGame: (config: GameConfig, players: Omit<Player, 'score' | 'drinks' | 'penalties' | 'jokers' | 'isActive'>[]) => Promise<void>;
+  getNextAction: () => Promise<void>;
+  completeChallenge: (completed: boolean) => void;
+  triggerEvent: () => void;
+  useJoker: () => boolean;
+  nextTurn: () => void;
+  pauseGame: () => void;
+  resumeGame: () => void;
+  endGame: () => void;
+
+  // Persistence
+  saveGame: () => string;
+  loadGame: (json: string) => boolean;
+
+  // Legacy support
+  nextChallenge: (options?: NextChallengeOptions) => void;
+}
+
+// Overloaded function signatures
+export function useGameEngine(): UseGameEngineReturn;
 export function useGameEngine(
-  game: GameState | null,
-  setGame: (g: GameState) => void,
-  setCurrent: (c: any) => void
-) {
-  const challenges = useLocalizedData();
-  const lastPicked = useRef<string[]>([]);
-
-  const balancedRandom = useCallback(
-    (n: number) => {
-      if (!game) return [];
-      const shuffled = [...game.players].sort(
-        (a, b) => (game.stats[a] - game.stats[b]) || Math.random() - 0.5
-      );
-      return shuffled.slice(0, n);
-    },
-    [game]
-  );
-
-  const nextChallenge = useCallback(
-    (opts: NextOpts = {}) => {
+  game: StorageGameState | null,
+  setGame: Dispatch<SetStateAction<StorageGameState | null>>,
+  setCurrent: Dispatch<SetStateAction<unknown>>
+): { nextChallenge: (options?: NextChallengeOptions) => void };
+export function useGameEngine(
+  game?: StorageGameState | null,
+  setGame?: Dispatch<SetStateAction<StorageGameState | null>>,
+  setCurrent?: Dispatch<SetStateAction<unknown>>
+): UseGameEngineReturn | { nextChallenge: (options?: NextChallengeOptions) => void } {
+  // Legacy mode - when called with game state arguments
+  if (game !== undefined && setGame !== undefined && setCurrent !== undefined) {
+    const nextChallenge = useCallback((options: NextChallengeOptions = {}) => {
+      // Legacy implementation - advance to next challenge
       if (!game) return;
 
-      const nextRound = game.rounds;
+      // Update game state - increment rounds and update heat
+      const newRounds = game.rounds + 1;
+      // Heat increases every 10 rounds (1-10: heat 1, 11-20: heat 2, etc.)
+      const newHeat = Math.min(5, Math.floor((newRounds - 1) / 10) + 1);
 
-
-      const isMiniGameRound = nextRound > 0 && nextRound % 10 === 5;
-      const isEventRound = nextRound > 0 && nextRound % 10 === 0;
-
-      console.log(`▶️ Lancement du tour ${nextRound}`);
-      if (isMiniGameRound) {
-        console.log('🎰 Tour spécial : Mini-jeu');
-      } else if (isEventRound) {
-        console.log('🎉 Tour spécial : Événement');
-      } else {
-        console.log('🎲 Tour normal : Défi ou question');
-      }
-
-      if ((game as any)?.current?.targets && opts.level !== -0) {
-        const stats = { ...game.stats };
-        (game as any).current.targets.forEach((p: string) => {
-          stats[p] = (stats[p] || 0) + 1;
-        });
-        game.stats = stats;
-        game.rounds = nextRound;
-        game.heat = Math.min(10, 1 + Math.floor(game.rounds / 3));
-      }
-
-      const baseFilter = (strictMode = true) =>
-        challenges.filter((c) => {
-          const modeOK =
-            strictMode
-              ? c.modes?.includes(game.mode)
-              : c.modes?.includes(game.mode) || c.modes?.includes('friends');
-
-          if (!modeOK) return false;
-          if ((c.minPlayers ?? 1) > game.players.length) return false;
-
-          if (isMiniGameRound)
-            return [
-              'roulette',
-              'wheelshot',
-              'oracle',
-              'explosion',
-              'guessword',
-              'selfie',
-              'tapbattle',
-              'hotseat',
-              'flashquiz',
-            ].includes(c.type);
-
-          if (isEventRound) return c.type === 'event';
-          if (c.type !== 'challenge' && c.type !== 'question') return false;
-
-          if (
-            opts.level !== undefined &&
-            opts.level !== -0 &&
-            c.level !== opts.level
-          )
-            return false;
-
-          return true;
-        });
-
-      let validChallenges = baseFilter(true);
-
-      if (isMiniGameRound && validChallenges.length) {
-        const grouped: Record<string, Challenge[]> = {};
-        validChallenges.forEach((c) => {
-          (grouped[c.type] ??= []).push(c);
-        });
-        const types = Object.keys(grouped);
-        const chosenType = types[Math.floor(Math.random() * types.length)];
-        validChallenges = grouped[chosenType];
-        console.log(`🎯 Type de mini-jeu choisi aléatoirement : ${chosenType}`);
-      }
-
-      const fresh = validChallenges.filter(
-        (c) => !lastPicked.current.includes(c.id)
-      );
-      if (fresh.length) validChallenges = fresh;
-
-      if (validChallenges.length === 0) {
-        console.warn('⚠️ Aucun défi strict ; fallback plus large');
-        validChallenges = baseFilter(false);
-      }
-
-      if (validChallenges.length === 0) {
-        console.warn('❌ Toujours rien à proposer.');
-        setCurrent({
-          type: 'info',
-          text: 'Plus de défis adaptés 😢',
-          targets: [],
-        });
-        return;
-      }
-
-      const weightedPool: Challenge[] = [];
-      validChallenges.forEach((c) => {
-        const weight = Math.max(1, 10 - Math.abs(c.level - game.heat));
-        for (let i = 0; i < weight; i++) weightedPool.push(c);
-      });
-
-      const picked =
-        weightedPool[Math.floor(Math.random() * weightedPool.length)];
-
-      const placeholders = [...new Set(picked.text.match(/%PLAYER\d*%/g) ?? [])];
-      const targets: string[] = [];
-
-      const availablePlayers = [...game.players];
-      if (opts.target) {
-        targets.push(opts.target);
-        availablePlayers.splice(availablePlayers.indexOf(opts.target), 1);
-      }
-      while (targets.length < placeholders.length && availablePlayers.length) {
-        const p = availablePlayers.splice(
-          Math.floor(Math.random() * availablePlayers.length),
-          1
-        )[0];
-        targets.push(p);
-      }
-      if (targets.length < placeholders.length) {
-        setCurrent({
-          type: 'info',
-          text: 'Pas assez de joueurs pour ce défi 😢',
-          targets: [],
-        });
-        return;
-      }
-
-      let finalText = picked.text;
-      placeholders.forEach((ph, i) => {
-        finalText = finalText.replaceAll(ph, targets[i]);
-      });
-
-      lastPicked.current.push(picked.id);
-      if (lastPicked.current.length > RECENT_MEMORY)
-        lastPicked.current.shift();
-
-      console.log(`📝 Défi sélectionné : ${finalText}`);
-      console.log(`🎯 Joueurs ciblés : ${targets.join(', ')}`);
-      console.log(`🎯 Paramètres reçus : ${JSON.stringify(opts)}`);
-
-      const newCurrent = { ...picked, targets, text: finalText };
-
-      // Mise à jour de l'historique
-      const updatedHistory = [
-        ...(game.history || []),
-        {
-          id: picked.id,
-          type: picked.type,
-          targets,
-        },
-      ];
-
-      // Mise à jour des stats si c'est un défi
-      const updatedStats = { ...game.stats };
-      if (picked.type === 'challenge') {
-        targets.forEach((p) => {
-          updatedStats[p] = (updatedStats[p] || 0) + 1;
-        });
-      }
+      // Apply level from options if provided
+      const effectiveHeat = options.level ?? newHeat;
 
       const updatedGame = {
         ...game,
-        current: newCurrent,
-        stats: updatedStats,
-        history: updatedHistory,
-        rounds: game.rounds + 1,
-        heat: Math.min(10, 1 + Math.floor((game.rounds + 1) / 3)),
+        rounds: newRounds,
+        heat: effectiveHeat,
       };
 
-      setCurrent(newCurrent);
       setGame(updatedGame);
-      saveGameState(updatedGame);
 
-    },
-    [game, setGame, setCurrent]
-  );
+      // Get data based on game mode
+      type HeatData = Record<string, Array<{ type: string; text: string; variant?: string }>>;
+      let modeData: HeatData;
 
-  return { balancedRandom, nextChallenge };
+      switch (game.mode) {
+        case 'spicy':
+        case 'hard':
+        case 'caliente':
+          modeData = spicyData as HeatData;
+          break;
+        case 'couples':
+          modeData = couplesData as HeatData;
+          break;
+        case 'friends':
+        case 'soft':
+        default:
+          modeData = friendlyData as HeatData;
+          break;
+      }
+
+      // Get challenges for current heat level
+      const heatKey = String(effectiveHeat);
+      const challenges = modeData[heatKey] || modeData['1'] || [];
+
+      if (challenges.length > 0) {
+        // Pick a random challenge from current heat level
+        const randomIndex = Math.floor(Math.random() * challenges.length);
+        const challenge = challenges[randomIndex];
+
+        // Shuffle players for random selection
+        const shuffledPlayers = [...game.players].sort(() => Math.random() - 0.5);
+        const selectedPlayer = shuffledPlayers[0];
+
+        // Replace %PLAYER% placeholder with actual player name
+        const processedText = challenge.text.replace(/%PLAYER%/g, selectedPlayer);
+
+        setCurrent({
+          id: `${game.mode}_${effectiveHeat}_${randomIndex}`,
+          type: challenge.type,
+          text: processedText,
+          variant: challenge.variant,
+          heat: effectiveHeat,
+          targets: shuffledPlayers.slice(0, 2),
+        });
+      }
+    }, [game, setGame, setCurrent]);
+
+    return { nextChallenge };
+  }
+  
+  // Modern mode - full engine wrapper
+  return useGameEngineInternal();
+}
+
+function useGameEngineInternal(): UseGameEngineReturn {
+  const engineRef = useRef<GameEngine | null>(null);
+  const [state, setState] = useState<GameState | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [currentChallenge, setCurrentChallenge] = useState<Challenge | null>(null);
+  const [currentEvent, setCurrentEvent] = useState<GameEvent | null>(null);
+
+  // Initialize engine with callbacks
+  useEffect(() => {
+    const engine = new GameEngine();
+
+    const callbacks: GameEngineCallbacks = {
+      onStateChange: (newState) => setState({ ...newState }),
+      onChallenge: (challenge) => setCurrentChallenge(challenge),
+      onEvent: (event) => setCurrentEvent(event),
+      onGameEnd: () => {
+        setCurrentChallenge(null);
+        setCurrentEvent(null);
+      },
+    };
+
+    engine.setCallbacks(callbacks);
+    engineRef.current = engine;
+
+    return () => {
+      engineRef.current = null;
+    };
+  }, []);
+
+  const initializeGame = useCallback(async (
+    config: GameConfig,
+    players: Omit<Player, 'score' | 'drinks' | 'penalties' | 'jokers' | 'isActive'>[]
+  ) => {
+    if (!engineRef.current) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await engineRef.current.initialize(config, players);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to initialize game');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const getNextAction = useCallback(async () => {
+    if (!engineRef.current) return;
+    setIsLoading(true);
+    try {
+      const action = await engineRef.current.getNextAction();
+      if (action) {
+        switch (action.type) {
+          case 'challenge':
+            setCurrentChallenge(action.data as Challenge);
+            setCurrentEvent(null);
+            break;
+          case 'event':
+            setCurrentEvent(action.data as GameEvent);
+            setCurrentChallenge(null);
+            break;
+        }
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to get next action');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const completeChallenge = useCallback((completed: boolean) => {
+    if (!engineRef.current || !currentChallenge) return;
+    engineRef.current.completeChallenge(currentChallenge, completed);
+    setCurrentChallenge(null);
+  }, [currentChallenge]);
+
+  const triggerEvent = useCallback(() => {
+    if (!engineRef.current || !currentEvent) return;
+    engineRef.current.triggerEvent(currentEvent);
+    setCurrentEvent(null);
+  }, [currentEvent]);
+
+  const useJoker = useCallback(() => {
+    if (!engineRef.current) return false;
+    const success = engineRef.current.useJoker();
+    if (success) {
+      setCurrentChallenge(null);
+    }
+    return success;
+  }, []);
+
+  const nextTurn = useCallback(() => {
+    if (!engineRef.current) return;
+    engineRef.current.nextTurn();
+  }, []);
+
+  const pauseGame = useCallback(() => {
+    if (!engineRef.current) return;
+    engineRef.current.pause();
+  }, []);
+
+  const resumeGame = useCallback(() => {
+    if (!engineRef.current) return;
+    engineRef.current.resume();
+  }, []);
+
+  const endGame = useCallback(() => {
+    if (!engineRef.current) return;
+    engineRef.current.endGame();
+  }, []);
+
+  const saveGame = useCallback(() => {
+    if (!engineRef.current) return '{}';
+    return engineRef.current.saveState();
+  }, []);
+
+  const loadGame = useCallback((json: string) => {
+    if (!engineRef.current) return false;
+    return engineRef.current.loadState(json);
+  }, []);
+
+  const nextChallenge = useCallback((_options?: NextChallengeOptions) => {
+    getNextAction();
+  }, [getNextAction]);
+
+  return {
+    state,
+    currentPlayer: state ? state.players[state.currentPlayerIndex] : null,
+    isLoading,
+    error,
+    currentChallenge,
+    currentEvent,
+    initializeGame,
+    getNextAction,
+    completeChallenge,
+    triggerEvent,
+    useJoker,
+    nextTurn,
+    pauseGame,
+    resumeGame,
+    endGame,
+    saveGame,
+    loadGame,
+    nextChallenge,
+  };
 }

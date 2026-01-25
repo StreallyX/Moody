@@ -8,27 +8,36 @@
     "scheme": "moody",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "ios": {
       "supportsTablet": true
     },
-
     "android": {
       "package": "com.tonorga.moody",
       "versionCode": 2,
       "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#1A0A0A"
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "moody"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
-
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/icon.png"
     },
-
     "plugins": [
       "expo-router",
       [
@@ -37,7 +46,7 @@
           "image": "./assets/images/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#1a0000"
+          "backgroundColor": "#1A0A0A"
         }
       ],
       [
@@ -46,12 +55,15 @@
           "android": {
             "minSdkVersion": 24,
             "compileSdkVersion": 35,
-            "targetSdkVersion": 35
+            "targetSdkVersion": 35,
+            "backgroundColor": "#1A0A0A"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-font",
+      "expo-web-browser"
     ],
-
     "experiments": {
       "typedRoutes": true
     }

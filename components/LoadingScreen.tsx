@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
+import { colors, spacing, textStyles } from '../theme';
 
 export default function LoadingScreen() {
   const { t } = useTranslation();
@@ -12,7 +13,7 @@ export default function LoadingScreen() {
         resizeMode="contain"
       />
 
-      <ActivityIndicator size="large" color="#ffb347" style={styles.spinner} />
+      <ActivityIndicator size="large" color={colors.primary.main} style={styles.spinner} />
 
       <Text style={styles.text}>{t('loading.message')}</Text>
     </View>
@@ -22,23 +23,22 @@ export default function LoadingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a0000',
+    backgroundColor: colors.background.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 60,
+    paddingBottom: spacing[10],
   },
   logo: {
-    width: 200,
-    height: 100,
-    marginBottom: 40,
+    width: 220,
+    height: 110,
+    marginBottom: spacing[10],
   },
   spinner: {
-    marginBottom: 20,
+    marginBottom: spacing[5],
   },
   text: {
-    color: '#ffb347',
-    fontSize: 16,
-    fontWeight: '600',
-    fontStyle: 'italic',
+    color: colors.text.secondary,
+    ...textStyles.bodyMedium,
+    fontWeight: '500',
   },
 });

@@ -1,7 +1,7 @@
-import { addDoc, collection, getFirestore } from 'firebase/firestore';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { supabase } from '../lib/supabase';
 
 interface ReportModalProps {
   visible: boolean;
@@ -16,17 +16,17 @@ export default function ReportModal({ visible, onClose, cardId }: ReportModalPro
   const sendReport = async () => {
     if (!message.trim()) return;
     try {
-      const db = getFirestore();
-      await addDoc(collection(db, 'gamerep'), {
-        gameId: cardId,
+      const { error } = await supabase.from('reports').insert({
+        card_id: cardId,
         message: message.trim(),
-        timestamp: Date.now(),
+        created_at: new Date().toISOString(),
       });
+      if (error) throw error;
       setMessage('');
       onClose();
       alert(t('report.sent'));
     } catch (error) {
-      console.error('Erreur lors de l’envoi du signalement :', error);
+      console.error('Erreur lors de l\'envoi du signalement :', error);
       alert(t('report.error'));
     }
   };
@@ -65,58 +65,56 @@ export default function ReportModal({ visible, onClose, cardId }: ReportModalPro
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    width: '90%',
-    position: 'relative',
+    backgroundColor: '#1a1a2e',
+    borderRadius: 20,
+    padding: 24,
+    width: '85%',
+    maxWidth: 400,
   },
   crossButton: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 10,
+    top: 12,
+    right: 12,
     padding: 8,
   },
   crossText: {
-    color: '#333',
-    fontSize: 20,
-    fontWeight: 'bold',
+    color: '#fff',
+    fontSize: 18,
   },
   title: {
-    fontSize: 18,
+    color: '#fff',
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#1a0000',
     marginBottom: 8,
-    textAlign: 'center',
   },
   subtitle: {
-    color: '#555',
-    marginBottom: 10,
-    textAlign: 'center',
+    color: '#888',
+    fontSize: 14,
+    marginBottom: 16,
   },
   input: {
-    backgroundColor: '#f0f0f0',
-    color: '#000',
-    height: 100,
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 12,
+    backgroundColor: '#2a2a4e',
+    borderRadius: 12,
+    padding: 16,
+    color: '#fff',
+    minHeight: 100,
     textAlignVertical: 'top',
+    marginBottom: 16,
   },
   sendButton: {
-    backgroundColor: '#ffb347',
-    padding: 10,
-    borderRadius: 8,
+    backgroundColor: '#e94560',
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
   },
   sendText: {
-    color: '#000',
+    color: '#fff',
     fontWeight: 'bold',
+    fontSize: 16,
   },
 });

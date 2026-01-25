@@ -1,12 +1,22 @@
 import { useTranslation } from 'react-i18next';
 import {
-  Modal,
+  Modal as RNModal,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
+  Pressable,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  FadeIn,
+} from 'react-native-reanimated';
+import { colors, spacing, borderRadius, textStyles, shadows, springs } from '../theme';
+import { haptics } from '../utils/haptics';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type HistoryEntry = { id: string; type: string; targets?: string[] };
 
@@ -28,6 +38,7 @@ export default function StatsModal({
   history,
 }: StatsModalProps) {
   const { t } = useTranslation();
+  const scale = useSharedValue(1);
 
   const typeBreakdown: Record<string, number> = {};
   history.forEach((item) => {
@@ -39,135 +50,218 @@ export default function StatsModal({
 
   const last5 = history.slice(-5).reverse();
 
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, springs.snappy);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, springs.bouncy);
+  };
+
+  const handleClose = () => {
+    haptics.lightTap();
+    onClose();
+  };
+
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.modalOverlay}>
+    <RNModal visible={visible} transparent animationType="fade">
+      <Animated.View entering={FadeIn.duration(200)} style={styles.modalOverlay}>
         <View style={styles.modalBox}>
-          <ScrollView style={{ maxHeight: 500 }} contentContainerStyle={{ paddingBottom: 20 }}>
+          {/* Close X button */}
+          <Pressable style={styles.closeX} onPress={handleClose}>
+            <View style={styles.closeXCircle}>
+              <Text style={styles.closeXText}>✕</Text>
+            </View>
+          </Pressable>
+
+          <ScrollView style={{ maxHeight: 500 }} contentContainerStyle={{ paddingBottom: spacing[5] }}>
             <Text style={styles.modalTitle}>{t('stats.title')}</Text>
 
-            <View style={styles.section}>
-              <Text style={styles.label}>{t('stats.heat')}</Text>
-              <Text style={styles.value}>{heat}</Text>
+            {/* Heat & Rounds */}
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>{t('stats.heat')}</Text>
+                <Text style={styles.statValue}>{heat}</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>{t('stats.rounds')}</Text>
+                <Text style={styles.statValue}>{rounds}</Text>
+              </View>
             </View>
 
-            <View style={styles.section}>
-              <Text style={styles.label}>{t('stats.rounds')}</Text>
-              <Text style={styles.value}>{rounds}</Text>
-            </View>
-
-            <Text style={[styles.label, { marginTop: 20 }]}>{t('stats.typeBreakdown')}</Text>
+            {/* Type Breakdown */}
+            <Text style={styles.sectionTitle}>{t('stats.typeBreakdown')}</Text>
             {Object.entries(typeBreakdown).map(([type, count]) => (
-              <View key={type} style={styles.statRow}>
-                <Text style={styles.playerName}>{type}</Text>
-                <Text style={styles.statValue}>{count}</Text>
+              <View key={type} style={styles.listRow}>
+                <Text style={styles.listLabel}>{type}</Text>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{count}</Text>
+                </View>
               </View>
             ))}
 
-            <Text style={[styles.label, { marginTop: 20 }]}>{t('stats.perPlayer')}</Text>
+            {/* Per Player */}
+            <Text style={styles.sectionTitle}>{t('stats.perPlayer')}</Text>
             {Object.entries(playerStats).map(([name, count]) => (
-              <View key={name} style={styles.statRow}>
-                <Text style={styles.playerName}>{name}</Text>
-                <Text style={styles.statValue}>{count}</Text>
+              <View key={name} style={styles.listRow}>
+                <Text style={styles.listLabel}>{name}</Text>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{count}</Text>
+                </View>
               </View>
             ))}
 
-            <Text style={[styles.label, { marginTop: 20 }]}>{t('stats.lastRounds')}</Text>
+            {/* Last 5 Rounds */}
+            <Text style={styles.sectionTitle}>{t('stats.lastRounds')}</Text>
             {last5.map((item, index) => (
-              <View key={index} style={styles.statRow}>
-                <Text style={styles.playerName}>
+              <View key={index} style={styles.listRow}>
+                <Text style={styles.listLabel} numberOfLines={1}>
                   {item.type} – {item.id}
                 </Text>
-                <Text style={styles.statValue}>
+                <Text style={styles.listSubtext}>
                   {item.targets?.join(', ') || '—'}
                 </Text>
               </View>
             ))}
           </ScrollView>
 
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <AnimatedPressable
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            onPress={handleClose}
+            style={[styles.closeButton, buttonAnimatedStyle]}
+          >
             <Text style={styles.closeButtonText}>{t('stats.close')}</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
-      </View>
-    </Modal>
+      </Animated.View>
+    </RNModal>
   );
 }
 
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.background.overlay,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: spacing[5],
   },
   modalBox: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
+    backgroundColor: colors.background.secondary,
+    borderRadius: borderRadius['2xl'],
+    padding: spacing[6],
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 400,
     maxHeight: '90%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    position: 'relative',
+    ...shadows.xl,
+  },
+  closeX: {
+    position: 'absolute',
+    top: spacing[2],
+    right: spacing[2],
+    zIndex: 10,
+    padding: spacing[1],
+  },
+  closeXCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primary.main,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  closeXText: {
+    color: colors.text.primary,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   modalTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1a0000',
-    marginBottom: 16,
+    ...textStyles.h1,
+    color: colors.secondary.main,
+    marginBottom: spacing[5],
+    marginTop: spacing[2],
     textAlign: 'center',
   },
-  section: {
-    marginBottom: 12,
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: spacing[3],
+    marginBottom: spacing[5],
   },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.lg,
+    padding: spacing[4],
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.ui.border,
   },
-  value: {
-    fontSize: 16,
-    color: '#555',
-  },
-  scrollArea: {
-    marginTop: 8,
-    maxHeight: 180,
-    paddingHorizontal: 4,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderBottomColor: '#eee',
-    borderBottomWidth: 1,
-    paddingVertical: 8,
-  },
-  playerName: {
-    fontSize: 15,
-    color: '#222',
+  statLabel: {
+    ...textStyles.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing[1],
+    textTransform: 'uppercase',
   },
   statValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#000',
+    ...textStyles.displayMedium,
+    color: colors.secondary.main,
+  },
+  sectionTitle: {
+    ...textStyles.labelMedium,
+    color: colors.text.accent,
+    marginTop: spacing[4],
+    marginBottom: spacing[2],
+  },
+  listRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomColor: colors.ui.border,
+    borderBottomWidth: 1,
+    paddingVertical: spacing[3],
+  },
+  listLabel: {
+    ...textStyles.bodyMedium,
+    color: colors.text.primary,
+    flex: 1,
+  },
+  listSubtext: {
+    ...textStyles.bodySmall,
+    color: colors.text.secondary,
+  },
+  badge: {
+    backgroundColor: colors.primary.main,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+    minWidth: 32,
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: colors.text.primary,
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   closeButton: {
-    marginTop: 24,
+    marginTop: spacing[5],
     alignSelf: 'center',
-    backgroundColor: '#ffb347',
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 999,
-    elevation: 4,
+    backgroundColor: colors.primary.main,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[8],
+    borderRadius: borderRadius.full,
+    borderBottomWidth: 4,
+    borderBottomColor: colors.primary.dark,
+    ...shadows.md,
   },
   closeButtonText: {
-    color: '#1a0000',
+    color: colors.text.primary,
     fontWeight: 'bold',
     fontSize: 16,
   },

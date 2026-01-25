@@ -1,9 +1,20 @@
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import BackButton from '../components/BackButton';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
+import { colors, spacing, borderRadius, textStyles } from '../theme';
 
 export default function ContactScreen() {
   const { t } = useTranslation();
@@ -18,108 +29,143 @@ export default function ContactScreen() {
     }
 
     try {
-      await addDoc(collection(db, 'contacts'), {
-        name,
-        email,
-        message,
-        createdAt: serverTimestamp(),
-      });
+      const { error } = await supabase
+        .from('contacts')
+        .insert({
+          name,
+          email,
+          message,
+          created_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
 
       Alert.alert(t('contact.successTitle'), t('contact.successMessage'));
       setName('');
       setEmail('');
       setMessage('');
     } catch (error) {
-      console.error('Erreur Firestore:', error);
+      console.error('Erreur Supabase:', error);
       Alert.alert(t('contact.errorTitle'), t('contact.errorSend'));
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require('../assets/images/logo.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-      <BackButton />
-      <Text style={styles.title}>{t('contact.title')}</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <BackButton />
 
-      <TextInput
-        style={styles.input}
-        placeholder={t('contact.placeholderName')}
-        placeholderTextColor="#aaa"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder={t('contact.placeholderEmail')}
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={[styles.input, styles.textarea]}
-        placeholder={t('contact.placeholderMessage')}
-        placeholderTextColor="#aaa"
-        value={message}
-        onChangeText={setMessage}
-        multiline
-        numberOfLines={4}
-      />
+        <Image
+          source={require('../assets/images/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleSend}>
-        <Text style={styles.buttonText}>{t('contact.send')}</Text>
-      </TouchableOpacity>
-    </View>
+        <Text style={styles.title}>{t('contact.title')}</Text>
+
+        <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            placeholder={t('contact.placeholderName')}
+            placeholderTextColor={colors.text.tertiary}
+            value={name}
+            onChangeText={setName}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder={t('contact.placeholderEmail')}
+            placeholderTextColor={colors.text.tertiary}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={[styles.input, styles.textarea]}
+            placeholder={t('contact.placeholderMessage')}
+            placeholderTextColor={colors.text.tertiary}
+            value={message}
+            onChangeText={setMessage}
+            multiline
+            numberOfLines={4}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={handleSend} activeOpacity={0.8}>
+            <Text style={styles.buttonText}>{t('contact.send')}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a0000',
-    padding: 20,
+    backgroundColor: colors.background.primary,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: spacing[5],
     alignItems: 'center',
+    paddingTop: 60,
   },
   logo: {
     width: 200,
-    height: 200,
-    marginBottom: 10,
-    marginTop: 10,
+    height: 100,
+    marginBottom: spacing[4],
   },
   title: {
-    fontSize: 22,
-    color: '#ffb347',
-    fontWeight: '700',
-    marginBottom: 20,
+    ...textStyles.h2,
+    color: colors.text.primary,
+    marginBottom: spacing[6],
     textAlign: 'center',
+  },
+  form: {
+    width: '100%',
   },
   input: {
     width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 14,
-    color: '#000',
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[4],
+    marginBottom: spacing[4],
+    color: colors.text.primary,
+    fontSize: 16,
+    borderWidth: 2,
+    borderColor: colors.ui.border,
   },
   textarea: {
-    height: 100,
+    height: 120,
     textAlignVertical: 'top',
+    paddingTop: spacing[4],
   },
   button: {
-    backgroundColor: '#ffb347',
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 999,
-    marginTop: 10,
+    backgroundColor: colors.primary.main,
+    paddingVertical: spacing[4],
+    borderRadius: borderRadius.xl,
+    marginTop: spacing[2],
+    borderBottomWidth: 5,
+    borderBottomColor: colors.primary.dark,
+    // Red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
   },
   buttonText: {
-    color: '#1a0000',
-    fontWeight: '600',
-    fontSize: 16,
+    color: colors.text.primary,
+    fontWeight: '700',
+    fontSize: 18,
+    textAlign: 'center',
   },
 });

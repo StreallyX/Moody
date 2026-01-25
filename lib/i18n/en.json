@@ -1,8 +1,8 @@
 {
   "home": {
-    "slogan": "The game that heats up the mood 🔥",
-    "playerPlaceholder": "Player name",
-    "start": "Start",
+    "slogan": "Play. Tease. Heat things up. 🔥",
+    "playerPlaceholder": "Who's playing tonight?",
+    "start": "LET'S PLAY",
     "scrollHint": "Swipe →",
     "language": "Language",
     "account": "Account",
@@ -14,8 +14,9 @@
     "noPlayersTitle": "At least 1 player is required",
     "noPlayersDesc": "Add a player to start the game.",
     "soloTitle": "Play solo?",
-    "soloDesc": "You’ve added only one player. Do you really want to play alone?",
-    "emptyHint": "Tip: add at least 1 player to start."
+    "soloDesc": "You've added only one player. Do you really want to play alone?",
+    "emptyHint": "Tip: add at least 1 player to start.",
+    "playerExists": "This player is already in the list!"
   },
   "contact": {
     "title": "Contact us",
@@ -33,14 +34,23 @@
     "friends": "Friends",
     "caliente": "Caliente",
     "mystery": "Mystery",
-    "couple": "Couple",
+    "couple": "Couples",
     "back": "Back",
     "players": "players",
+    "chooseMode": "Choose your mode",
     "resumeQuestion": "Resume the game?",
-    "underConstruction": "🚧 Under construction",
-    "unlockHint": "Click here to unlock 🔓",
-    "modalTitle": "Unavailable mode",
-    "modalText": "The selected mode is only available to logged-in players. Please log in to access it 🔒"
+    "freeMode": "Free",
+    "unlocked": "Unlocked",
+    "accountRequired": "Login required",
+    "purchased": "Purchased",
+    "purchaseRequired": "Purchase required",
+    "loginRequired": "Login required",
+    "loginRequiredDesc": "This mode is only available to logged-in players. Log in to access it!",
+    "goToLogin": "Log in",
+    "purchaseTitle": "Unlock this mode",
+    "purchaseDesc": "This premium mode requires a one-time purchase to unlock.",
+    "purchase": "Buy",
+    "purchaseComingSoon": "Purchases coming soon! Stay tuned."
   },
   "gamestart": {
     "ready": "Ready to play?",
@@ -53,7 +63,10 @@
     "submit": "Login",
     "noAccount": "Not signed up yet?",
     "forgotPassword": "Forgot password?",
-    "errorTitle": "Error"
+    "errorTitle": "Error",
+    "fillAllFields": "Please fill in all fields.",
+    "successTitle": "Connected!",
+    "connected": "You are now logged in. Enjoy all the game modes!"
   },
   "profile": {
     "slogan": "The game that heats up the mood 🔥",
@@ -65,11 +78,16 @@
     "slogan": "The game that heats up the mood 🔥",
     "emailPlaceholder": "Email",
     "passwordPlaceholder": "Password",
+    "confirmPasswordPlaceholder": "Confirm password",
     "signup": "Sign up",
     "alreadyHaveAccount": "Already have an account?",
     "successTitle": "Success",
     "successMessage": "Account created!",
-    "errorTitle": "Error"
+    "checkEmailMessage": "A confirmation email has been sent. Check your inbox!",
+    "errorTitle": "Error",
+    "fillAllFields": "Please fill in all fields.",
+    "passwordMismatch": "Passwords do not match.",
+    "passwordTooShort": "Password must be at least 6 characters."
   },
   "event": {
     "title": "EVENT",
@@ -204,5 +222,13 @@
     "ok": "OK",
     "cancel": "Cancel",
     "continue": "Continue"
+  },
+  "auth": {
+    "verifying": "Verifying...",
+    "success": "Success!",
+    "error": "Error",
+    "emailConfirmed": "Your email has been confirmed! Welcome to Moody!",
+    "alreadyConfirmed": "Your account is already confirmed.",
+    "confirmationError": "Confirmation failed. Please try again."
   }
 }
