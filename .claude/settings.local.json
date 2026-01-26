@@ -16,7 +16,11 @@
       "Bash(npx tsc --noEmit)",
       "Bash(dir \"C:\\\\DEV\\\\Moody\\\\hooks\")",
       "Bash(dir \"C:\\\\DEV\\\\Moody\\\\components\")",
-      "Skill(superpowers:brainstorming)"
+      "Skill(superpowers:brainstorming)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(npx expo prebuild:*)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }

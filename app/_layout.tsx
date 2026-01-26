@@ -5,6 +5,7 @@ import * as Linking from 'expo-linking';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { AuthProvider } from '../context/AuthContext';
 import { useAuth } from '../context/AuthContext';
+import { PurchaseProvider } from '../context/PurchaseContext';
 import LoadingScreen from '../components/LoadingScreen';
 import { supabase } from '../lib/supabase';
 import { grantModeAccess } from '../lib/auth';
@@ -113,10 +114,20 @@ const styles = StyleSheet.create({
   },
 });
 
+function PurchaseWrapper() {
+  const { user } = useAuth();
+
+  return (
+    <PurchaseProvider userId={user?.id}>
+      <RootLayoutContent />
+    </PurchaseProvider>
+  );
+}
+
 export default function Layout() {
   return (
     <AuthProvider>
-      <RootLayoutContent />
+      <PurchaseWrapper />
     </AuthProvider>
   );
 }

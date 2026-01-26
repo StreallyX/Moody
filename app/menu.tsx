@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ScrollView,
@@ -7,12 +7,12 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AnimatedButton, Card, Modal } from '../components/ui';
+import ModeUnlockModal from '../components/ModeUnlockModal';
 import {
   clearGameState,
   loadGameState,
@@ -21,10 +21,12 @@ import {
 import {
   hasModeAccess,
   grantModeAccess,
-  hasModePurchased,
 } from '../lib/auth';
+import { hasModeUnlocked, debugPurchaseStatus, resetAllPurchases } from '../lib/purchases';
+import { clearLocalPurchases as clearIAPCache } from '../services/iapService';
 import { useAuth } from '../context/AuthContext';
-import { colors, spacing, borderRadius, textStyles, shadows } from '../theme';
+import { usePurchaseContext } from '../context/PurchaseContext';
+import { colors, spacing, borderRadius, textStyles } from '../theme';
 import { haptics } from '../utils/haptics';
 
 interface GameMode {
@@ -62,17 +64,34 @@ const GAME_MODES: GameMode[] = [
 export default function MenuScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { user, session } = useAuth();
+  const { user } = useAuth();
+  const { hasCouplesMode, hasCalienteMode, isInitialized: purchaseInitialized } = usePurchaseContext();
   const [playerList, setPlayerList] = useState<string[]>([]);
   const [hasSavedGame, setHasSavedGame] = useState(false);
   const [lastMode, setLastMode] = useState<string>('friends');
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<string | null>(null);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [selectedModeToUnlock, setSelectedModeToUnlock] = useState<string>('');
   const [modeAccess, setModeAccess] = useState<Record<string, boolean>>({});
-  const [purchasedModes, setPurchasedModes] = useState<Record<string, boolean>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const isLoggedIn = !!user;
+
+  // Debug: Reset purchases (dev only)
+  const handleDebugReset = async () => {
+    if (__DEV__) {
+      console.log('=== DEBUG RESET ===');
+      await debugPurchaseStatus();
+      // Clear ALL purchase caches
+      await resetAllPurchases();  // Old purchases cache + DB
+      await clearIAPCache();       // New IAP cache
+      // Refresh mode access
+      setModeAccess({ friends: true });
+      setRefreshTrigger(prev => prev + 1);
+      haptics.warning();
+      console.log('=== ALL CACHES CLEARED ===');
+    }
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -101,13 +120,12 @@ export default function MenuScreen() {
 
         // Check mode access
         const accessStatus: Record<string, boolean> = {};
-        const purchaseStatus: Record<string, boolean> = {};
 
         for (const mode of GAME_MODES) {
           if (mode.requirement === 'free') {
             accessStatus[mode.id] = true;
           } else if (mode.requirement === 'account') {
-            // If logged in, grant access
+            // Caliente mode: check if logged in
             if (isLoggedIn) {
               await grantModeAccess(mode.id);
               accessStatus[mode.id] = true;
@@ -115,19 +133,19 @@ export default function MenuScreen() {
               accessStatus[mode.id] = await hasModeAccess(mode.id);
             }
           } else if (mode.requirement === 'purchase') {
-            const purchased = await hasModePurchased(mode.id);
-            purchaseStatus[mode.id] = purchased;
-            if (purchased && isLoggedIn) {
+            // Purchase required: check ONLY database/purchase cache (not old access keys)
+            const isUnlocked = await hasModeUnlocked(mode.id);
+
+            if (isUnlocked || hasCouplesMode) {
               await grantModeAccess(mode.id);
               accessStatus[mode.id] = true;
             } else {
-              accessStatus[mode.id] = purchased && await hasModeAccess(mode.id);
+              accessStatus[mode.id] = false;
             }
           }
         }
 
         setModeAccess(accessStatus);
-        setPurchasedModes(purchaseStatus);
       } catch (error) {
         // Error loading - continue with default access (free mode only)
         console.log('Menu init error:', error);
@@ -136,7 +154,7 @@ export default function MenuScreen() {
     };
 
     init();
-  }, [user]);
+  }, [user, hasCouplesMode, hasCalienteMode, purchaseInitialized, refreshTrigger]);
 
   const getModeTitle = (id: string): string => {
     switch (id) {
@@ -154,7 +172,7 @@ export default function MenuScreen() {
       case 'account':
         return modeAccess[mode.id] ? t('menu.unlocked') : t('menu.accountRequired');
       case 'purchase':
-        if (purchasedModes[mode.id]) {
+        if (hasCouplesMode || modeAccess[mode.id]) {
           return t('menu.purchased');
         }
         return t('menu.purchaseRequired');
@@ -177,7 +195,6 @@ export default function MenuScreen() {
       if (modeAccess[mode.id]) {
         await startGame(mode.id);
       } else {
-        setSelectedMode(mode.id);
         setShowLoginModal(true);
       }
       return;
@@ -185,17 +202,28 @@ export default function MenuScreen() {
 
     // Purchase required mode
     if (mode.requirement === 'purchase') {
-      if (modeAccess[mode.id]) {
+      if (modeAccess[mode.id] || hasCouplesMode) {
         await startGame(mode.id);
       } else if (!isLoggedIn) {
-        setSelectedMode(mode.id);
         setShowLoginModal(true);
       } else {
-        setSelectedMode(mode.id);
-        setShowPurchaseModal(true);
+        // Show unlock modal
+        setSelectedModeToUnlock(mode.id);
+        setShowUnlockModal(true);
       }
     }
   };
+
+  // Refresh mode access after successful purchase
+  const handleUnlockSuccess = useCallback(() => {
+    // Immediately update mode access for the purchased mode
+    setModeAccess(prev => ({
+      ...prev,
+      [selectedModeToUnlock]: true,
+    }));
+    // Also trigger a full refresh to sync with DB
+    setRefreshTrigger(prev => prev + 1);
+  }, [selectedModeToUnlock]);
 
   const startGame = async (modeId: string) => {
     await clearGameState();
@@ -203,24 +231,20 @@ export default function MenuScreen() {
     router.push(`/game/${modeId}`);
   };
 
-  const handlePurchase = async () => {
-    // TODO: Integrate with RevenueCat for real purchases
-    // For now, simulate purchase
-    haptics.success();
-    Alert.alert(
-      t('menu.purchaseTitle'),
-      t('menu.purchaseComingSoon'),
-      [{ text: 'OK', onPress: () => setShowPurchaseModal(false) }]
-    );
-  };
-
   const renderModeCard = (mode: GameMode, index: number) => {
     const hasAccess = modeAccess[mode.id];
-    // Check if user is logged in for account-required modes
-    const hasDirectAccess = mode.requirement === 'free' ||
+
+    // Mode is NOT locked if any of these are true:
+    // - It's a free mode
+    // - User is logged in and it's an account-required mode
+    // - User has premium
+    // - User has purchased/unlocked this specific mode (hasAccess from modeAccess)
+    const isLocked = !(
+      mode.requirement === 'free' ||
       (mode.requirement === 'account' && isLoggedIn) ||
-      (mode.requirement === 'purchase' && purchasedModes[mode.id]);
-    const isLocked = !hasAccess && !hasDirectAccess;
+      hasCouplesMode ||
+      hasAccess
+    );
 
     return (
       <Animated.View
@@ -285,10 +309,23 @@ export default function MenuScreen() {
           <Text style={styles.backText}>{t('menu.back')}</Text>
         </TouchableOpacity>
 
-        <View style={styles.playersChip}>
-          <View style={styles.playersContent}>
-            <Icon name="users" size={14} color={colors.text.primary} />
-            <Text style={styles.playersText}>{playerList.length}</Text>
+        <View style={styles.headerRight}>
+          {__DEV__ && (
+            <TouchableOpacity
+              style={styles.debugButton}
+              onPress={handleDebugReset}
+              onLongPress={async () => {
+                await debugPurchaseStatus();
+              }}
+            >
+              <Icon name="bug" size={14} color={colors.text.tertiary} />
+            </TouchableOpacity>
+          )}
+          <View style={styles.playersChip}>
+            <View style={styles.playersContent}>
+              <Icon name="users" size={14} color={colors.text.primary} />
+              <Text style={styles.playersText}>{playerList.length}</Text>
+            </View>
           </View>
         </View>
       </Animated.View>
@@ -359,29 +396,14 @@ export default function MenuScreen() {
         </View>
       </Modal>
 
-      {/* Purchase Required Modal */}
-      <Modal
-        visible={showPurchaseModal}
-        onClose={() => setShowPurchaseModal(false)}
-        title={t('menu.purchaseTitle')}
-      >
-        <Text style={styles.modalText}>{t('menu.purchaseDesc')}</Text>
-        <View style={styles.modalButtons}>
-          <AnimatedButton
-            label={t('common.cancel')}
-            variant="ghost"
-            onPress={() => setShowPurchaseModal(false)}
-            size="md"
-            style={{ flex: 1 }}
-          />
-          <AnimatedButton
-            label={t('menu.purchase')}
-            onPress={handlePurchase}
-            size="md"
-            style={{ flex: 1 }}
-          />
-        </View>
-      </Modal>
+      {/* Mode Unlock Modal */}
+      <ModeUnlockModal
+        visible={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+        modeId={selectedModeToUnlock}
+        onSuccess={handleUnlockSuccess}
+      />
+
     </View>
   );
 }
@@ -408,6 +430,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing[5],
     marginBottom: spacing[4],
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  debugButton: {
+    padding: spacing[2],
+    opacity: 0.5,
   },
   backButton: {
     flexDirection: 'row',
@@ -501,6 +532,7 @@ const styles = StyleSheet.create({
     padding: spacing[4],
     borderRadius: borderRadius['2xl'],
     borderWidth: 2,
+    borderStyle: 'solid',
     // Glow effect based on card color
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,

@@ -1,36 +1,37 @@
-// PurchaseContext - Global purchase state provider
+/**
+ * PurchaseContext - Global purchase state using react-native-iap
+ * Simplified version without RevenueCat
+ */
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import Purchases, { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import {
-  initializePurchases,
-  getOfferings,
-  purchasePackage,
-  restorePurchases,
-  getCustomerInfo,
-  identifyUser,
-  resetUser,
-} from '@/services/purchaseService';
-import { ENTITLEMENTS } from '@/config/offerings';
-import type { Offering, PurchaseResult } from '@/types/purchases';
+  initializeIAP,
+  getProducts,
+  getPurchasedProducts,
+  restorePurchases as restoreIAPPurchases,
+  hasPurchased,
+  closeIAP,
+  PRODUCT_IDS,
+  Product,
+} from '../services/iapService';
+import { grantModeAccess } from '../lib/auth';
 
 interface PurchaseContextType {
   // State
-  offerings: Offering | null;
-  customerInfo: CustomerInfo | null;
-  isPremium: boolean;
-  hasMiniGames: boolean;
-  hasCalienteMode: boolean;
+  products: Product[];
+  purchasedProducts: string[];
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
 
+  // Derived state
+  hasCouplesMode: boolean;
+  hasCalienteMode: boolean;
+
   // Actions
-  purchase: (pkg: PurchasesPackage) => Promise<PurchaseResult>;
-  restore: () => Promise<PurchaseResult>;
+  restore: () => Promise<string[]>;
   refresh: () => Promise<void>;
-  setUserId: (userId: string) => Promise<void>;
-  logout: () => Promise<void>;
+  checkPurchase: (productId: string) => Promise<boolean>;
 }
 
 const PurchaseContext = createContext<PurchaseContextType | undefined>(undefined);
@@ -41,146 +42,130 @@ interface PurchaseProviderProps {
 }
 
 export function PurchaseProvider({ children, userId }: PurchaseProviderProps) {
-  const [offerings, setOfferings] = useState<Offering | null>(null);
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [purchasedProducts, setPurchasedProducts] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Derived state
-  const isPremium = customerInfo?.entitlements.active[ENTITLEMENTS.PREMIUM] !== undefined;
-  const hasMiniGames = isPremium || customerInfo?.entitlements.active[ENTITLEMENTS.MINI_GAMES_PACK] !== undefined;
-  const hasCalienteMode = isPremium || customerInfo?.entitlements.active[ENTITLEMENTS.CALIENTE_MODE] !== undefined;
+  const hasCouplesMode = purchasedProducts.includes(PRODUCT_IDS.COUPLES);
+  const hasCalienteMode = purchasedProducts.includes(PRODUCT_IDS.CALIENTE);
 
   // Initialize on mount
   useEffect(() => {
     initialize();
+
+    return () => {
+      closeIAP();
+    };
   }, []);
 
-  // Re-identify when userId changes
+  // Refresh when userId changes (user logged in/out)
   useEffect(() => {
     if (isInitialized && userId) {
-      identifyUser(userId).then(setCustomerInfo).catch(console.error);
+      refresh();
     }
   }, [userId, isInitialized]);
-
-  // Listen to customer info updates
-  useEffect(() => {
-    Purchases.addCustomerInfoUpdateListener((info: CustomerInfo) => {
-      setCustomerInfo(info);
-    });
-    // Note: addCustomerInfoUpdateListener returns void in newer versions
-    // Cleanup is handled internally by RevenueCat
-  }, []);
 
   const initialize = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      await initializePurchases(userId);
+      // Initialize IAP connection
+      const success = await initializeIAP();
 
-      const [offeringsData, info] = await Promise.all([
-        getOfferings(),
-        getCustomerInfo(),
-      ]);
+      if (success) {
+        // Get products and purchases
+        const [productList, purchased] = await Promise.all([
+          getProducts(),
+          getPurchasedProducts(),
+        ]);
 
-      setOfferings(offeringsData);
-      setCustomerInfo(info);
+        setProducts(productList);
+        setPurchasedProducts(purchased);
+
+        // Grant access for purchased modes
+        for (const productId of purchased) {
+          if (productId === PRODUCT_IDS.COUPLES) {
+            await grantModeAccess('couples');
+          } else if (productId === PRODUCT_IDS.CALIENTE) {
+            await grantModeAccess('caliente');
+          }
+        }
+      }
+
       setIsInitialized(true);
     } catch (err: any) {
       console.error('Failed to initialize purchases:', err);
       setError(err.message || 'Failed to initialize purchases');
+      setIsInitialized(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const purchase = async (pkg: PurchasesPackage): Promise<PurchaseResult> => {
-    setError(null);
-    const result = await purchasePackage(pkg, userId);
-
-    if (result.success && result.customerInfo) {
-      setCustomerInfo(result.customerInfo);
-    } else if (result.error && !result.cancelled) {
-      setError(result.error.message);
-    }
-
-    return result;
-  };
-
-  const restore = async (): Promise<PurchaseResult> => {
+  const restore = useCallback(async (): Promise<string[]> => {
     setError(null);
     setIsLoading(true);
 
     try {
-      const result = await restorePurchases();
+      const restored = await restoreIAPPurchases();
+      setPurchasedProducts(prev => [...new Set([...prev, ...restored])]);
 
-      if (result.customerInfo) {
-        setCustomerInfo(result.customerInfo);
-      }
-      if (result.error) {
-        setError(result.error.message);
+      // Grant access for restored modes
+      for (const productId of restored) {
+        if (productId === PRODUCT_IDS.COUPLES) {
+          await grantModeAccess('couples');
+        } else if (productId === PRODUCT_IDS.CALIENTE) {
+          await grantModeAccess('caliente');
+        }
       }
 
-      return result;
+      return restored;
+    } catch (err: any) {
+      setError(err.message || 'Failed to restore purchases');
+      return [];
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const refresh = async (): Promise<void> => {
+  const refresh = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const [offeringsData, info] = await Promise.all([
-        getOfferings(),
-        getCustomerInfo(),
+      const [productList, purchased] = await Promise.all([
+        getProducts(),
+        getPurchasedProducts(),
       ]);
 
-      setOfferings(offeringsData);
-      setCustomerInfo(info);
+      setProducts(productList);
+      setPurchasedProducts(purchased);
     } catch (err: any) {
       setError(err.message || 'Failed to refresh');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const setUserId = async (newUserId: string): Promise<void> => {
-    try {
-      const info = await identifyUser(newUserId);
-      setCustomerInfo(info);
-    } catch (err: any) {
-      console.error('Failed to set user ID:', err);
-      setError(err.message);
-    }
-  };
-
-  const logout = async (): Promise<void> => {
-    try {
-      await resetUser();
-      setCustomerInfo(null);
-    } catch (err: any) {
-      console.error('Failed to logout:', err);
-    }
-  };
+  const checkPurchase = useCallback(async (productId: string): Promise<boolean> => {
+    return hasPurchased(productId);
+  }, []);
 
   const value: PurchaseContextType = {
-    offerings,
-    customerInfo,
-    isPremium,
-    hasMiniGames,
-    hasCalienteMode,
+    products,
+    purchasedProducts,
     isLoading,
     isInitialized,
     error,
-    purchase,
+    hasCouplesMode,
+    hasCalienteMode,
     restore,
     refresh,
-    setUserId,
-    logout,
+    checkPurchase,
   };
 
   return (

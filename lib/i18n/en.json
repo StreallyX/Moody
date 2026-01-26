@@ -230,5 +230,30 @@
     "emailConfirmed": "Your email has been confirmed! Welcome to Moody!",
     "alreadyConfirmed": "Your account is already confirmed.",
     "confirmationError": "Confirmation failed. Please try again."
+  },
+  "unlock": {
+    "couples": {
+      "name": "Couples Mode",
+      "description": "Intimate and playful challenges to spice up your evenings together",
+      "feature1": "Exclusive couples challenges",
+      "feature2": "Romantic and spicy dares",
+      "feature3": "Two-player mini-games",
+      "feature4": "Permanent access"
+    },
+    "caliente": {
+      "name": "Caliente Mode",
+      "description": "Turn up the heat with daring challenges among friends",
+      "feature1": "Bolder challenges",
+      "feature2": "Spicy dares",
+      "feature3": "Guaranteed hot vibes",
+      "feature4": "Permanent access"
+    },
+    "oneTimePurchase": "One-time purchase",
+    "unlockFor": "Unlock for {{price}}",
+    "noSubscription": "One-time purchase • Permanent access • No subscription",
+    "unlocked": "Unlocked!",
+    "nowAvailable": "{{mode}} is now available",
+    "error": "An error occurred",
+    "purchasing": "Processing..."
   }
 }

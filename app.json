@@ -13,9 +13,9 @@
     },
     "android": {
       "package": "com.tonorga.moody",
-      "versionCode": 2,
-      "edgeToEdgeEnabled": true,
+      "versionCode": 4,
       "softwareKeyboardLayoutMode": "pan",
+      "permissions": ["com.android.vending.BILLING"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#1A0A0A"
