@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { haptics } from '../utils/haptics';
+import { colors } from '../theme';
 
 interface RulesScreenProps {
   onComplete: () => void;
@@ -9,7 +11,11 @@ interface RulesScreenProps {
 export default function RulesScreen({ onComplete }: RulesScreenProps) {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [step, setStep] = useState(0);
-  const rules = ['📖 Lisez', '🎯 Faites', '🍺 Buvez'];
+  const rules = [
+    { icon: 'book', text: 'Lisez' },
+    { icon: 'bullseye', text: 'Faites' },
+    { icon: 'beer', text: 'Buvez' },
+  ];
 
   useEffect(() => {
     // Auto-skip after 3 seconds
@@ -52,21 +58,25 @@ export default function RulesScreen({ onComplete }: RulesScreenProps) {
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         <View style={styles.rulesContainer}>
           {rules.map((rule, index) => (
-            <Animated.Text
+            <Animated.View
               key={index}
               style={[
-                styles.ruleText,
+                styles.ruleItem,
                 {
                   opacity: step >= index ? 1 : 0.3,
                   transform: [{ scale: step >= index ? 1 : 0.9 }],
                 },
               ]}
             >
-              {rule}
-            </Animated.Text>
+              <Icon name={rule.icon} size={24} color={colors.primary.main} style={styles.ruleIcon} />
+              <Text style={styles.ruleText}>{rule.text}</Text>
+            </Animated.View>
           ))}
         </View>
-        <Text style={styles.skipText}>Tap pour commencer 👆</Text>
+        <View style={styles.skipContainer}>
+          <Text style={styles.skipText}>Tap pour commencer</Text>
+          <Icon name="hand-pointer-o" size={14} color="#666" />
+        </View>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -88,10 +98,21 @@ const styles = StyleSheet.create({
     gap: 20,
     marginBottom: 40,
   },
+  ruleItem: {
+    alignItems: 'center',
+  },
+  ruleIcon: {
+    marginBottom: 8,
+  },
   ruleText: {
-    fontSize: 28,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  skipContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   skipText: {
     color: '#666',

@@ -206,7 +206,10 @@ export function AffiliateDashboard() {
           </View>
         ) : (
           <View>
-            <Text style={styles.successText}>✓ Stripe connected</Text>
+            <View style={styles.successRow}>
+              <Ionicons name="checkmark-circle" size={18} color="#22c55e" />
+              <Text style={styles.successText}>Stripe connected</Text>
+            </View>
             <TouchableOpacity
               style={[
                 styles.primaryButton,
@@ -381,11 +384,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
+  successRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
   successText: {
     color: '#10b981',
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 8,
   },
   historyItem: {
     flexDirection: 'row',

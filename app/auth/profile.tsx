@@ -1,6 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Image,
@@ -8,38 +7,51 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import BackButton from '../../components/BackButton';
-import { isUserLoggedIn, logout } from '../../lib/auth';
+import { useAuth } from '../../context/AuthContext';
+import { revokeAllAccess } from '../../lib/auth';
+import { colors, spacing, borderRadius, textStyles } from '../../theme';
 
 export default function ProfileScreen() {
-  const [userEmail, setUserEmail] = useState<string | null>(null);
   const router = useRouter();
   const { t } = useTranslation();
+  const { user, loading, signOut } = useAuth();
 
   useEffect(() => {
-    const checkAuthAndLoad = async () => {
-      const loggedIn = await isUserLoggedIn();
-      if (!loggedIn) {
-        router.replace('/auth/login');
-        return;
-      }
-
-      const email = await AsyncStorage.getItem('userEmail');
-      setUserEmail(email);
-    };
-
-    checkAuthAndLoad();
-  }, []);
+    // Redirect to login if not authenticated
+    if (!loading && !user) {
+      router.replace('/auth/login');
+    }
+  }, [user, loading]);
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
+    await revokeAllAccess();
     router.replace('/auth/login');
   };
 
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.primary.main} />
+      </View>
+    );
+  }
+
+  // Don't render if not logged in (will redirect)
+  if (!user) {
+    return null;
+  }
+
+  const userEmail = user.email || '';
+
   return (
     <View style={styles.container}>
-      {/* Logo + slogan */}
+      <BackButton />
+
       <View style={styles.header}>
         <Image
           source={require('../../assets/images/logo.png')}
@@ -49,18 +61,23 @@ export default function ProfileScreen() {
         <Text style={styles.slogan}>{t('profile.slogan')}</Text>
       </View>
 
-      <BackButton />
-
-      {/* Info utilisateur + déconnexion */}
       <View style={styles.content}>
+        <View style={styles.avatarContainer}>
+          <Text style={styles.avatarText}>
+            {userEmail ? userEmail.charAt(0).toUpperCase() : '?'}
+          </Text>
+        </View>
+
         <Text style={styles.title}>{t('profile.welcome')}</Text>
         {userEmail && (
-          <Text style={styles.text}>
-            {t('profile.connectedWith')} {userEmail}
-          </Text>
+          <Text style={styles.email}>{userEmail}</Text>
         )}
 
-        <TouchableOpacity style={styles.button} onPress={handleLogout}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogout}
+          activeOpacity={0.8}
+        >
           <Text style={styles.buttonText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
       </View>
@@ -71,54 +88,86 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a0000',
+    backgroundColor: colors.background.primary,
     paddingTop: 60,
     alignItems: 'center',
   },
+  centered: {
+    justifyContent: 'center',
+  },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: spacing[8],
   },
   logo: {
-    width: 300,
-    height: 140,
+    width: 280,
+    height: 130,
   },
   slogan: {
-    marginTop: 10,
-    color: '#ffb347',
-    fontSize: 14,
+    marginTop: spacing[3],
+    color: '#F5F5F5',
+    ...textStyles.bodyMedium,
     fontWeight: '600',
     fontStyle: 'italic',
     textAlign: 'center',
+    textShadowColor: 'rgba(224, 32, 32, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
   },
   content: {
-    width: '80%',
+    width: '85%',
     alignItems: 'center',
   },
-  title: {
-    fontSize: 22,
-    color: '#fff',
-    fontWeight: '700',
-    marginBottom: 16,
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primary.main,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing[5],
+    // Red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  text: {
-    fontSize: 15,
-    color: '#fff',
-    marginBottom: 30,
+  avatarText: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  title: {
+    ...textStyles.h2,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
+  },
+  email: {
+    ...textStyles.bodyMedium,
+    color: colors.text.secondary,
+    marginBottom: spacing[8],
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#ffb347',
-    borderRadius: 999,
-    height: 50,
+    backgroundColor: colors.primary.main,
+    borderRadius: borderRadius.xl,
+    height: 56,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 3,
+    borderBottomWidth: 5,
+    borderBottomColor: colors.primary.dark,
+    // Red glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
   },
   buttonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
+    color: colors.text.primary,
+    fontSize: 18,
+    fontWeight: '700',
   },
 });

@@ -73,13 +73,13 @@ export class ContentManager {
 
   private filterChallenges(challenges: Challenge[], filters: ContentFilters): Challenge[] {
     return challenges.filter((c) => {
-      if (!c.mode.includes(filters.mode)) return false;
-      if (c.minPlayers > filters.playerCount) return false;
+      if (c.mode && !c.mode.includes(filters.mode)) return false;
+      if (c.minPlayers && c.minPlayers > filters.playerCount) return false;
       if (c.maxPlayers && c.maxPlayers < filters.playerCount) return false;
-      if (c.difficulty > filters.maxDifficulty) return false;
+      if (c.difficulty && c.difficulty > filters.maxDifficulty) return false;
       if (filters.excludeIds?.has(c.id)) return false;
-      if (filters.tags && filters.tags.length > 0) {
-        if (!filters.tags.some((t) => c.tags.includes(t))) return false;
+      if (filters.tags && filters.tags.length > 0 && c.tags) {
+        if (!filters.tags.some((t) => c.tags!.includes(t))) return false;
       }
       return true;
     });

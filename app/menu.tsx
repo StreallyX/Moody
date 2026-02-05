@@ -1,188 +1,385 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Image,
-  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { AnimatedButton, Card, Modal } from '../components/ui';
 import {
   clearGameState,
   loadGameState,
   loadPlayers,
 } from '../lib/storage';
+import {
+  hasModeAccess,
+  grantModeAccess,
+  hasModePurchased,
+} from '../lib/auth';
+import { useAuth } from '../context/AuthContext';
+import { colors, spacing, borderRadius, textStyles, shadows } from '../theme';
+import { haptics } from '../utils/haptics';
 
-function MenuImage({ source }: { source: any }) {
-  const [loading, setLoading] = useState(true);
-  return (
-    <View style={styles.imageWrapper}>
-      <Image
-        source={source}
-        style={styles.image}
-        onLoadEnd={() => setLoading(false)}
-      />
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#ffb347" />
-        </View>
-      )}
-    </View>
-  );
+interface GameMode {
+  id: string;
+  icon: string;
+  color: string;
+  bgColor: string;
+  requirement: 'free' | 'account' | 'purchase';
 }
+
+const GAME_MODES: GameMode[] = [
+  {
+    id: 'friends',
+    icon: 'beer',
+    color: colors.semantic.gold,
+    bgColor: '#1A1406',
+    requirement: 'free',
+  },
+  {
+    id: 'caliente',
+    icon: 'flame',
+    color: '#FF6B35',  // Orange
+    bgColor: '#1A0A06',
+    requirement: 'account',
+  },
+  {
+    id: 'couples',
+    icon: 'heart',
+    color: '#FF4D6A',  // Rose
+    bgColor: '#1A0810',
+    requirement: 'purchase',
+  },
+];
 
 export default function MenuScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { user, session } = useAuth();
   const [playerList, setPlayerList] = useState<string[]>([]);
   const [hasSavedGame, setHasSavedGame] = useState(false);
   const [lastMode, setLastMode] = useState<string>('friends');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<string | null>(null);
+  const [modeAccess, setModeAccess] = useState<Record<string, boolean>>({});
+  const [purchasedModes, setPurchasedModes] = useState<Record<string, boolean>>({});
+
+  const isLoggedIn = !!user;
 
   useEffect(() => {
     const init = async () => {
-      const logged = await AsyncStorage.getItem('isLoggedIn');
-      setIsLoggedIn(logged === 'true');
+      try {
+        // Load players
+        const loadedPlayers = await loadPlayers();
+        if (!loadedPlayers || loadedPlayers.length === 0) {
+          router.replace('/');
+          return;
+        }
+        setPlayerList(loadedPlayers);
 
-      const loadedPlayers = await loadPlayers();
-      if (!loadedPlayers || loadedPlayers.length === 0) {
-        router.replace('/');
-        return;
-      }
+        // Check saved game
+        const game = await loadGameState();
+        if (
+          game &&
+          game.players.length > 0 &&
+          arraysEqual(game.players, loadedPlayers)
+        ) {
+          setHasSavedGame(true);
+          setLastMode(game.mode ?? 'friends');
+        } else {
+          await clearGameState();
+          setHasSavedGame(false);
+        }
 
-      setPlayerList(loadedPlayers);
+        // Check mode access
+        const accessStatus: Record<string, boolean> = {};
+        const purchaseStatus: Record<string, boolean> = {};
 
-      const game = await loadGameState();
-      if (
-        game &&
-        game.players.length > 0 &&
-        arraysEqual(game.players, loadedPlayers)
-      ) {
-        setHasSavedGame(true);
-        setLastMode(game.mode ?? 'friends');
-      } else {
-        await clearGameState();
-        setHasSavedGame(false);
+        for (const mode of GAME_MODES) {
+          if (mode.requirement === 'free') {
+            accessStatus[mode.id] = true;
+          } else if (mode.requirement === 'account') {
+            // If logged in, grant access
+            if (isLoggedIn) {
+              await grantModeAccess(mode.id);
+              accessStatus[mode.id] = true;
+            } else {
+              accessStatus[mode.id] = await hasModeAccess(mode.id);
+            }
+          } else if (mode.requirement === 'purchase') {
+            const purchased = await hasModePurchased(mode.id);
+            purchaseStatus[mode.id] = purchased;
+            if (purchased && isLoggedIn) {
+              await grantModeAccess(mode.id);
+              accessStatus[mode.id] = true;
+            } else {
+              accessStatus[mode.id] = purchased && await hasModeAccess(mode.id);
+            }
+          }
+        }
+
+        setModeAccess(accessStatus);
+        setPurchasedModes(purchaseStatus);
+      } catch (error) {
+        // Error loading - continue with default access (free mode only)
+        console.log('Menu init error:', error);
+        setModeAccess({ friends: true });
       }
     };
 
     init();
-  }, []);
+  }, [user]);
 
-  const menuButtons = [
-    { id: 'friends', title: t('menu.friends'), image: require('../assets/images/game1.png'), locked: false },
-    { id: 'caliente', title: t('menu.caliente'), image: require('../assets/images/game2.png'), locked: !isLoggedIn },
-    { id: 'mystery', title: t('menu.mystery'), image: require('../assets/images/build.png'), locked: true, disabled: true },
-    { id: 'couple', title: t('menu.couple'), image: require('../assets/images/build.png'), locked: true, disabled: true },
-  ];
+  const getModeTitle = (id: string): string => {
+    switch (id) {
+      case 'friends': return t('menu.friends');
+      case 'caliente': return t('menu.caliente');
+      case 'couples': return t('menu.couple');
+      default: return id;
+    }
+  };
+
+  const getModeDescription = (mode: GameMode): string => {
+    switch (mode.requirement) {
+      case 'free':
+        return t('menu.freeMode');
+      case 'account':
+        return modeAccess[mode.id] ? t('menu.unlocked') : t('menu.accountRequired');
+      case 'purchase':
+        if (purchasedModes[mode.id]) {
+          return t('menu.purchased');
+        }
+        return t('menu.purchaseRequired');
+      default:
+        return '';
+    }
+  };
+
+  const handleModePress = async (mode: GameMode) => {
+    haptics.lightTap();
+
+    // Free mode - always accessible
+    if (mode.requirement === 'free') {
+      await startGame(mode.id);
+      return;
+    }
+
+    // Account required mode
+    if (mode.requirement === 'account') {
+      if (modeAccess[mode.id]) {
+        await startGame(mode.id);
+      } else {
+        setSelectedMode(mode.id);
+        setShowLoginModal(true);
+      }
+      return;
+    }
+
+    // Purchase required mode
+    if (mode.requirement === 'purchase') {
+      if (modeAccess[mode.id]) {
+        await startGame(mode.id);
+      } else if (!isLoggedIn) {
+        setSelectedMode(mode.id);
+        setShowLoginModal(true);
+      } else {
+        setSelectedMode(mode.id);
+        setShowPurchaseModal(true);
+      }
+    }
+  };
+
+  const startGame = async (modeId: string) => {
+    await clearGameState();
+    setHasSavedGame(false);
+    router.push(`/game/${modeId}`);
+  };
+
+  const handlePurchase = async () => {
+    // TODO: Integrate with RevenueCat for real purchases
+    // For now, simulate purchase
+    haptics.success();
+    Alert.alert(
+      t('menu.purchaseTitle'),
+      t('menu.purchaseComingSoon'),
+      [{ text: 'OK', onPress: () => setShowPurchaseModal(false) }]
+    );
+  };
+
+  const renderModeCard = (mode: GameMode, index: number) => {
+    const hasAccess = modeAccess[mode.id];
+    // Check if user is logged in for account-required modes
+    const hasDirectAccess = mode.requirement === 'free' ||
+      (mode.requirement === 'account' && isLoggedIn) ||
+      (mode.requirement === 'purchase' && purchasedModes[mode.id]);
+    const isLocked = !hasAccess && !hasDirectAccess;
+
+    return (
+      <Animated.View
+        key={mode.id}
+        entering={FadeInDown.delay(index * 100).duration(400).springify()}
+      >
+        <TouchableOpacity
+          style={[
+            styles.modeCard,
+            { backgroundColor: mode.bgColor, borderColor: mode.color, shadowColor: mode.color },
+            isLocked && styles.modeCardLocked,
+          ]}
+          activeOpacity={0.8}
+          onPress={() => handleModePress(mode)}
+        >
+          <View style={[styles.modeIconContainer, { backgroundColor: `${mode.color}20` }]}>
+            {mode.icon === 'flame' ? (
+              <MaterialCommunityIcons name="fire" size={32} color={mode.color} />
+            ) : (
+              <Icon
+                name={mode.icon}
+                size={28}
+                color={mode.color}
+                style={mode.icon === 'beer' ? { marginLeft: -5, marginTop: 2 } : undefined}
+              />
+            )}
+          </View>
+
+          <View style={styles.modeContent}>
+            <Text style={[styles.modeTitle, { color: mode.color }]}>
+              {getModeTitle(mode.id)}
+            </Text>
+            <Text style={styles.modeDescription}>
+              {getModeDescription(mode)}
+            </Text>
+          </View>
+
+          <View style={styles.modeArrow}>
+            {isLocked ? (
+              <Icon name="lock" size={20} color={colors.text.tertiary} />
+            ) : (
+              <Icon name="chevron-right" size={20} color={mode.color} />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>⬅ {t('menu.back')}</Text>
+      {/* Header */}
+      <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => {
+            haptics.lightTap();
+            router.back();
+          }}
+        >
+          <Icon name="arrow-left" size={18} color={colors.text.primary} />
+          <Text style={styles.backText}>{t('menu.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.playersText}>👥 {playerList.length} {t('menu.players')}</Text>
-      </View>
 
-      {hasSavedGame && (
-        <View style={styles.resumeContainer}>
-          <Text style={styles.resumeText}>{t('menu.resumeQuestion')}</Text>
-          <View style={styles.resumeButtons}>
-            <TouchableOpacity
-              style={[styles.resumeButton, { backgroundColor: '#2e7d32' }]}
-              onPress={() => router.push(`/game/${lastMode}`)}
-            >
-              <Icon name="check" size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.resumeButton, { backgroundColor: '#c62828' }]}
-              onPress={async () => {
-                await clearGameState();
-                setHasSavedGame(false);
-              }}
-            >
-              <Icon name="times" size={24} color="#fff" />
-            </TouchableOpacity>
+        <View style={styles.playersChip}>
+          <View style={styles.playersContent}>
+            <Icon name="users" size={14} color={colors.text.primary} />
+            <Text style={styles.playersText}>{playerList.length}</Text>
           </View>
         </View>
-      )}
+      </Animated.View>
 
-      <ScrollView contentContainerStyle={styles.buttonList}>
-        {menuButtons.map((item) => {
-          const locked = item.locked;
-          const disabled = item.disabled;
+      {/* Title */}
+      <Animated.View entering={FadeInDown.delay(50).duration(400)} style={styles.titleContainer}>
+        <Text style={styles.title}>{t('menu.chooseMode')}</Text>
+      </Animated.View>
 
-          return (
-            <View key={item.id} style={{ position: 'relative', width: '100%' }}>
+      {/* Resume Game Section */}
+      {hasSavedGame && (
+        <Animated.View
+          entering={FadeInDown.duration(400).springify()}
+          style={styles.resumeContainer}
+        >
+          <Card variant="glow" padding="md">
+            <Text style={styles.resumeText}>{t('menu.resumeQuestion')}</Text>
+            <View style={styles.resumeButtons}>
               <TouchableOpacity
-                style={[styles.menuButton, (locked || disabled) && styles.locked]}
-                activeOpacity={0.9}
+                style={[styles.resumeButton, { backgroundColor: colors.semantic.success }]}
+                onPress={() => {
+                  haptics.success();
+                  router.push(`/game/${lastMode}`);
+                }}
+              >
+                <Icon name="play" size={20} color={colors.text.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.resumeButton, { backgroundColor: colors.semantic.error }]}
                 onPress={async () => {
-                  if (disabled) return;
-                  if (locked) {
-                    setShowModal(true);
-                    return;
-                  }
+                  haptics.warning();
                   await clearGameState();
                   setHasSavedGame(false);
-                  router.push(`/game/${item.id}`);
                 }}
-                disabled={disabled}
               >
-                <MenuImage source={item.image} />
-                <Text style={styles.buttonTitle}>
-                  {disabled
-                    ? t('menu.underConstruction')
-                    : locked
-                    ? `🔒 ${item.title}`
-                    : item.title}
-                </Text>
+                <Icon name="times" size={22} color={colors.text.primary} />
               </TouchableOpacity>
-
-              {locked && !disabled && (
-                <View style={styles.bubble}>
-                  <Text style={styles.bubbleText}>{t('menu.unlockHint')}</Text>
-                </View>
-              )}
             </View>
-          );
-        })}
+          </Card>
+        </Animated.View>
+      )}
+
+      {/* Mode Cards */}
+      <ScrollView
+        contentContainerStyle={styles.modesContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {GAME_MODES.map((mode, index) => renderModeCard(mode, index))}
       </ScrollView>
 
+      {/* Login Required Modal */}
       <Modal
-        visible={showModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowModal(false)}
+        visible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title={t('menu.loginRequired')}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <TouchableOpacity style={styles.modalClose} onPress={() => setShowModal(false)}>
-              <View style={styles.closeButtonCircle}>
-                <Text style={styles.closeButtonText}>✕</Text>
-              </View>
-            </TouchableOpacity>
+        <Text style={styles.modalText}>{t('menu.loginRequiredDesc')}</Text>
+        <View style={styles.modalButtons}>
+          <AnimatedButton
+            label={t('menu.goToLogin')}
+            onPress={() => {
+              setShowLoginModal(false);
+              router.push('/auth/login');
+            }}
+            size="md"
+            style={{ flex: 1 }}
+          />
+        </View>
+      </Modal>
 
-            <Text style={styles.modalTitle}>{t('menu.modalTitle')}</Text>
-            <Text style={styles.modalText}>{t('menu.modalText')}</Text>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => {
-                setShowModal(false);
-                router.push('/auth/login');
-              }}
-            >
-              <Icon name="arrow-right" size={24} color="#000" />
-            </TouchableOpacity>
-          </View>
+      {/* Purchase Required Modal */}
+      <Modal
+        visible={showPurchaseModal}
+        onClose={() => setShowPurchaseModal(false)}
+        title={t('menu.purchaseTitle')}
+      >
+        <Text style={styles.modalText}>{t('menu.purchaseDesc')}</Text>
+        <View style={styles.modalButtons}>
+          <AnimatedButton
+            label={t('common.cancel')}
+            variant="ghost"
+            onPress={() => setShowPurchaseModal(false)}
+            size="md"
+            style={{ flex: 1 }}
+          />
+          <AnimatedButton
+            label={t('menu.purchase')}
+            onPress={handlePurchase}
+            size="md"
+            style={{ flex: 1 }}
+          />
         </View>
       </Modal>
     </View>
@@ -202,183 +399,151 @@ function arraysEqual(a: string[], b: string[]) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a0000',
+    backgroundColor: colors.background.primary,
     paddingTop: 60,
-    paddingHorizontal: 20,
   },
-  topBar: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
+    paddingHorizontal: spacing[5],
+    marginBottom: spacing[4],
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background.tertiary,
+    borderWidth: 1,
+    borderColor: colors.ui.border,
   },
   backText: {
-    color: '#ffb347',
+    color: colors.text.primary,
     fontSize: 16,
     fontWeight: '600',
-    padding: 6,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    backgroundColor: '#2c0000',
-    overflow: 'hidden',
+  },
+  playersChip: {
+    backgroundColor: colors.background.tertiary,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+    borderWidth: 2,
+    borderColor: colors.primary.main,
+    // Glow
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  playersContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
   },
   playersText: {
-    color: '#fff',
+    color: colors.text.primary,
     fontSize: 14,
     fontWeight: '500',
-    backgroundColor: '#2c0000',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
+  },
+  titleContainer: {
+    paddingHorizontal: spacing[5],
+    marginBottom: spacing[4],
+  },
+  title: {
+    ...textStyles.h1,
+    color: colors.text.primary,
+    // Red glow
+    textShadowColor: 'rgba(224, 32, 32, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
   resumeContainer: {
-    marginBottom: 30,
-    alignItems: 'center',
+    paddingHorizontal: spacing[5],
+    marginBottom: spacing[4],
   },
   resumeText: {
-    color: '#ffb347',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 14,
+    color: colors.text.primary,
+    ...textStyles.h3,
+    textAlign: 'center',
+    marginBottom: spacing[4],
   },
   resumeButtons: {
     flexDirection: 'row',
-    gap: 24,
+    justifyContent: 'center',
+    gap: spacing[6],
   },
   resumeButton: {
     width: 60,
     height: 60,
-    borderRadius: 999,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    borderBottomWidth: 4,
+    borderBottomColor: 'rgba(0,0,0,0.3)',
+    // Glow
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  buttonList: {
+  modesContainer: {
+    paddingHorizontal: spacing[5],
+    paddingBottom: spacing[10],
+    gap: spacing[4],
+  },
+  modeCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: 40,
+    padding: spacing[4],
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 2,
+    // Glow effect based on card color
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  menuButton: {
-    width: '100%',
-    height: 110,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    marginBottom: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    elevation: 4,
-  },
-  locked: {
+  modeCardLocked: {
     opacity: 0.7,
+    borderStyle: 'dashed',
   },
-  imageWrapper: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#1a0000',
-    justifyContent: 'center',
+  modeIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1a0000',
+    marginRight: spacing[4],
   },
-  buttonTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    textAlign: 'center',
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    borderRadius: 10,
+  modeContent: {
+    flex: 1,
   },
-  bubble: {
-    position: 'absolute',
-    bottom: 8,
-    alignSelf: 'center',
-    backgroundColor: '#fff4c4',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    elevation: 3,
+  modeTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: spacing[1],
   },
-  bubbleText: {
-    color: '#222',
+  modeDescription: {
+    color: colors.text.secondary,
     fontSize: 13,
     fontWeight: '500',
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalBox: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    width: '80%',
-    alignItems: 'center',
-    elevation: 5,
-    position: 'relative',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 10,
-    textAlign: 'center',
+  modeArrow: {
+    marginLeft: spacing[2],
   },
   modalText: {
-    fontSize: 14,
-    color: '#444',
+    color: colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 20,
+    ...textStyles.bodyMedium,
+    marginBottom: spacing[2],
   },
-  modalButton: {
-    backgroundColor: '#ffb347',
-    padding: 12,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 50,
-    height: 50,
-  },
-  modalClose: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    padding: 6,
-    zIndex: 10,
-  },
-  closeButtonCircle: {
-  width: 36,
-  height: 36,
-  borderRadius: 18,
-  backgroundColor: '#ffb347',
-  justifyContent: 'center',
-  alignItems: 'center',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.2,
-  shadowRadius: 3,
-  elevation: 4,
-  },
-  closeButtonText: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: 'bold',
+  modalButtons: {
+    flexDirection: 'row',
+    gap: spacing[3],
+    marginTop: spacing[4],
   },
 });

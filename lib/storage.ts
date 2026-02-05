@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PLAYER_KEY = '@moody_players';
 const GAME_KEY = '@moody_game_state';
+const GAME_KEY_V2 = '@moody_game_v2';
 
 export interface GameState {
   players: string[];
@@ -33,7 +34,8 @@ export const loadGameState = async (): Promise<GameState | null> => {
 
 export const clearGameState = async () => {
   try {
-    await AsyncStorage.removeItem(GAME_KEY);
+    // Clear both old and new game state keys
+    await AsyncStorage.multiRemove([GAME_KEY, GAME_KEY_V2]);
   } catch (e) {
     console.error('Erreur clearGameState :', e);
   }

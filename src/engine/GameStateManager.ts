@@ -5,9 +5,6 @@ import {
   GameConfig,
   Player,
   RoundResult,
-  GameAction,
-  MiniGameResult,
-  GameEvent,
 } from './types';
 
 export class GameStateManager {
